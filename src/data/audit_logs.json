@@ -1,0 +1,16 @@
+[
+  {
+    "id": "6e2b4698-f1b0-4f27-bd7b-1e20da99bb83",
+    "role": "admin",
+    "action": "Pembuatan Program Baru",
+    "details": "Mendaftarkan kurikulum/program baru bernama: Senior Dev ops",
+    "created_at": "2026-09-04T07:53:12.427Z"
+  },
+  {
+    "id": "abed3da5-795a-44a1-b24f-0d4212d85c80",
+    "role": "admin",
+    "action": "Ubah Pengaturan Global",
+    "details": "Mengubah Nama Institusi menjadi E17",
+    "created_at": "2026-09-03T07:17:01.019Z"
+  }
+]

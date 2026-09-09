@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  /* === E17 Professional Minimalist Palette === */
+  
+  /* Primary: Bright Golden Yellow (CTA, Active states, Highlights) */
+  --color-e17-primary: #FDBA2A; 
+  --color-e17-primary-hover: #E5A31F; 
+  
+  /* Secondary: Warm Orange (Gradient accents) */
+  --color-e17-secondary: #F97316; /* Orange-500 */
+  
+  /* Typography: Dark Slate (Text, Headings) */
+  --color-e17-dark: #1E293B;
+  --color-e17-dark-muted: #475569;
+  
+  /* Complementary: Dark Navy (Sidebar, Navbar, Banner) */
+  --color-e17-navy: #1F2844;
+  --color-e17-navy-hover: #161D33;
+  --color-e17-navy-active: #0D1120;
+  
+  /* Semantic */
+  --color-e17-success: #16A34A;
+  --color-e17-danger: #DC2626;
+  --color-e17-info: #2563EB;
+  
+  --font-sans: 'Inter', Arial, Helvetica, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+:root {
+  /* Background: Off-White */
+  --background: #F9FAFB;
+  /* Foreground: Dark Slate */
+  --foreground: #1E293B;
+}
+
+/* === Global Base === */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* === Smooth scrolling === */
+html {
+  scroll-behavior: smooth;
+}
+
+/* === Selection color === */
+::selection {
+  background-color: #FACC15;
+  color: #1E293B;
+}
+
+/* === Custom scrollbar (minimalist) === */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #CBD5E1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #94A3B8;
+}
+
+/* === Utility Classes === */
+@layer utilities {
+  
+  /* Card clean effects */
+  .card-clean {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+  }
+  .card-clean:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Focus rings */
+  .ring-primary {
+    --tw-ring-color: #FACC15;
+  }
+  .ring-secondary {
+    --tw-ring-color: #A16207;
+  }
+}
+
+/* === Animations === */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+  .animate-slide-in-left {
+    animation: slide-in-left 0.3s ease-out;
+  }
+}
