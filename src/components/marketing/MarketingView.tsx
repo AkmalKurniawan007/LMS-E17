@@ -54,7 +54,7 @@ function Navbar() {
             <img
               src="/assets/logo-wide.png"
               alt="E17 Course"
-              className="h-7 md:h-8 w-auto object-contain brightness-0 invert"
+              className="h-7 md:h-8 w-auto object-contain"
             />
           </Link>
 
