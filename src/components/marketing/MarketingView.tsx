@@ -12,6 +12,7 @@ import PromoSection from "./sections/PromoSection";
 import CurriculumSection from "./sections/CurriculumSection";
 import PricingSection from "./sections/PricingSection";
 import FAQSection from "./sections/FAQSection";
+import FinalCTA from "./sections/FinalCTA";
 import FooterSection from "./sections/FooterSection";
 import WhatsAppFAB from "./sections/WhatsAppFAB";
 import ScrollProgressBar from "./sections/ScrollProgressBar";
