@@ -2,14 +2,19 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useActionState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { CheckCircle, Mail, Loader2, ArrowLeft } from "lucide-react"
+import { CheckCircle, Mail, Loader2, ArrowLeft, AlertCircle } from "lucide-react"
+import { resetPassword } from "./actions"
 
-type PageState = "idle" | "loading" | "success"
+const initialState = {
+  error: null as string | null,
+  success: false,
+}
 
 export default function ForgotPasswordPage() {
-  const [pageState, setPageState] = React.useState<PageState>("idle")
+  const [state, formAction, isPending] = useActionState(resetPassword, initialState)
   const [email, setEmail] = React.useState("")
   const [emailError, setEmailError] = React.useState("")
 
@@ -19,23 +24,8 @@ export default function ForgotPasswordPage() {
     return ""
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const error = validateEmail(email)
-    if (error) {
-      setEmailError(error)
-      return
-    }
-    setEmailError("")
-    setPageState("loading")
-    // Simulasi pengiriman email (akan diganti dengan Supabase Auth)
-    setTimeout(() => {
-      setPageState("success")
-    }, 1800)
-  }
-
   // ── State: Berhasil Terkirim ──────────────────────────────────────────────
-  if (pageState === "success") {
+  if (state?.success) {
     return (
       <div className="mt-8 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
         <div className="h-20 w-20 bg-emerald-100 rounded-full flex items-center justify-center mb-5">
@@ -58,7 +48,7 @@ export default function ForgotPasswordPage() {
           </Button>
         </Link>
         <button
-          onClick={() => { setPageState("idle"); setEmail("") }}
+          onClick={() => { window.location.reload() }}
           className="mt-4 text-xs text-e17-navy hover:underline font-medium"
         >
           Kirim ulang ke email berbeda
@@ -69,7 +59,14 @@ export default function ForgotPasswordPage() {
 
   // ── State: Form (Idle / Loading) ──────────────────────────────────────────
   return (
-    <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+    <form className="mt-8 space-y-6" action={formAction}>
+      {state?.error && (
+        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+          <p>{state.error}</p>
+        </div>
+      )}
+
       <div className="space-y-4">
         <p className="text-sm text-slate-600 text-center mb-4 leading-relaxed">
           Masukkan alamat email Anda yang terdaftar dan kami akan mengirimkan tautan untuk mengatur ulang kata sandi Anda.
@@ -91,7 +88,7 @@ export default function ForgotPasswordPage() {
               if (emailError) setEmailError(validateEmail(e.target.value))
             }}
             className={emailError ? "border-red-400 focus-visible:ring-red-400" : ""}
-            disabled={pageState === "loading"}
+            disabled={isPending}
           />
           {emailError && (
             <p className="text-xs text-red-600 mt-1 font-medium">{emailError}</p>
@@ -104,9 +101,9 @@ export default function ForgotPasswordPage() {
           type="submit"
           variant="orange"
           className="w-full h-11 text-base font-bold shadow-md"
-          disabled={pageState === "loading"}
+          disabled={isPending}
         >
-          {pageState === "loading" ? (
+          {isPending ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Mengirim...
             </>

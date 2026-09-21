@@ -126,7 +126,7 @@ export function CalendarWidget({ events = [], onDateClick, selectedDate }: Calen
                 
                 {/* Event Indicator Dot */}
                 {hasEvents && (
-                  <span className={`absolute bottom-1.5 h-1 w-1 rounded-full ${isSelected ? 'bg-white' : 'bg-e17-primary'}`}></span>
+                  <span className={`absolute bottom-1.5 h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-orange-500'}`}></span>
                 )}
               </button>
               

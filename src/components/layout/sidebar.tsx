@@ -30,6 +30,7 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
           { name: "Nilai & Peringkat", href: "/admin/grades", icon: Trophy },
           { name: "Laporan & Data", href: "/admin/reports", icon: PieChart },
           { name: "Sertifikat", href: "/admin/certificates", icon: Award },
+          { name: "Portofolio Siswa", href: "/admin/portfolios", icon: Folder },
           { name: "Broadcast", href: "/admin/broadcast", icon: Megaphone },
           { name: "Tiket Bantuan", href: "/admin/helpdesk", icon: Ticket },
           { name: "Log Audit", href: "/admin/audit", icon: ShieldAlert },
@@ -44,14 +45,18 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
           { name: "Penilaian Kuis", href: "/mentor/quizzes", icon: FileText },
           { name: "Proyek Akhir", href: "/mentor/projects", icon: Trophy },
           { name: "Validasi Portofolio", href: "/mentor/portfolio-review", icon: Award },
+          { name: "Tiket Bantuan", href: "/mentor/helpdesk", icon: Ticket },
         ]
       case "Siswa":
         return [
           { name: "Dashboard", href: "/siswa", icon: LayoutDashboard },
           { name: "Materi Belajar", href: "/siswa/courses", icon: BookOpen },
-          { name: "Tugas & Proyek", href: "/siswa/assignments", icon: CheckSquare },
+          { name: "Pesan & Diskusi", href: "/siswa/messages", icon: MessageSquare },
+          { name: "Tugas Harian", href: "/siswa/assignments", icon: CheckSquare },
+          { name: "Proyek Akhir", href: "/siswa/projects", icon: Trophy },
           { name: "Portofolio", href: "/siswa/portfolio", icon: FileText },
           { name: "Sertifikat", href: "/siswa/certificates", icon: Award },
+          { name: "Tiket Bantuan", href: "/siswa/helpdesk", icon: Ticket },
         ]
       default:
         return []
@@ -78,12 +83,14 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
       >
         {/* Logo Area */}
         <div className="flex h-16 items-center px-6 bg-e17-navy border-b border-white/10 shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-lg bg-e17-primary flex items-center justify-center shadow-sm">
-              <span className="text-sm font-black text-e17-navy">E17</span>
-            </div>
-            <span className="text-lg font-bold text-white tracking-tight">E17 Course</span>
-          </div>
+          <Link href="/" className="flex items-center">
+            {/* The wide logo for E17 Course */}
+            <img 
+              src="/assets/logo-wide.png" 
+              alt="E17 Course" 
+              className="h-8 w-auto object-contain"
+            />
+          </Link>
         </div>
 
         {/* Role Badge */}
@@ -97,7 +104,10 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
         {/* Navigation */}
         <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+            const isDashboardRoot = item.href === '/admin' || item.href === '/mentor' || item.href === '/siswa'
+            const isActive = isDashboardRoot 
+              ? pathname === item.href 
+              : pathname === item.href || pathname.startsWith(`${item.href}/`)
             return (
               <Link
                 key={item.name}

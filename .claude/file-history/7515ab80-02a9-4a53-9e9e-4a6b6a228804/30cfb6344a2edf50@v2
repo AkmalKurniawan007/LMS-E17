@@ -1,0 +1,8 @@
+import { redirect } from "next/navigation";
+
+export const dynamic = "force-dynamic";
+
+// Overview ringkas — M2 fokus ke materi & video. Redirect ke daftar materi.
+export default function OverviewPage({ params }: { params: { slug: string } }) {
+  redirect(`/bootcamp/${params.slug}/materi`);
+}

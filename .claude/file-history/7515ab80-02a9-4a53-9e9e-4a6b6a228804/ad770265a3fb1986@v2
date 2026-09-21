@@ -1,0 +1,16 @@
+/** Format durasi detik → "10 menit" / "1 jam 5 menit". */
+export function formatDuration(seconds: number): string {
+  const mins = Math.round(seconds / 60);
+  if (mins < 60) return `${mins} menit`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m ? `${h} jam ${m} menit` : `${h} jam`;
+}
+
+/** Format durasi detik → "10:00" (m:ss). Dipakai di player. */
+export function formatClock(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${String(r).padStart(2, "0")}`;
+}

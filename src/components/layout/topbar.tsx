@@ -18,7 +18,10 @@ export function Topbar({ role, userName, onMobileMenuToggle }: TopbarProps) {
   const router = useRouter()
   const supabase = createClient()
   const [isNotificationOpen, setIsNotificationOpen] = React.useState(false)
-  const [unreadCount, setUnreadCount] = React.useState(2)
+  
+  const [notifications, setNotifications] = React.useState<any[]>([])
+  const [unreadCount, setUnreadCount] = React.useState(0)
+  
   const [currentTime, setCurrentTime] = React.useState<Date | null>(null)
 
   React.useEffect(() => {
@@ -28,8 +31,42 @@ export function Topbar({ role, userName, onMobileMenuToggle }: TopbarProps) {
     const interval = setInterval(() => {
       setCurrentTime(new Date())
     }, 1000)
+    
+    fetchNotifications()
+    
     return () => clearInterval(interval)
   }, [])
+
+  const fetchNotifications = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data, error } = await supabase
+      .from('in_app_notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    if (data && !error) {
+      setNotifications(data.map(n => ({
+        id: n.id,
+        title: n.title,
+        desc: n.message,
+        time: timeAgo(n.created_at),
+        unread: !n.is_read
+      })))
+      setUnreadCount(data.filter(n => !n.is_read).length)
+    }
+  }
+
+  const timeAgo = (dateStr: string) => {
+    const diff = Math.floor((new Date().getTime() - new Date(dateStr).getTime()) / 1000 / 60)
+    if (diff < 1) return `Baru saja`
+    if (diff < 60) return `${diff} menit lalu`
+    if (diff < 1440) return `${Math.floor(diff / 60)} jam lalu`
+    return `${Math.floor(diff / 1440)} hari lalu`
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -37,14 +74,18 @@ export function Topbar({ role, userName, onMobileMenuToggle }: TopbarProps) {
     router.refresh()
   }
 
-  const notifications = [
-    { id: 1, title: "Sesi 5 Dimulai", desc: "Sesi 'Backend with Node.js' telah dimulai.", time: "5 mnt lalu", unread: true },
-    { id: 2, title: "Tugas Dinilai", desc: "Mentor telah menilai tugas 'Membuat Counter App'.", time: "2 jam lalu", unread: true },
-    { id: 3, title: "Kuis Baru Tersedia", desc: "Kuis evaluasi State Management sudah dapat dikerjakan.", time: "1 hari lalu", unread: false },
-  ]
-
-  const handleMarkAllRead = () => {
+  const handleMarkAllRead = async () => {
     setUnreadCount(0)
+    setNotifications(prev => prev.map(n => ({ ...n, unread: false })))
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase
+        .from('in_app_notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false)
+    }
   }
 
   return (
@@ -102,7 +143,11 @@ export function Topbar({ role, userName, onMobileMenuToggle }: TopbarProps) {
                 )}
               </div>
               <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
-                {notifications.map(notif => (
+                {notifications.length === 0 ? (
+                  <div className="p-8 text-center text-slate-400 text-sm">
+                    Belum ada notifikasi.
+                  </div>
+                ) : notifications.map(notif => (
                   <div key={notif.id} className={`p-4 flex gap-3 hover:bg-slate-50 transition-colors cursor-pointer ${notif.unread && unreadCount > 0 ? 'bg-blue-50/30' : ''}`}>
                     <div className={`mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${notif.unread && unreadCount > 0 ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
                       <Bell className="h-4 w-4" />
@@ -117,9 +162,11 @@ export function Topbar({ role, userName, onMobileMenuToggle }: TopbarProps) {
                   </div>
                 ))}
               </div>
-              <div className="p-3 border-t border-slate-100 text-center bg-slate-50">
-                <Link href="#" className="text-xs font-bold text-e17-navy hover:underline">Lihat Semua Notifikasi</Link>
-              </div>
+              {notifications.length > 0 && (
+                <div className="p-3 border-t border-slate-100 text-center bg-slate-50">
+                  <Link href="#" className="text-xs font-bold text-e17-navy hover:underline">Lihat Semua Notifikasi</Link>
+                </div>
+              )}
             </div>
           )}
         </div>

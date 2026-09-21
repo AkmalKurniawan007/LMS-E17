@@ -8,6 +8,10 @@ CREATE TABLE public.users (
   role USER-DEFINED DEFAULT 'siswa'::user_role,
   avatar_url text,
   created_at timestamp with time zone DEFAULT now(),
+  username text UNIQUE,
+  tagline text,
+  bio text,
+  portfolio_status boolean DEFAULT true,
   CONSTRAINT users_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.programs (
@@ -29,6 +33,7 @@ CREATE TABLE public.batches (
   task_weight numeric DEFAULT 50.00,
   created_at timestamp with time zone DEFAULT now(),
   status character varying NOT NULL DEFAULT 'akan_datang'::character varying,
+  certificate_template_url text,
   CONSTRAINT batches_pkey PRIMARY KEY (id),
   CONSTRAINT batches_program_id_fkey FOREIGN KEY (program_id) REFERENCES public.programs(id)
 );
@@ -60,11 +65,16 @@ CREATE TABLE public.sessions (
   description text,
   format USER-DEFINED NOT NULL,
   scheduled_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
   session_type character varying DEFAULT 'offline'::character varying,
   meeting_link text,
   meeting_link_status character varying DEFAULT 'pending'::character varying,
   meeting_link_provider character varying DEFAULT 'admin'::character varying,
-  created_at timestamp with time zone DEFAULT now(),
+  status text DEFAULT 'not_started'::text,
+  start_time time without time zone,
+  end_time time without time zone,
+  started_at timestamp with time zone,
+  ended_at timestamp with time zone,
   CONSTRAINT sessions_pkey PRIMARY KEY (id),
   CONSTRAINT sessions_batch_id_fkey FOREIGN KEY (batch_id) REFERENCES public.batches(id)
 );
@@ -87,6 +97,7 @@ CREATE TABLE public.quizzes (
   max_retries integer DEFAULT 3,
   order_number integer NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
+  deadline timestamp with time zone,
   CONSTRAINT quizzes_pkey PRIMARY KEY (id),
   CONSTRAINT quizzes_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.sessions(id)
 );
@@ -109,6 +120,7 @@ CREATE TABLE public.tasks (
   deadline timestamp with time zone NOT NULL,
   order_number integer NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
+  is_final_project boolean DEFAULT false,
   CONSTRAINT tasks_pkey PRIMARY KEY (id),
   CONSTRAINT tasks_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.sessions(id)
 );
@@ -196,6 +208,7 @@ CREATE TABLE public.certificates (
   revoked_reason text,
   revoked_by uuid,
   revoked_at timestamp with time zone,
+  manual_image_url text,
   CONSTRAINT certificates_pkey PRIMARY KEY (id),
   CONSTRAINT certificates_enrollment_id_fkey FOREIGN KEY (enrollment_id) REFERENCES public.enrollments(id),
   CONSTRAINT certificates_revoked_by_fkey FOREIGN KEY (revoked_by) REFERENCES public.users(id)
@@ -328,4 +341,83 @@ CREATE TABLE public.program_tasks (
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT program_tasks_pkey PRIMARY KEY (id),
   CONSTRAINT program_tasks_session_fkey FOREIGN KEY (program_session_id) REFERENCES public.program_sessions(id)
+);
+CREATE TABLE public.chat_rooms (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  type USER-DEFINED NOT NULL,
+  name text,
+  batch_id uuid,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT chat_rooms_pkey PRIMARY KEY (id),
+  CONSTRAINT chat_rooms_batch_id_fkey FOREIGN KEY (batch_id) REFERENCES public.batches(id)
+);
+CREATE TABLE public.chat_participants (
+  room_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  joined_at timestamp with time zone DEFAULT now(),
+  last_read_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT chat_participants_pkey PRIMARY KEY (room_id, user_id),
+  CONSTRAINT chat_participants_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.chat_rooms(id),
+  CONSTRAINT chat_participants_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.messages (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  room_id uuid,
+  sender_id uuid,
+  content text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT messages_pkey PRIMARY KEY (id),
+  CONSTRAINT messages_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.chat_rooms(id),
+  CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.portfolio_projects (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  title text NOT NULL,
+  description text,
+  image_url text,
+  project_url text,
+  status text DEFAULT 'draft'::text,
+  batch_id uuid,
+  feedback text,
+  validated_by uuid,
+  validated_at timestamp with time zone,
+  is_showcase boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT portfolio_projects_pkey PRIMARY KEY (id),
+  CONSTRAINT portfolio_projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT portfolio_projects_batch_id_fkey FOREIGN KEY (batch_id) REFERENCES public.batches(id),
+  CONSTRAINT portfolio_projects_validated_by_fkey FOREIGN KEY (validated_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.broadcasts (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  subject text NOT NULL,
+  message text NOT NULL,
+  target text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  created_by uuid,
+  CONSTRAINT broadcasts_pkey PRIMARY KEY (id),
+  CONSTRAINT broadcasts_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.helpdesk_tickets (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  subject text NOT NULL,
+  user_id uuid NOT NULL,
+  status text NOT NULL DEFAULT 'Open'::text CHECK (status = ANY (ARRAY['Open'::text, 'In Progress'::text, 'Resolved'::text])),
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT helpdesk_tickets_pkey PRIMARY KEY (id),
+  CONSTRAINT helpdesk_tickets_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.helpdesk_messages (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  ticket_id uuid NOT NULL,
+  sender_id uuid,
+  message text NOT NULL,
+  is_admin boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT helpdesk_messages_pkey PRIMARY KEY (id),
+  CONSTRAINT helpdesk_messages_ticket_id_fkey FOREIGN KEY (ticket_id) REFERENCES public.helpdesk_tickets(id),
+  CONSTRAINT helpdesk_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id)
 );

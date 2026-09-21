@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { BookOpen, Clock, Lock, PlayCircle, CheckCircle, Video, MapPin, Download, ArrowRight, Loader2, UserCheck } from "lucide-react"
+import { BookOpen, Clock, Lock, PlayCircle, CheckCircle, Video, MapPin, Download, ArrowRight, Loader2, UserCheck, FileText, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/client"
 import { toast } from "sonner"
@@ -10,7 +10,7 @@ import { toast } from "sonner"
 export default function SiswaCoursesPage() {
   const supabase = createClient()
   const [sessions, setSessions] = React.useState<any[]>([])
-  const [courseData, setCourseData] = React.useState<any>({ name: "Memuat...", batch: "...", mentor: "...", progress: 0, completed: 0, total: 0 })
+  const [courseData, setCourseData] = React.useState<any>({ name: "Memuat...", batch: "...", mentor: "...", progress: 0, completed: 0, total: 0, startDate: null })
   const [attendances, setAttendances] = React.useState<Record<string, boolean>>({}) // mapping sessionId to hasAttended
   const [isLoading, setIsLoading] = React.useState(true)
   const [isAbsenLoading, setIsAbsenLoading] = React.useState<string | null>(null)
@@ -36,7 +36,7 @@ export default function SiswaCoursesPage() {
       .single()
 
     if (!enrollmentData) {
-      setCourseData({ name: "Anda Belum Terdaftar", batch: "-", mentor: "-", progress: 0, completed: 0, total: 0 })
+      setCourseData({ name: "Anda Belum Terdaftar", batch: "-", mentor: "-", progress: 0, completed: 0, total: 0, startDate: null })
       setIsLoading(false)
       return
     }
@@ -48,14 +48,15 @@ export default function SiswaCoursesPage() {
       .from('batches')
       .select(`
         name,
+        start_date,
         programs ( name )
       `)
       .eq('id', batchId)
       .single()
 
-    // 3. Fetch Sessions & Materials
+    // 3. Fetch Sessions & Materials, Quizzes, and Tasks
     const { data: sessData } = await supabase.from('sessions')
-      .select('*, materials(*)')
+      .select('*, materials(*), quizzes(id, title), tasks(id, title)')
       .eq('batch_id', batchId)
       .order('order_number', { ascending: true })
 
@@ -76,12 +77,13 @@ export default function SiswaCoursesPage() {
       const prog = totalSess > 0 ? Math.round((compSess / totalSess) * 100) : 0
       
       setCourseData({
-        name: batchData?.programs?.name || "Program",
+        name: (batchData?.programs as any)?.name || "Program",
         batch: batchData?.name || "Batch",
         mentor: "Mentor Kelas",
         progress: prog,
         completed: compSess,
-        total: totalSess
+        total: totalSess,
+        startDate: batchData?.start_date
       })
     }
     
@@ -154,6 +156,16 @@ export default function SiswaCoursesPage() {
           const sessionMode = session.session_type === 'online' ? 'Online' : 'Offline';
           const sessionDate = session.scheduled_at ? new Date(session.scheduled_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Belum ditentukan';
           const hasAttended = attendances[session.id] || false;
+          
+          // Determine if materials are accessible (H-1 of Batch Start Date)
+          const batchStart = courseData.startDate ? new Date(courseData.startDate) : null;
+          let canAccessMaterials = true;
+          if (batchStart) {
+            const hMinusOne = new Date(batchStart.getTime() - (24 * 60 * 60 * 1000));
+            if (new Date() < hMinusOne) {
+              canAccessMaterials = false;
+            }
+          }
           
           return (
           <div 
@@ -254,11 +266,47 @@ export default function SiswaCoursesPage() {
                   )}
                   
                   {/* Mulai Belajar */}
-                  <Link href={firstMaterialId ? `/siswa/learn/${session.id}/${firstMaterialId}` : '#'} className="w-full sm:w-auto ml-auto">
-                    <Button variant="orange" className="w-full font-bold shadow-md" disabled={!firstMaterialId}>
-                      {firstMaterialId ? 'Mulai Belajar' : 'Materi Kosong'} <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  </Link>
+                  {!canAccessMaterials ? (
+                     <Button variant="outline" disabled className="w-full sm:w-auto ml-auto bg-slate-50 text-slate-400 border-slate-200 font-bold" title="Akses dibuka H-1 kelas dimulai">
+                       Belum Waktunya <Lock className="h-4 w-4 ml-2" />
+                     </Button>
+                  ) : (
+                    <Link href={firstMaterialId ? `/siswa/learn/${session.id}/${firstMaterialId}` : '#'} className="w-full sm:w-auto ml-auto">
+                      <Button variant="orange" className="w-full font-bold shadow-md" disabled={!firstMaterialId}>
+                        {firstMaterialId ? 'Mulai Belajar' : 'Materi Kosong'} <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    </Link>
+                  )}
+
+                  {/* Kerjakan Tugas */}
+                  {session.tasks && session.tasks.map((task: any) => (
+                    canAccessMaterials ? (
+                      <Link key={`task-${task.id}`} href={`/siswa/assignments/${task.id}`} className="w-full sm:w-auto">
+                        <Button variant="outline" className="w-full border-blue-200 bg-blue-50 text-blue-700 font-bold hover:bg-blue-100 shadow-sm">
+                          <FileText className="h-4 w-4 mr-2" /> Kerjakan Tugas
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button key={`task-${task.id}`} variant="outline" disabled className="w-full sm:w-auto bg-slate-50 text-slate-400 border-slate-200 font-bold">
+                        <FileText className="h-4 w-4 mr-2" /> Tugas Terkunci
+                      </Button>
+                    )
+                  ))}
+
+                  {/* Kerjakan Kuis */}
+                  {session.quizzes && session.quizzes.map((quiz: any) => (
+                    canAccessMaterials ? (
+                      <Link key={`quiz-${quiz.id}`} href={`/siswa/quiz/${quiz.id}`} className="w-full sm:w-auto">
+                        <Button variant="outline" className="w-full border-purple-200 bg-purple-50 text-purple-700 font-bold hover:bg-purple-100 shadow-sm">
+                          <CheckCircle2 className="h-4 w-4 mr-2" /> Kerjakan Kuis
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button key={`quiz-${quiz.id}`} variant="outline" disabled className="w-full sm:w-auto bg-slate-50 text-slate-400 border-slate-200 font-bold">
+                        <CheckCircle2 className="h-4 w-4 mr-2" /> Kuis Terkunci
+                      </Button>
+                    )
+                  ))}
                 </div>
               </div>
             </div>

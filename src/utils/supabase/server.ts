@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export async function createClient() {
+export async function createClient(cookieMaxAge?: number) {
   const cookieStore = await cookies()
 
   return createServerClient(
@@ -14,9 +14,13 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
+            cookiesToSet.forEach(({ name, value, options }) => {
+              // Jika cookieMaxAge disetel, terapkan ke konfigurasi cookie
+              if (cookieMaxAge !== undefined) {
+                options.maxAge = cookieMaxAge
+              }
               cookieStore.set(name, value, options)
-            )
+            })
           } catch {
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing

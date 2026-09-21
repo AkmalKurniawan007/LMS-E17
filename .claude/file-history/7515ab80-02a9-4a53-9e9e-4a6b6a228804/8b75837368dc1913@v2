@@ -1,0 +1,72 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
+import { getMateriListForEnrollment } from "@/lib/progress-rules";
+
+/**
+ * PATCH /api/progress/:materiId
+ * Klien mengirim `watchedSeconds` (max progres video). Server:
+ *  - tolak jika materi terkunci (server-side lock, PRD §16.2)
+ *  - simpan watchedSeconds
+ *  - auto `completed: true` saat watchedSeconds >= 80% durasi
+ */
+export async function PATCH(
+  req: Request,
+  { params }: { params: { materiId: string } },
+) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const materiId = params.materiId;
+
+  const materi = await prisma.materi.findUnique({
+    where: { id: materiId },
+    include: { batch: { include: { enrollments: { where: { userId: user.id } } } } },
+  });
+
+  if (!materi) return NextResponse.json({ error: "Materi tidak ditemukan" }, { status: 404 });
+  if (materi.tipe === "KUIS") {
+    return NextResponse.json({ error: "Materi kuis tidak punya tracked progress" }, { status: 400 });
+  }
+
+  const enrollment = materi.batch.enrollments[0];
+  if (!enrollment) {
+    return NextResponse.json({ error: "Anda tidak terdaftar di batch ini" }, { status: 403 });
+  }
+
+  const body = await req.json().catch(() => null);
+  const raw = Number(body?.watchedSeconds);
+  const watchedSeconds = Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
+
+  // Server-side lock check: materi tidak boleh progress jika masih terkunci
+  const list = await getMateriListForEnrollment(enrollment.id);
+  const sesi = list.find((s) => s.id === materiId);
+  if (sesi?.isLocked) {
+    return NextResponse.json({ error: "Materi ini masih terkunci" }, { status: 403 });
+  }
+
+  const durasi = materi.durasi;
+  const completed = watchedSeconds >= Math.ceil(0.8 * durasi);
+
+  const progress = await prisma.progress.upsert({
+    where: { enrollmentId_materiId: { enrollmentId: enrollment.id, materiId } },
+    update: {
+      watchedSeconds: Math.max(watchedSeconds, 0),
+      ...(completed ? { completed: true, completedAt: new Date() } : {}),
+    },
+    create: {
+      enrollmentId: enrollment.id,
+      materiId,
+      watchedSeconds: Math.max(watchedSeconds, 0),
+      completed,
+      completedAt: completed ? new Date() : null,
+    },
+    select: { watchedSeconds: true, completed: true, completedAt: true },
+  });
+
+  return NextResponse.json({
+    progress,
+    autoCompleted: completed && !sesi?.completed,
+    targetSeconds: Math.ceil(0.8 * durasi),
+  });
+}

@@ -1,0 +1,65 @@
+"use client";
+
+import Link from "next/link";
+import { Lock, Play, Target } from "lucide-react";
+
+type Sesi = {
+  id: string;
+  urutan: number;
+  judul: string;
+  tipe: "MATERI" | "KUIS";
+  status: string;
+  isLocked: boolean;
+};
+
+export default function SesiSidebar({
+  list,
+  slug,
+  currentId,
+}: {
+  list: Sesi[];
+  slug: string;
+  currentId: string;
+}) {
+  return (
+    <aside className="rounded-card border border-line bg-card p-4 shadow-card">
+      <h2 className="mb-3 font-display text-[16px] font-bold text-navy">Daftar Sesi</h2>
+      <ol className="space-y-1.5">
+        {list.map((s) => {
+          const isAktif = s.id === currentId;
+          const href =
+            s.tipe === "KUIS"
+              ? `/bootcamp/${slug}/kuis/${s.id}`
+              : `/bootcamp/${slug}/materi/${s.id}`;
+          const selected = isAktif
+            ? "bg-navy text-gold"
+            : s.isLocked
+              ? "opacity-40"
+              : "hover:bg-[#F1EFE8]";
+
+          return (
+            <li key={s.id}>
+              <Link
+                href={s.isLocked ? "#" : href}
+                aria-disabled={s.isLocked}
+                className={`flex items-center gap-2.5 rounded-btn px-3 py-2 text-[13px] font-semibold text-navy transition-colors ${selected}`}
+              >
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-navy/10 font-mono text-[11px]">
+                  {s.urutan}
+                </span>
+                <SesiIcon tipe={s.tipe} locked={s.isLocked} />
+                <span className="truncate">{s.judul}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
+    </aside>
+  );
+}
+
+function SesiIcon({ tipe, locked }: { tipe: string; locked: boolean }) {
+  if (locked) return <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />;
+  if (tipe === "KUIS") return <Target className="h-3.5 w-3.5 shrink-0" aria-hidden />;
+  return <Play className="h-3.5 w-3.5 shrink-0" aria-hidden />;
+}

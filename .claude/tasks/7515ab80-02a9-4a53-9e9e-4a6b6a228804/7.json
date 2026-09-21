@@ -1,0 +1,9 @@
+{
+  "id": "7",
+  "subject": "M2: Halaman Video Materi",
+  "description": "Halaman /bootcamp/[slug]/materi/[id]: layout 2 kolom (~70/30). Player React Player dengan tracking progress (patch tiap 30s), progress bar, tombol Tandai selesai (>=80%), sidebar daftar sesi dengan status. Design tokens.",
+  "activeForm": "Membangun halaman video materi",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

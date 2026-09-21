@@ -6,7 +6,7 @@ import { BookOpen, Layers, Plus, Settings, CheckCircle, X, Loader2, Save } from 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { createProgram } from "./actions"
+import { createProgram, updateProgram } from "./actions"
 
 export interface ProgramType {
   id: string
@@ -24,6 +24,7 @@ export function ProgramsClient({ initialPrograms }: { initialPrograms: ProgramTy
   )
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [activatingId, setActivatingId] = React.useState<string | null>(null)
 
   // Form State
   const [formData, setFormData] = React.useState({
@@ -65,6 +66,32 @@ export function ProgramsClient({ initialPrograms }: { initialPrograms: ProgramTy
     }
   }
 
+  const handleActivateProgram = async (program: ProgramType) => {
+    setActivatingId(program.id)
+    
+    try {
+      const result = await updateProgram(program.id, {
+        name: program.title,
+        description: program.description,
+        isActive: true
+      })
+      
+      if (result?.error) {
+        toast.error("Gagal mengaktifkan program", {
+          description: result.error
+        })
+      } else {
+        toast.success("Program berhasil diaktifkan!")
+      }
+    } catch (error: any) {
+      toast.error("Terjadi kesalahan sistem", {
+        description: error.message
+      })
+    } finally {
+      setActivatingId(null)
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
       {/* Header */}
@@ -102,9 +129,16 @@ export function ProgramsClient({ initialPrograms }: { initialPrograms: ProgramTy
                        <CheckCircle className="w-3 h-3 mr-1" /> Aktif
                      </span>
                    ) : (
-                     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
-                       Draft / Nonaktif
-                     </span>
+                     <button 
+                       onClick={() => handleActivateProgram(program)}
+                       disabled={activatingId === program.id}
+                       className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors cursor-pointer disabled:opacity-50"
+                     >
+                       {activatingId === program.id ? (
+                         <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                       ) : null}
+                       Draft / Aktifkan
+                     </button>
                    )}
                 </div>
                 
@@ -125,7 +159,7 @@ export function ProgramsClient({ initialPrograms }: { initialPrograms: ProgramTy
                 </div>
              </div>
              
-             <div className="p-4 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+             <div className="p-4 bg-slate-50/50 flex flex-wrap flex-col sm:flex-row items-center justify-between gap-3">
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -135,7 +169,7 @@ export function ProgramsClient({ initialPrograms }: { initialPrograms: ProgramTy
                   <BookOpen className="h-4 w-4 mr-1.5" /> Pratinjau
                 </Button>
                 
-                <div className="flex gap-2 w-full sm:w-auto flex-1 justify-end">
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto flex-1 justify-end">
                   <Link href={`/admin/programs/${program.id}`} className="flex-1 sm:flex-none">
                     <Button variant="outline" size="sm" className="w-full bg-white border-slate-200 text-slate-600 hover:text-e17-navy">
                       <Settings className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Edit Struktur</span>

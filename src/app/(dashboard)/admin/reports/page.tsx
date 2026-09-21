@@ -1,10 +1,33 @@
 "use client"
 
 import * as React from "react"
-import { PieChart, Download, GraduationCap, Users, ShieldCheck, ChevronDown, Loader2, X, FileSpreadsheet } from "lucide-react"
+import { PieChart, Download, GraduationCap, Users, ShieldCheck, ChevronDown, Loader2, X, FileSpreadsheet, Activity, Award, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/client"
 import * as XLSX from 'xlsx'
+
+// Stat Card Component
+function StatCard({ icon: Icon, label, value, subtext, color }: any) {
+  const colorClasses: any = {
+    blue: "bg-blue-50 border-blue-200 text-blue-600",
+    emerald: "bg-emerald-50 border-emerald-200 text-emerald-600",
+    purple: "bg-purple-50 border-purple-200 text-purple-600",
+    amber: "bg-amber-50 border-amber-200 text-amber-600",
+  }
+  
+  return (
+    <div className={`bg-white border rounded-xl p-5 flex items-start gap-4 ${colorClasses[color]}`}>
+      <div className={`p-3 rounded-lg ${colorClasses[color]} bg-opacity-30`}>
+        <Icon className="w-6 h-6" />
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-medium text-slate-600">{label}</p>
+        <p className="text-2xl font-bold text-e17-dark mt-1">{value}</p>
+        {subtext && <p className="text-xs text-slate-500 mt-1">{subtext}</p>}
+      </div>
+    </div>
+  )
+}
 
 export default function AdminReportsPage() {
   const supabase = createClient()
@@ -12,6 +35,15 @@ export default function AdminReportsPage() {
   // Modals state
   const [activeModal, setActiveModal] = React.useState<'academic' | 'growth' | 'audit' | null>(null)
   const [isGenerating, setIsGenerating] = React.useState(false)
+
+  // Stats state
+  const [stats, setStats] = React.useState({
+    totalStudents: 0,
+    avgAttendance: 0,
+    graduationRate: 0,
+    certificatesIssued: 0
+  })
+  const [statsLoading, setStatsLoading] = React.useState(true)
 
   // Data for filters
   const [batches, setBatches] = React.useState<any[]>([])
@@ -34,7 +66,55 @@ export default function AdminReportsPage() {
       }
     }
     fetchBatches()
+    fetchStats()
   }, [])
+
+  const fetchStats = async () => {
+    setStatsLoading(true)
+    try {
+      // Total active students
+      const { count: totalStudents } = await supabase
+        .from('enrollments')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'aktif')
+
+      // Average attendance
+      const { data: enrollments } = await supabase
+        .from('enrollments')
+        .select('attendance_percentage')
+      const avgAtt = enrollments && enrollments.length > 0
+        ? Math.round(enrollments.reduce((sum: any, e: any) => sum + (e.attendance_percentage || 0), 0) / enrollments.length)
+        : 0
+
+      // Graduation rate
+      const { count: graduated } = await supabase
+        .from('enrollments')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'lulus')
+      
+      const { count: total } = await supabase
+        .from('enrollments')
+        .select('*', { count: 'exact', head: true })
+      
+      const gradRate = total && total > 0 ? Math.round((graduated || 0) / total * 100) : 0
+
+      // Certificates issued
+      const { count: certs } = await supabase
+        .from('certificates')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'valid')
+
+      setStats({
+        totalStudents: totalStudents || 0,
+        avgAttendance: avgAtt,
+        graduationRate: gradRate,
+        certificatesIssued: certs || 0
+      })
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    }
+    setStatsLoading(false)
+  }
 
   // --- REPORT GENERATORS ---
 
@@ -183,9 +263,49 @@ export default function AdminReportsPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-200 pb-5 gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-e17-dark">Pusat Laporan & Analitik</h1>
-          <p className="text-sm text-slate-500 mt-1">Pantau tren pendaftaran dan unduh laporan fundamental ke dalam format Excel.</p>
+          <p className="text-sm text-slate-500 mt-1">Pantau ringkasan data akademik dan unduh laporan komprehensif ke dalam format Excel.</p>
         </div>
       </div>
+
+      {/* Stats Cards */}
+      {statsLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-pulse">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-24 bg-slate-200 rounded-xl"></div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <StatCard
+            icon={Users}
+            label="Total Siswa Aktif"
+            value={stats.totalStudents}
+            subtext="Terdaftar di platform"
+            color="blue"
+          />
+          <StatCard
+            icon={Activity}
+            label="Rata-rata Kehadiran"
+            value={`${stats.avgAttendance}%`}
+            subtext="Persentase global"
+            color="emerald"
+          />
+          <StatCard
+            icon={TrendingUp}
+            label="Tingkat Kelulusan"
+            value={`${stats.graduationRate}%`}
+            subtext="Dari total siswa"
+            color="purple"
+          />
+          <StatCard
+            icon={Award}
+            label="Sertifikat Terbit"
+            value={stats.certificatesIssued}
+            subtext="Status valid/sah"
+            color="amber"
+          />
+        </div>
+      )}
 
       {/* Report Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

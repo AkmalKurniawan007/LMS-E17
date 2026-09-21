@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import MarketingView from "@/components/marketing/MarketingView"
 
 export default function Home() {
-  redirect('/login')
+  return <MarketingView />
 }

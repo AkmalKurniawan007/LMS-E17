@@ -1,0 +1,192 @@
+"use client";
+
+import { useEffect, useRef, useState, useCallback } from "react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { Check, Download, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { formatClock } from "@/lib/format";
+
+// react-player tidak SSR-safe → dynamic import tanpa ssr.
+// Typecast ke komponen with loose props agar handler bisa dipakai.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ReactPlayer = dynamic(() => import("react-player"), { ssr: false }) as any;
+
+type PlayerProgress = { playedSeconds: number };
+
+type Progress = { watchedSeconds: number; completed: boolean };
+
+export default function VideoPlayer({
+  materi,
+  progress: initial,
+}: {
+  materi: {
+    id: string;
+    judul: string;
+    deskripsi?: string | null;
+    videoUrl?: string | null;
+    pdfUrl?: string | null;
+    durasi: number;
+  };
+  progress: Progress | null;
+}) {
+  const router = useRouter();
+  const [watched, setWatched] = useState(initial?.watchedSeconds ?? 0);
+  const [completed, setCompleted] = useState(initial?.completed ?? false);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const targetSeconds = Math.ceil(0.8 * materi.durasi);
+  const canMarkDone = watched >= targetSeconds && !completed;
+
+  // ref utk debounce patch
+  const lastSent = useRef<number>(initial?.watchedSeconds ?? 0);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const save = useCallback(
+    async (sec: number) => {
+      if (sec === lastSent.current) return;
+      lastSent.current = sec;
+      setSaving(true);
+      try {
+        const res = await fetch(`/api/progress/${materi.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ watchedSeconds: sec }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.autoCompleted) {
+            setCompleted(true);
+            setMsg("Selesai! Materi berikutnya terbuka. 🎉");
+          }
+        }
+      } catch {
+        // silent — retry pada tick berikutnya
+      } finally {
+        setSaving(false);
+      }
+    },
+    [materi.id],
+  );
+
+  // debounce patch: max sekali per 30 detik (PRD §7.2)
+  const scheduleSave = useCallback(
+    (sec: number) => {
+      if (timer.current) return; // masih dalam window 30s
+      timer.current = setTimeout(() => {
+        timer.current = null;
+        void save(sec);
+      }, 30000);
+    },
+    [save],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
+
+  function onProgress(state: unknown) {
+    const seconds = (state as PlayerProgress | null)?.playedSeconds ?? 0;
+    const sec = Math.floor(seconds);
+    setWatched((w) => {
+      if (sec > w) {
+        scheduleSave(sec);
+        return sec;
+      }
+      return w;
+    });
+  }
+
+  async function markDone() {
+    // simpan status completed via patch dgn watchedSeconds >= target
+    await save(materi.durasi);
+    setCompleted(true);
+    setMsg("Materi ditandai selesai. 🎉");
+    router.refresh();
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Player */}
+      <div className="overflow-hidden rounded-card border border-line bg-navy">
+        {materi.videoUrl ? (
+          <ReactPlayer
+            url={materi.videoUrl}
+            width="100%"
+            height="100%"
+            style={{ aspectRatio: "16/9" }}
+            playing
+            controls
+            onProgress={onProgress}
+            progressInterval={5000}
+          />
+        ) : (
+          <div className="flex aspect-video items-center justify-center text-gold">
+            Video belum tersedia
+          </div>
+        )}
+      </div>
+
+      {/* Progress tontonan */}
+      <div>
+        <div className="mb-1 flex items-center justify-between text-[13px]">
+          <span className="text-text-secondary">
+            Tontonan {formatClock(watched)} / {formatClock(materi.durasi)}
+          </span>
+          {saving && (
+            <span className="flex items-center gap-1 text-text-muted">
+              <Loader2 className="h-3 w-3 animate-spin" /> menyimpan
+            </span>
+          )}
+        </div>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-[#F1EFE8]">
+          <div
+            className="h-full rounded-full bg-navy transition-all"
+            style={{
+              width: `${Math.min(100, (watched / materi.durasi) * 100)}%`,
+            }}
+          />
+        </div>
+        <p className="mt-1 text-[12px] text-text-muted">
+          Tandai selesai aktif setelah menonton ≥80% ({formatClock(targetSeconds)}).
+        </p>
+      </div>
+
+      {/* Aksi */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant="primary" disabled={!canMarkDone} onClick={markDone}>
+          <Check className="h-4 w-4" />
+          Tandai selesai
+        </Button>
+        {materi.pdfUrl && (
+          <a
+            href={materi.pdfUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-btn border-[1.5px] border-gold bg-transparent px-4 py-2.5 font-display text-[14px] font-bold text-gold transition-colors hover:bg-gold-light"
+          >
+            <Download className="h-4 w-4" /> Unduh slide
+          </a>
+        )}
+        {completed && <Badge variant="success">Selesai ✓</Badge>}
+      </div>
+
+      {msg && (
+        <div className="rounded-btn bg-success-bg px-4 py-3 text-sm text-online">{msg}</div>
+      )}
+
+      {/* Deskripsi */}
+      {materi.deskripsi && (
+        <div className="rounded-card border border-line bg-card p-4">
+          <h2 className="font-display text-[20px] font-bold text-navy">Deskripsi</h2>
+          <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-text-secondary">
+            {materi.deskripsi}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}

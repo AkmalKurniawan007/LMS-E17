@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArrowLeft, ArrowRight, BookOpen, Users, FileText, CheckSquare, Plus, MoreVertical, Edit, Trash2, Calendar, Layout, Search, GripVertical, FileVideo, FileCode2, Link as LinkIcon, AlertCircle, Video } from "lucide-react"
+import { ArrowLeft, ArrowRight, BookOpen, Users, FileText, CheckSquare, Plus, MoreVertical, Edit, Trash2, Calendar, Layout, Search, GripVertical, FileVideo, FileCode2, Link as LinkIcon, AlertCircle, Video, Award } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 
@@ -19,6 +19,11 @@ export default function MentorBatchDetailPage() {
 
   const [batchInfo, setBatchInfo] = React.useState<any>(null)
   const [students, setStudents] = React.useState<any[]>([])
+  const [finalProjects, setFinalProjects] = React.useState<any[]>([])
+  
+  const [isAddingProject, setIsAddingProject] = React.useState(false)
+  const [newProject, setNewProject] = React.useState({ title: "", description: "", deadline: "" })
+  
   const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
@@ -36,14 +41,15 @@ export default function MentorBatchDetailPage() {
         .single()
 
       if (batchData) {
+        const program = Array.isArray(batchData.programs) ? batchData.programs[0] : batchData.programs;
         setBatchInfo({
           id: batchData.id,
           name: batchData.name,
-          program: batchData.programs?.name || "Program Tanpa Nama",
+          program: program?.name || "Program Tanpa Nama",
           status: batchData.status || "Active",
           startDate: batchData.start_date,
           endDate: batchData.end_date,
-          description: batchData.programs?.description || "Deskripsi program belum tersedia."
+          description: program?.description || "Deskripsi program belum tersedia."
         })
       }
 
@@ -57,17 +63,20 @@ export default function MentorBatchDetailPage() {
         .eq('batch_id', batchId)
 
       if (studentsData) {
-        setStudents(studentsData.map(e => ({
-          id: e.users?.id,
-          enrollmentId: e.id,
-          name: e.users?.full_name,
-          email: e.users?.email,
-          progress: 0, 
-          tasksDone: 0, 
-          tasksTotal: 0, 
-          attendance: 'hadir', 
-          privateNote: '' 
-        })))
+        setStudents(studentsData.map(e => {
+          const user = Array.isArray(e.users) ? e.users[0] : e.users;
+          return {
+            id: user?.id,
+            enrollmentId: e.id,
+            name: user?.full_name,
+            email: user?.email,
+            progress: 0, 
+            tasksDone: 0, 
+            tasksTotal: 0, 
+            attendance: 'hadir', 
+            privateNote: '' 
+          }
+        }))
       }
 
       // Fetch sessions & materials
@@ -105,6 +114,21 @@ export default function MentorBatchDetailPage() {
         setMaterials(mappedMaterials)
       }
 
+      // Fetch Final Projects (Tasks marked as is_final_project in this batch's sessions)
+      // Since we can't easily join in one query without RPC sometimes, we fetch session IDs first
+      const sessionIds = sessionsData ? sessionsData.map(s => s.id) : []
+      if (sessionIds.length > 0) {
+        const { data: projectsData } = await supabase
+          .from('tasks')
+          .select('*')
+          .in('session_id', sessionIds)
+          .eq('is_final_project', true)
+        
+        if (projectsData) {
+          setFinalProjects(projectsData)
+        }
+      }
+
       setIsLoading(false)
     }
 
@@ -113,11 +137,84 @@ export default function MentorBatchDetailPage() {
     }
   }, [batchId])
 
+  const fetchFinalProjects = async () => {
+    const { data: sessionsData } = await supabase.from('sessions').select('id').eq('batch_id', batchId)
+    const sessionIds = sessionsData ? sessionsData.map(s => s.id) : []
+    if (sessionIds.length > 0) {
+      const { data: projectsData } = await supabase.from('tasks').select('*').in('session_id', sessionIds).eq('is_final_project', true)
+      if (projectsData) setFinalProjects(projectsData)
+    }
+  }
+
+  const handleAddProject = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newProject.title || !newProject.deadline) return alert("Judul dan deadline wajib diisi")
+
+    try {
+      // Find or create a hidden session for final projects
+      let { data: session, error: sessionErr } = await supabase.from('sessions').select('id').eq('batch_id', batchId).eq('title', 'Proyek Akhir [Sistem]').single()
+      
+      if (!session) {
+        // Find max order_number and format from existing sessions to bypass constraints
+        const { data: existingSessions } = await supabase.from('sessions').select('order_number, format').eq('batch_id', batchId).order('order_number', { ascending: false }).limit(1)
+        const nextOrderNumber = existingSessions && existingSessions.length > 0 ? (existingSessions[0].order_number || 0) + 1 : 1
+        const sessionFormat = existingSessions && existingSessions.length > 0 ? (existingSessions[0].format || 'online') : 'online'
+
+        const { data: newSession, error: createSessionErr } = await supabase.from('sessions').insert({ 
+          batch_id: batchId, 
+          title: 'Proyek Akhir [Sistem]', 
+          order_number: nextOrderNumber,
+          format: sessionFormat
+        }).select().single()
+        if (createSessionErr) {
+          console.error("Error creating session:", createSessionErr);
+          throw new Error("Gagal membuat sesi sistem penampung proyek: " + createSessionErr.message)
+        }
+        session = newSession
+      }
+
+      if (session) {
+        const { error } = await supabase.from('tasks').insert({
+          session_id: session.id,
+          title: newProject.title,
+          description: newProject.description,
+          deadline: new Date(newProject.deadline).toISOString(),
+          order_number: 1,
+          is_final_project: true
+        })
+
+        if (!error) {
+          setNewProject({ title: "", description: "", deadline: "" })
+          setIsAddingProject(false)
+          fetchFinalProjects()
+          alert("Berhasil menambahkan proyek akhir!")
+        } else {
+          console.error("Error inserting task:", error);
+          throw new Error("Gagal menambahkan proyek: " + error.message)
+        }
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan saat menyimpan proyek.")
+    }
+  }
+
+  const handleDeleteProject = async (taskId: string) => {
+    if (!confirm("Hapus proyek akhir ini?")) return
+    const { error } = await supabase.from('tasks').delete().eq('id', taskId)
+    if (!error) {
+      fetchFinalProjects()
+    }
+  }
+
   const tabs = [
     { id: 'siswa', label: 'Siswa & Catatan', icon: Users },
     { id: 'sesi', label: 'Sesi Pembelajaran', icon: Calendar },
+    { id: 'proyek_akhir', label: 'Proyek Akhir', icon: Award },
     { id: 'pengumuman', label: 'Broadcast', icon: FileText },
   ]
+
+  const minDateTime = batchInfo?.startDate ? new Date(batchInfo.startDate).toISOString().slice(0, 16) : undefined;
+  const maxDateTime = batchInfo?.endDate ? new Date(batchInfo.endDate).toISOString().slice(0, 16) : undefined;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -319,7 +416,79 @@ export default function MentorBatchDetailPage() {
           </div>
         )}
 
+        {/* TAB: PROYEK AKHIR */}
+        {activeTab === 'proyek_akhir' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="card-clean overflow-hidden p-6 mb-6">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-100 pb-4 mb-4">
+                <div>
+                  <h3 className="font-bold text-lg text-slate-800">Tugas Proyek Akhir</h3>
+                  <p className="text-sm text-slate-500 mt-1">Kelola tugas kelulusan / portofolio akhir khusus untuk batch ini.</p>
+                </div>
+                <button 
+                  onClick={() => setIsAddingProject(!isAddingProject)}
+                  className="bg-e17-navy text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center hover:bg-blue-900 transition-colors"
+                >
+                  {isAddingProject ? "Batal" : <><Plus className="w-4 h-4 mr-2" /> Buat Proyek Akhir</>}
+                </button>
+              </div>
 
+              {isAddingProject && (
+                <form onSubmit={handleAddProject} className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Judul Proyek Akhir</label>
+                      <input required value={newProject.title} onChange={e => setNewProject({...newProject, title: e.target.value})} type="text" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" placeholder="Contoh: Proyek Akhir E-Commerce"/>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Link Instruksi / PDF (Opsional)</label>
+                      <input value={newProject.description} onChange={e => setNewProject({...newProject, description: e.target.value})} type="url" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" placeholder="https://..."/>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Batas Waktu (Deadline)</label>
+                      <input required min={minDateTime} max={maxDateTime} value={newProject.deadline} onChange={e => setNewProject({...newProject, deadline: e.target.value})} type="datetime-local" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
+                    </div>
+                  </div>
+                  <button type="submit" className="bg-e17-primary hover:bg-yellow-400 text-e17-navy px-6 py-2 rounded-lg text-sm font-bold transition-colors">
+                    Simpan Proyek
+                  </button>
+                </form>
+              )}
+
+              <div className="space-y-4">
+                {finalProjects.length === 0 ? (
+                  <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                    <Award className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-slate-700">Belum Ada Proyek Akhir</h3>
+                    <p className="text-sm text-slate-500 mb-4">Buat proyek akhir untuk menjadi syarat kelulusan kelas ini.</p>
+                  </div>
+                ) : finalProjects.map(project => (
+                  <div key={project.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-lg bg-purple-50 text-purple-600 border border-purple-100">
+                        <Award className="w-6 h-6"/>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-base">{project.title}</h4>
+                        <p className="text-xs text-purple-600 font-bold mt-1">Deadline: {new Date(project.deadline).toLocaleString('id-ID')}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 sm:mt-0 flex gap-2 items-center">
+                      {project.description && (
+                        <a href={project.description} target="_blank" rel="noreferrer" className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-md hover:bg-slate-50 text-slate-600 flex items-center">
+                          <LinkIcon className="w-3 h-3 mr-1" /> Instruksi
+                        </a>
+                      )}
+                      <button onClick={() => handleDeleteProject(project.id)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-md border border-transparent hover:border-rose-100 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
         {/* TAB: PENGUMUMAN / BROADCAST */}
         {activeTab === 'pengumuman' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">

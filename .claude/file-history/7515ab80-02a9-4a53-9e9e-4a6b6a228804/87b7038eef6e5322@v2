@@ -1,0 +1,27 @@
+import type { ReactNode } from "react";
+
+/** Tombol — PRD §5.4. */
+export function Button({
+  children,
+  variant = "primary",
+  className = "",
+  ...props
+}: {
+  children: ReactNode;
+  variant?: "primary" | "secondary" | "danger" | "ghost";
+  className?: string;
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  const base =
+    "inline-flex items-center justify-center gap-2 rounded-btn px-4 py-2.5 font-display text-[14px] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+  const styles: Record<string, string> = {
+    primary: "bg-gold text-navy hover:bg-gold-dark",
+    secondary: "border-[1.5px] border-gold bg-transparent text-gold hover:bg-gold-light",
+    danger: "bg-danger text-white hover:bg-danger/90",
+    ghost: "bg-transparent text-navy hover:bg-[#F1EFE8]",
+  };
+  return (
+    <button className={`${base} ${styles[variant]} ${className}`} {...props}>
+      {children}
+    </button>
+  );
+}

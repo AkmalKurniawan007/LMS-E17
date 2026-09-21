@@ -116,3 +116,15 @@ html {
     animation: slide-in-left 0.3s ease-out;
   }
 }
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@layer utilities {
+  .animate-shimmer {
+    animation: shimmer 1.5s infinite;
+  }
+}

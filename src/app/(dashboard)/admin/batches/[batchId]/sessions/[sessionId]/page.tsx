@@ -3,7 +3,7 @@
 import * as React from "react"
 import { use } from "react"
 import Link from "next/link"
-import { ArrowLeft, Clock, Calendar, Video, FileText, CheckSquare, Users, Play, Square, Loader2 } from "lucide-react"
+import { ArrowLeft, Clock, Calendar, Video, FileText, CheckSquare, Users, Play, Square, Loader2, Edit2, Save, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/client"
 import { toast } from "sonner"
@@ -20,6 +20,15 @@ export default function AdminSessionDetailPage({
   const [session, setSession] = React.useState<any>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [isUpdatingStatus, setIsUpdatingStatus] = React.useState(false)
+  const [isEditingInfo, setIsEditingInfo] = React.useState(false)
+  const [editForm, setEditForm] = React.useState({
+    description: "",
+    scheduled_at: "",
+    start_time: "",
+    end_time: "",
+    session_type: "online",
+    meeting_link: ""
+  })
 
   React.useEffect(() => {
     fetchSessionData()
@@ -31,7 +40,10 @@ export default function AdminSessionDetailPage({
       .from('sessions')
       .select(`
         *,
-        batches ( name, programs(name) )
+        batches ( name, programs(name) ),
+        materials ( * ),
+        tasks ( * ),
+        quizzes ( * )
       `)
       .eq('id', sessionId)
       .single()
@@ -39,8 +51,16 @@ export default function AdminSessionDetailPage({
     if (error) {
       console.error("Error fetching session:", error)
       toast.error("Gagal memuat data sesi")
-    } else {
+    } else if (data) {
       setSession(data)
+      setEditForm({
+        description: data.description || "",
+        scheduled_at: data.scheduled_at ? new Date(data.scheduled_at).toISOString().split('T')[0] : "",
+        start_time: data.start_time || "",
+        end_time: data.end_time || "",
+        session_type: data.session_type || "online",
+        meeting_link: data.meeting_link || ""
+      })
     }
     setIsLoading(false)
   }
@@ -63,7 +83,31 @@ export default function AdminSessionDetailPage({
       toast.error("Gagal mengubah status sesi: " + error.message)
     } else {
       toast.success("Status sesi berhasil diperbarui")
-      fetchSessionData() // Refresh data
+      fetchSessionData()
+    }
+    setIsUpdatingStatus(false)
+  }
+
+  const handleSaveInfo = async () => {
+    setIsUpdatingStatus(true)
+    const { error } = await supabase
+      .from('sessions')
+      .update({
+        description: editForm.description,
+        scheduled_at: editForm.scheduled_at ? new Date(editForm.scheduled_at).toISOString() : null,
+        start_time: editForm.start_time,
+        end_time: editForm.end_time,
+        session_type: editForm.session_type,
+        meeting_link: editForm.meeting_link
+      })
+      .eq('id', sessionId)
+
+    if (error) {
+      toast.error("Gagal menyimpan informasi sesi: " + error.message)
+    } else {
+      toast.success("Informasi sesi berhasil diperbarui")
+      setIsEditingInfo(false)
+      fetchSessionData()
     }
     setIsUpdatingStatus(false)
   }
@@ -170,14 +214,29 @@ export default function AdminSessionDetailPage({
         {/* TAB 1: INFO */}
         {activeTab === "info" && (
           <div className="p-6">
-            <h2 className="text-lg font-bold text-e17-dark mb-4">Informasi Sesi</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Deskripsi</h3>
-                  <p className="text-slate-700">{session.description || "Tidak ada deskripsi."}</p>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-e17-dark">Informasi Sesi</h2>
+              {!isEditingInfo ? (
+                <Button onClick={() => setIsEditingInfo(true)} variant="outline" size="sm" className="font-bold">
+                  <Edit2 className="w-4 h-4 mr-2" /> Edit Informasi
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button onClick={() => setIsEditingInfo(false)} variant="ghost" size="sm">Batal</Button>
+                  <Button onClick={handleSaveInfo} disabled={isUpdatingStatus} size="sm" className="bg-e17-navy hover:bg-blue-900 text-white font-bold">
+                    <Save className="w-4 h-4 mr-2" /> Simpan
+                  </Button>
                 </div>
+              )}
+            </div>
+            
+            {!isEditingInfo ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Deskripsi</h3>
+                    <p className="text-slate-700">{session.description || "Tidak ada deskripsi."}</p>
+                  </div>
                 
                 <div>
                   <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Penjadwalan</h3>
@@ -234,8 +293,79 @@ export default function AdminSessionDetailPage({
                     )}
                   </div>
                 </div>
-              </div>
+                </div>
             </div>
+          ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Deskripsi Sesi</label>
+                    <textarea 
+                      value={editForm.description} 
+                      onChange={e => setEditForm({...editForm, description: e.target.value})}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm min-h-[120px]"
+                      placeholder="Masukkan deskripsi sesi..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Tanggal</label>
+                    <input 
+                      type="date" 
+                      value={editForm.scheduled_at} 
+                      onChange={e => setEditForm({...editForm, scheduled_at: e.target.value})}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Jam Mulai</label>
+                      <input 
+                        type="time" 
+                        value={editForm.start_time} 
+                        onChange={e => setEditForm({...editForm, start_time: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Jam Selesai</label>
+                      <input 
+                        type="time" 
+                        value={editForm.end_time} 
+                        onChange={e => setEditForm({...editForm, end_time: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Tipe Sesi</label>
+                    <select 
+                      value={editForm.session_type} 
+                      onChange={e => setEditForm({...editForm, session_type: e.target.value})}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
+                    >
+                      <option value="online">Daring (Online)</option>
+                      <option value="offline">Tatap Muka (Offline)</option>
+                    </select>
+                  </div>
+                  
+                  {editForm.session_type === 'online' && (
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Link Pertemuan</label>
+                      <input 
+                        type="url" 
+                        value={editForm.meeting_link} 
+                        onChange={e => setEditForm({...editForm, meeting_link: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
+                        placeholder="https://zoom.us/j/..."
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -244,18 +374,98 @@ export default function AdminSessionDetailPage({
           <div className="p-6">
              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h2 className="text-lg font-bold text-e17-dark">Materi & Tugas</h2>
-                <p className="text-sm text-slate-500">Materi pembelajaran dan penugasan untuk sesi ini.</p>
+                <h2 className="text-lg font-bold text-e17-dark">Materi, Tugas & Kuis</h2>
+                <p className="text-sm text-slate-500">Daftar materi pembelajaran, penugasan, dan kuis (Mode Pantau).</p>
               </div>
             </div>
             
-            <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
-              <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-slate-700">Belum Ada Materi</h3>
-              <p className="text-sm text-slate-500 mb-4 max-w-sm mx-auto">
-                Admin hanya dalam mode pantau. Hanya Mentor yang berhak mengunggah materi dan tugas di sesi ini.
-              </p>
-            </div>
+            {(!session.materials?.length && !session.tasks?.length && !session.quizzes?.length) ? (
+              <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-slate-700">Belum Ada Konten</h3>
+                <p className="text-sm text-slate-500 mb-4 max-w-sm mx-auto">
+                  Admin hanya dalam mode pantau. Belum ada konten yang diunggah oleh mentor.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Materi List */}
+                {session.materials?.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-700 mb-3 border-b border-slate-200 pb-2">Materi Pembelajaran</h3>
+                    <div className="space-y-3">
+                      {session.materials.map((mat: any) => (
+                        <div key={mat.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="p-3 rounded-lg bg-blue-50 text-blue-600">
+                              {mat.type === 'video' ? <Video className="w-5 h-5"/> : <FileText className="w-5 h-5"/>}
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-800">{mat.title}</p>
+                              <p className="text-xs text-slate-500 mt-0.5">{mat.type.toUpperCase()}</p>
+                            </div>
+                          </div>
+                          <div className="mt-3 sm:mt-0 flex gap-2">
+                            {mat.content_url && mat.content_url !== '#' && (
+                              <a href={mat.content_url} target="_blank" rel="noreferrer" className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-md hover:bg-slate-50 text-slate-600">Lihat URL</a>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tasks List */}
+                {session.tasks?.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-700 mb-3 border-b border-slate-200 pb-2">Penugasan (Task)</h3>
+                    <div className="space-y-3">
+                      {session.tasks.map((task: any) => (
+                        <div key={task.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="p-3 rounded-lg bg-amber-50 text-amber-600">
+                              <CheckSquare className="w-5 h-5"/>
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-800">{task.title}</p>
+                              <p className="text-xs text-amber-600 font-bold mt-0.5">Deadline: {new Date(task.deadline).toLocaleString('id-ID')}</p>
+                            </div>
+                          </div>
+                          <div className="mt-3 sm:mt-0 flex gap-2">
+                            {task.description && (
+                              <a href={task.description} target="_blank" rel="noreferrer" className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-md hover:bg-slate-50 text-slate-600">Lihat Soal PDF</a>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quizzes List */}
+                {session.quizzes?.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-700 mb-3 border-b border-slate-200 pb-2">Kuis (Quiz)</h3>
+                    <div className="space-y-3">
+                      {session.quizzes.map((quiz: any) => (
+                        <div key={quiz.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="p-3 rounded-lg bg-emerald-50 text-emerald-600">
+                              <CheckSquare className="w-5 h-5"/>
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-800">{quiz.title}</p>
+                              <p className="text-xs text-slate-500 mt-0.5">KUM: {quiz.passing_grade} | Max Percobaan: {quiz.max_retries}x</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design Tokens — E17Course (PRD 5.2 & 5.3) ───
+   Jangan hardcode warna di komponen. Selalu pakai var(--color-*). */
+
+:root {
+  /* Brand Utama */
+  --color-navy: #1a2240;
+  --color-navy-light: #1e2d5a;
+  --color-gold: #f0a500;
+  --color-gold-dark: #c8880a;
+  --color-gold-light: #fff3cc;
+
+  /* Neutral */
+  --color-white: #ffffff;
+  --color-surface: #f9f9f7;
+  --color-card: #ffffff;
+  --color-border: #e8e6e0;
+  --color-text-primary: #1a2240;
+  --color-text-secondary: #6b6b6b;
+  --color-text-muted: #9b9b9b;
+
+  /* Status */
+  --color-success: #1d9e75;
+  --color-success-bg: #e1f5ee;
+  --color-warning: #e8960a;
+  --color-warning-bg: #fff8e1;
+  --color-danger: #d85a30;
+  --color-danger-bg: #faece7;
+  --color-info: #185fa5;
+  --color-info-bg: #e6f1fb;
+
+  /* Konsentrasi */
+  --color-online-text: #0f6e56;
+  --color-online-bg: #e1f5ee;
+  --color-offline-text: #7a3b00;
+  --color-offline-bg: #fff3cc;
+
+  /* Tipografi */
+  --font-display: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+body {
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  font-family: var(--font-body);
+}
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  code,
+  kbd {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

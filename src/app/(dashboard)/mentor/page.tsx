@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Users, BookOpen, CheckSquare, Clock, ArrowRight, Calendar as CalendarIcon, CheckCircle2, AlertCircle, FileText, Loader2 } from "lucide-react"
+import { Users, BookOpen, CheckSquare, Clock, ArrowRight, Calendar as CalendarIcon, CheckCircle2, AlertCircle, FileText, Loader2, Megaphone, X } from "lucide-react"
 import Link from "next/link"
 import { CalendarWidget, type CalendarEvent } from "@/components/ui/calendar-widget"
 import { createClient } from "@/utils/supabase/client"
@@ -20,6 +20,7 @@ export default function MentorDashboardPage() {
   })
 
   const [myBatches, setMyBatches] = React.useState<any[]>([])
+  const [latestAnnouncement, setLatestAnnouncement] = React.useState<any>(null)
   const [calendarEvents, setCalendarEvents] = React.useState<{date: string, items: CalendarEvent[]}[]>([])
   
   const [selectedCalendarDate, setSelectedCalendarDate] = React.useState<string | null>(
@@ -38,6 +39,19 @@ export default function MentorDashboardPage() {
       if (!userData.user) return
 
       const userId = userData.user.id
+
+      // Fetch Latest Announcement
+      const { data: latestNotifs } = await supabase
+        .from('in_app_notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_read', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        
+      if (latestNotifs && latestNotifs.length > 0) {
+        setLatestAnnouncement(latestNotifs[0])
+      }
 
       // Fetch Batches for this Mentor
       const { data: batchMentorsData } = await supabase
@@ -156,6 +170,28 @@ export default function MentorDashboardPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      
+      {latestAnnouncement && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-4">
+          <div className="mt-0.5 h-10 w-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+            <Megaphone className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-blue-900">Pengumuman: {latestAnnouncement.title}</h3>
+            <p className="text-sm text-blue-800 mt-1">{latestAnnouncement.message}</p>
+          </div>
+          <button 
+            onClick={() => {
+              setLatestAnnouncement(null)
+              supabase.from('in_app_notifications').update({ is_read: true }).eq('id', latestAnnouncement.id).then()
+            }}
+            className="text-blue-400 hover:text-blue-700 bg-white/50 hover:bg-blue-100 rounded-full p-1.5 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="flex justify-between items-end">
         <div>

@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import { use } from "react"
-import { ArrowLeft, Users, Calendar, Settings, FileUp, Plus, Edit, Loader2, Save, Trash2, GripVertical, AlertCircle } from "lucide-react"
+import Link from "next/link"
+import { ArrowLeft, Users, Calendar, Settings, FileUp, Plus, Edit, Loader2, Save, Award, Trash2, GripVertical, AlertCircle, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import CertificateManager from "./certificate-manager"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/utils/supabase/client"
 import DatePicker from "react-datepicker"
@@ -18,7 +19,7 @@ export default function AdminBatchDetailPage({
 }) {
   const { batchId } = use(params)
   const supabase = createClient()
-  const [activeTab, setActiveTab] = React.useState<"students" | "sessions" | "settings">("students")
+  const [activeTab, setActiveTab] = React.useState<"students" | "sessions" | "settings" | "certificates">("students")
 
   const [batchData, setBatchData] = React.useState<any>(null)
   const [students, setStudents] = React.useState<any[]>([])
@@ -26,6 +27,11 @@ export default function AdminBatchDetailPage({
   const [mentors, setMentors] = React.useState<any[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSaving, setIsSaving] = React.useState(false)
+  
+  const [isAddManualOpen, setIsAddManualOpen] = React.useState(false)
+  const [availableStudents, setAvailableStudents] = React.useState<any[]>([])
+  const [selectedStudentIds, setSelectedStudentIds] = React.useState<string[]>([])
+  const [searchQuery, setSearchQuery] = React.useState("")
   
   const [editingSessionId, setEditingSessionId] = React.useState<string | null>(null)
   const [sessionForm, setSessionForm] = React.useState({
@@ -54,7 +60,7 @@ export default function AdminBatchDetailPage({
     const { data: batch } = await supabase
       .from('batches')
       .select(`
-        id, name, start_date, end_date, program_id,
+        id, name, start_date, end_date, program_id, certificate_template_url,
         programs ( name ),
         batch_mentors ( mentor_id, users ( full_name ) )
       `)
@@ -220,6 +226,51 @@ export default function AdminBatchDetailPage({
     setIsSaving(false)
   }
 
+  const handleResetSessions = async () => {
+    if (!confirm("PERINGATAN: Mereset sesi akan MENGHAPUS semua sesi yang ada saat ini beserta materi, tugas, kuis, dan absensi di dalamnya. Apakah Anda yakin ingin mengambil ulang data sesi dari Program?")) return
+    setIsSaving(true)
+    
+    // 1. Hapus semua sesi saat ini
+    const { error: deleteErr } = await supabase.from('sessions').delete().eq('batch_id', batchId)
+    if (deleteErr) {
+       alert("Gagal menghapus sesi lama: " + deleteErr.message)
+       setIsSaving(false)
+       return
+    }
+
+    // 2. Fetch program sessions
+    const { data: progSess } = await supabase
+      .from('program_sessions')
+      .select('*')
+      .eq('program_id', batchData?.program_id || null)
+      .order('order_number', { ascending: true })
+      
+    if (!progSess || progSess.length === 0) {
+      alert("Program ini belum memiliki sesi kurikulum. Sesi lama telah terhapus.")
+      fetchData()
+      setIsSaving(false)
+      return
+    }
+
+    // 3. Insert into sessions
+    const newSessions = progSess.map(ps => ({
+      batch_id: batchId,
+      order_number: ps.order_number,
+      title: ps.title,
+      description: ps.description,
+      format: ps.format
+    }))
+
+    const { error } = await supabase.from('sessions').insert(newSessions)
+    if (error) {
+      alert("Gagal generate sesi baru: " + error.message)
+    } else {
+      alert("Sesi berhasil di-reset dan disinkronkan dengan Program.")
+      fetchData()
+    }
+    setIsSaving(false)
+  }
+
   const handleRemoveStudent = async (enrollId: string, studentName: string) => {
     if (!confirm(`Keluarkan ${studentName} dari batch ini?`)) return
     const { error } = await supabase
@@ -232,6 +283,46 @@ export default function AdminBatchDetailPage({
       alert("Siswa berhasil dikeluarkan.")
       fetchData()
     }
+  }
+
+  const handleOpenAddManual = async () => {
+    setIsAddManualOpen(true)
+    setSearchQuery("")
+    const { data: allSiswa } = await supabase
+      .from('users')
+      .select('id, full_name, email')
+      .eq('role', 'siswa')
+      
+    if (allSiswa) {
+      const enrolledIds = students.map(s => s.user_id)
+      setAvailableStudents(allSiswa.filter(s => !enrolledIds.includes(s.id)))
+    }
+  }
+
+  const handleAddManualSubmit = async () => {
+    if (selectedStudentIds.length === 0) return alert("Pilih minimal satu siswa terlebih dahulu")
+    setIsSaving(true)
+    
+    const enrollmentsToInsert = selectedStudentIds.map(id => ({
+        user_id: id,
+        batch_id: batchId,
+        status: 'aktif'
+    }))
+    
+    const { error } = await supabase
+      .from('enrollments')
+      .insert(enrollmentsToInsert)
+      
+    if (error) {
+      alert("Gagal menambahkan siswa: " + error.message)
+    } else {
+      alert(`${selectedStudentIds.length} siswa berhasil ditambahkan ke batch!`)
+      setIsAddManualOpen(false)
+      setSelectedStudentIds([])
+      setSearchQuery("")
+      fetchData()
+    }
+    setIsSaving(false)
   }
 
   if (isLoading) {
@@ -308,6 +399,17 @@ export default function AdminBatchDetailPage({
             <Settings className={`mr-2 h-5 w-5 ${activeTab === "settings" ? "text-e17-navy" : ""}`} />
             Pengaturan Batch
           </button>
+          <button
+            onClick={() => setActiveTab("certificates")}
+            className={`whitespace-nowrap flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === "certificates"
+                ? "border-e17-navy text-e17-navy font-bold"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            }`}
+          >
+            <Award className={`mr-2 h-5 w-5 ${activeTab === "certificates" ? "text-e17-navy" : ""}`} />
+            Sertifikat
+          </button>
         </nav>
       </div>
 
@@ -325,7 +427,9 @@ export default function AdminBatchDetailPage({
                 <Link href="/admin/students/import">
                   <Button variant="outline" className="border-slate-200 bg-white text-slate-700"><FileUp className="h-4 w-4 mr-2" /> Import CSV</Button>
                 </Link>
-                <Button variant="orange" className="font-bold shadow-sm"><Plus className="h-4 w-4 mr-2" /> Tambah Manual</Button>
+                <Button variant="orange" className="font-bold shadow-sm" onClick={handleOpenAddManual}>
+                  <Plus className="h-4 w-4 mr-2" /> Tambah Manual
+                </Button>
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -375,6 +479,74 @@ export default function AdminBatchDetailPage({
                 </tbody>
               </table>
             </div>
+
+            {isAddManualOpen && (
+              <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+                  <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 className="font-bold text-lg text-e17-dark">Tambah Siswa Manual</h3>
+                    <button onClick={() => setIsAddManualOpen(false)} className="text-slate-400 hover:text-slate-600">
+                      X
+                    </button>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-sm font-semibold text-slate-700">Pilih Siswa</label>
+                        <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">{selectedStudentIds.length} terpilih</span>
+                      </div>
+                      
+                      <div className="mb-3">
+                        <Input 
+                          placeholder="Cari nama atau email..." 
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="h-9 text-sm"
+                        />
+                      </div>
+                      
+                      <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1 bg-slate-50/50">
+                        {availableStudents
+                          .filter(s => s.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || s.email.toLowerCase().includes(searchQuery.toLowerCase()))
+                          .map(s => (
+                          <label key={s.id} className="flex items-center space-x-3 p-2 hover:bg-slate-100 rounded-md cursor-pointer border border-transparent hover:border-slate-200 transition-colors">
+                            <input 
+                              type="checkbox"
+                              checked={selectedStudentIds.includes(s.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedStudentIds([...selectedStudentIds, s.id])
+                                } else {
+                                  setSelectedStudentIds(selectedStudentIds.filter(id => id !== s.id))
+                                }
+                              }}
+                              className="h-4 w-4 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
+                            />
+                            <div>
+                               <span className="block text-sm font-semibold text-slate-800">{s.full_name}</span>
+                               <span className="block text-xs text-slate-500">{s.email}</span>
+                            </div>
+                          </label>
+                        ))}
+                        {availableStudents.length === 0 && (
+                          <p className="text-xs text-rose-500 p-2 text-center font-medium">Tidak ada siswa yang tersedia (Semua siswa sudah masuk batch ini).</p>
+                        )}
+                        {availableStudents.length > 0 && availableStudents.filter(s => s.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || s.email.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                          <p className="text-xs text-slate-500 p-2 text-center font-medium">Tidak ada siswa yang cocok dengan pencarian.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setIsAddManualOpen(false)}>Batal</Button>
+                    <Button className="bg-e17-navy hover:bg-slate-800 text-white" onClick={handleAddManualSubmit} disabled={isSaving || selectedStudentIds.length === 0}>
+                      {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                      Tambahkan
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -386,6 +558,17 @@ export default function AdminBatchDetailPage({
                 <h2 className="text-lg font-bold text-e17-dark">Jadwal Sesi</h2>
                 <p className="text-sm text-slate-500">Sesi yang akan dipelajari dalam batch ini. Biasanya di-copy dari program.</p>
               </div>
+              {sessions.length > 0 && (
+                <Button 
+                   variant="outline" 
+                   onClick={handleResetSessions}
+                   disabled={isSaving}
+                   className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                >
+                   {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                   Reset & Sinkronkan
+                </Button>
+              )}
             </div>
             <div className="p-6 space-y-3 bg-slate-50 min-h-[300px]">
               {sessions.length === 0 ? (
@@ -591,6 +774,17 @@ export default function AdminBatchDetailPage({
                 </Button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* TAB 4: CERTIFICATES */}
+        {activeTab === "certificates" && (
+          <div className="p-0">
+             <CertificateManager 
+               batchId={batchId} 
+               initialTemplateUrl={batchData.certificate_template_url || null}
+               students={students}
+             />
           </div>
         )}
 

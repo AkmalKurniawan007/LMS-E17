@@ -1,0 +1,38 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
+import { getMateriListForEnrollment } from "@/lib/progress-rules";
+
+export async function GET(
+  _req: Request,
+  { params }: { params: { id: string } },
+) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const batchId = params.id;
+
+  const batch = await prisma.batch.findUnique({
+    where: { id: batchId },
+    include: { program: true, enrollments: { where: { userId: user.id } } },
+  });
+
+  if (!batch) return NextResponse.json({ error: "Batch tidak ditemukan" }, { status: 404 });
+
+  const enrollment = batch.enrollments[0];
+  if (!enrollment) {
+    return NextResponse.json({ error: "Anda tidak terdaftar di batch ini" }, { status: 403 });
+  }
+
+  const materis = await getMateriListForEnrollment(enrollment.id);
+
+  const selesai = materis.filter((m) => m.status === "SELESAI").length;
+
+  return NextResponse.json({
+    batch: { id: batch.id, name: batch.name, program: batch.program.name },
+    enrollmentId: enrollment.id,
+    konsentrasi: enrollment.konsentrasi,
+    progress: { selesai, total: materis.length, pct: Math.round((selesai / materis.length) * 100) },
+    materis,
+  });
+}

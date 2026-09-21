@@ -1,0 +1,9 @@
+{
+  "id": "6",
+  "subject": "M2: Halaman Daftar Materi",
+  "description": "Halaman /bootcamp/[slug]/materi: progress bar keseluruhan (X/11), list 11 sesi dengan status (Selesai/Sedang/Belum/Terkunci), tombol aksi. Pakai design tokens, proteksi login.",
+  "activeForm": "Membangun halaman daftar materi",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

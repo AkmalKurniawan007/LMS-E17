@@ -1,11 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { Plus, Search, Shield, Edit, Trash2, GraduationCap, X, Loader2, AlertTriangle } from "lucide-react"
+import { Plus, Search, Shield, Edit, Trash2, GraduationCap, X, Loader2, AlertTriangle, BookOpen, Users as UsersIcon, LinkIcon, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/utils/supabase/client"
-import { createInternalUser, updateUserRole, revokeUserAccess, getAdminAndMentorUsers } from "./actions"
+import { createInternalUser, updateUserRole, revokeUserAccess, getAdminAndMentorUsers, assignBatchesToMentor } from "./actions"
+import Link from "next/link"
 
 type User = {
   id: string
@@ -14,6 +15,8 @@ type User = {
   role: string
   created_at: string
   is_suspended?: boolean
+  batches?: any[]
+  total_students?: number
 }
 
 export default function AdminUsersPage() {
@@ -21,16 +24,22 @@ export default function AdminUsersPage() {
   const [users, setUsers] = React.useState<User[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [search, setSearch] = React.useState("")
+  const [roleFilter, setRoleFilter] = React.useState("all") // all, admin, mentor
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  // New state for Edit & Revoke
+  // Edit & Revoke state
   const [editModalOpen, setEditModalOpen] = React.useState(false)
   const [revokeModalOpen, setRevokeModalOpen] = React.useState(false)
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null)
   const [newRole, setNewRole] = React.useState("mentor")
+
+  // Assign Batch state (for mentors)
+  const [assignBatchModalOpen, setAssignBatchModalOpen] = React.useState(false)
+  const [availableBatches, setAvailableBatches] = React.useState<any[]>([])
+  const [selectedBatches, setSelectedBatches] = React.useState<string[]>([])
 
   React.useEffect(() => {
     fetchUsers()
@@ -91,10 +100,38 @@ export default function AdminUsersPage() {
     setIsSubmitting(false)
   }
 
-  const filteredUsers = users.filter(u => 
-    u.full_name.toLowerCase().includes(search.toLowerCase()) || 
-    u.email.toLowerCase().includes(search.toLowerCase())
-  )
+  const handleOpenAssignBatchModal = async (user: User) => {
+    setSelectedUser(user)
+    setSelectedBatches(user.batches?.map(b => b.id) || [])
+    
+    // Fetch available batches
+    const { data } = await supabase
+      .from('batches')
+      .select('id, name, programs(name)')
+      .eq('status', 'berjalan')
+    
+    if (data) setAvailableBatches(data)
+    setAssignBatchModalOpen(true)
+  }
+
+  const handleAssignBatches = async () => {
+    if (!selectedUser) return
+    setIsSubmitting(true)
+    const result = await assignBatchesToMentor(selectedUser.id, selectedBatches)
+    alert(result.message)
+    if (result.success) {
+      setAssignBatchModalOpen(false)
+      fetchUsers()
+    }
+    setIsSubmitting(false)
+  }
+
+  const filteredUsers = users.filter(u => {
+    const matchSearch = u.full_name.toLowerCase().includes(search.toLowerCase()) || 
+                        u.email.toLowerCase().includes(search.toLowerCase())
+    const matchRole = roleFilter === 'all' ? true : u.role === roleFilter
+    return matchSearch && matchRole
+  })
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-8">
@@ -112,8 +149,8 @@ export default function AdminUsersPage() {
       </div>
 
       <div className="card-clean overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="relative w-full max-w-sm">
+        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-50/50">
+          <div className="relative w-full sm:max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-slate-400" />
             </div>
@@ -125,6 +162,39 @@ export default function AdminUsersPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => setRoleFilter('all')}
+              className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
+                roleFilter === 'all' 
+                  ? 'bg-e17-navy text-white' 
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              Semua ({users.length})
+            </button>
+            <button
+              onClick={() => setRoleFilter('admin')}
+              className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
+                roleFilter === 'admin' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              Admin ({users.filter(u => u.role === 'admin').length})
+            </button>
+            <button
+              onClick={() => setRoleFilter('mentor')}
+              className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
+                roleFilter === 'mentor' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              Mentor ({users.filter(u => u.role === 'mentor').length})
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto min-h-[400px]">
@@ -134,6 +204,7 @@ export default function AdminUsersPage() {
                 <th className="px-6 py-4 font-semibold">Pengguna</th>
                 <th className="px-6 py-4 font-semibold">Peran (Role)</th>
                 <th className="px-6 py-4 font-semibold">Tgl. Terdaftar</th>
+                <th className="px-6 py-4 font-semibold">Statistik</th>
                 <th className="px-6 py-4 font-semibold text-right">Aksi</th>
               </tr>
             </thead>
@@ -183,8 +254,35 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4 text-slate-500">
                       {new Date(user.created_at).toLocaleDateString('id-ID')}
                     </td>
+                    {/* Additional column for statistics */}
+                    <td className="px-6 py-4 text-slate-600">
+                      {user.role === 'mentor' ? (
+                        <div className="text-sm">
+                          <div className="flex items-center gap-1 mb-1">
+                            <BookOpen className="h-3.5 w-3.5 text-orange-500" />
+                            <span className="font-bold">{user.batches?.length || 0} batch</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <UsersIcon className="h-3.5 w-3.5 text-blue-500" />
+                            <span className="font-bold">{user.total_students || 0} siswa</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 text-xs italic">-</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end space-x-1">
+                        {user.role === 'mentor' && !user.is_suspended && (
+                          <Button 
+                            variant="ghost" size="icon" 
+                            className="h-8 w-8 text-slate-500 hover:text-orange-600 hover:bg-orange-50" 
+                            title="Assign Batch"
+                            onClick={() => handleOpenAssignBatchModal(user)}
+                          >
+                            <LinkIcon className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button 
                           variant="ghost" size="icon" 
                           className="h-8 w-8 text-slate-500 hover:text-e17-navy hover:bg-slate-100" 
@@ -328,6 +426,64 @@ export default function AdminUsersPage() {
                 <Button onClick={handleRevokeSubmit} disabled={isSubmitting} className="bg-red-600 hover:bg-red-700 text-white font-bold shadow-md">
                   {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                   Ya, Cabut Akses
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Batch Modal (for Mentors) */}
+      {assignBatchModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+              <h2 className="text-lg font-bold text-e17-dark">Assign Batch ke {selectedUser.full_name}</h2>
+              <button onClick={() => setAssignBatchModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 max-h-96 overflow-y-auto">
+              <p className="text-sm font-bold text-slate-700 mb-3">Pilih batch yang akan di-assign:</p>
+
+              {availableBatches.length === 0 ? (
+                <div className="text-center py-8">
+                  <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-2" />
+                  <p className="text-sm text-slate-500">Tidak ada batch berjalan yang tersedia</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {availableBatches.map((batch: any) => (
+                    <label key={batch.id} className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={selectedBatches.includes(batch.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedBatches([...selectedBatches, batch.id])
+                          } else {
+                            setSelectedBatches(selectedBatches.filter(id => id !== batch.id))
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-slate-700">{batch.name}</p>
+                        <p className="text-xs text-slate-500">{batch.programs?.name}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              <div className="pt-6 border-t border-slate-100 mt-6 flex justify-end gap-3">
+                <Button type="button" variant="outline" onClick={() => setAssignBatchModalOpen(false)} disabled={isSubmitting}>
+                  Batal
+                </Button>
+                <Button type="submit" variant="orange" className="font-bold shadow-md" disabled={isSubmitting} onClick={handleAssignBatches}>
+                  {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Simpan Assignment
                 </Button>
               </div>
             </div>

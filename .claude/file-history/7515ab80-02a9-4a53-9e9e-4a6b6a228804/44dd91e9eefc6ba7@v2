@@ -1,0 +1,73 @@
+import { notFound, redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { getMateriListForEnrollment } from "@/lib/progress-rules";
+import { Badge } from "@/components/ui/badge";
+import VideoPlayer from "@/components/materi/VideoPlayer";
+import SesiSidebar from "@/components/materi/SesiSidebar";
+
+export const dynamic = "force-dynamic";
+
+export default async function MateriDetailPage({
+  params,
+}: {
+  params: { slug: string; id: string };
+}) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const materi = await prisma.materi.findUnique({
+    where: { id: params.id },
+    include: {
+      batch: { include: { program: true, enrollments: { where: { userId: user.id } } } },
+    },
+  });
+  if (!materi || materi.batch.program.slug !== params.slug) notFound();
+
+  const enrollment = materi.batch.enrollments.find((e) => e.konsentrasi === "ONLINE");
+  if (!enrollment) {
+    redirect(`/bootcamp/${params.slug}/overview`);
+  }
+
+  const list = await getMateriListForEnrollment(enrollment.id);
+  const aktif = list.find((s) => s.id === materi.id);
+  if (aktif?.isLocked) {
+    redirect(`/bootcamp/${params.slug}/materi`);
+  }
+
+  return (
+    <main className="mx-auto max-w-6xl px-6 py-8">
+      {/* Header nav */}
+      <div className="mb-5">
+        <p className="text-[13px] text-text-muted">
+          <span className="text-online">Online 🎬</span> · {materi.batch.program.name} ·{" "}
+          {materi.batch.name}
+        </p>
+        <div className="mt-1 flex items-center gap-3">
+          <Badge variant="online">Sesi {materi.urutan}</Badge>
+          <h1 className="text-[24px] font-extrabold text-navy">{materi.judul}</h1>
+        </div>
+      </div>
+
+      {/* Dua kolom: video ~70% | sidebar ~30% */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,70%)_minmax(0,30%)]">
+        <VideoPlayer
+          materi={{
+            id: materi.id,
+            judul: materi.judul,
+            deskripsi: materi.deskripsi,
+            videoUrl: materi.videoUrl,
+            pdfUrl: materi.pdfUrl,
+            durasi: materi.durasi,
+          }}
+          progress={
+            aktif
+              ? { watchedSeconds: aktif.watchedSeconds, completed: aktif.completed }
+              : null
+          }
+        />
+        <SesiSidebar list={list} slug={params.slug} currentId={materi.id} />
+      </div>
+    </main>
+  );
+}

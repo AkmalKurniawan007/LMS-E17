@@ -1,5 +1,132 @@
 [
   {
+    "id": "5ebcb663-c7c8-4851-8dd4-9d0314132bb4",
+    "role": "mentor",
+    "action": "Penilaian Proyek Akhir",
+    "details": "Memberikan nilai 85 untuk proyek akhir (Submission ID: 0d0c6841-b171-4f17-b9bf-07c2e3db3861)",
+    "created_at": "2026-09-18T09:52:39.621Z",
+    "user_id": "1077481c-6452-474d-8078-96c5e1574c21",
+    "user_email": "mentor@e17.com",
+    "target_id": "0d0c6841-b171-4f17-b9bf-07c2e3db3861"
+  },
+  {
+    "id": "fa5e20ef-a796-4777-90b1-5473c6f261f4",
+    "role": "mentor",
+    "action": "Penilaian Tugas",
+    "details": "Memberikan nilai 70 untuk tugas harian (Submission ID: 92d5ad73-1340-4993-a5c3-3a463c9ce720)",
+    "created_at": "2026-09-18T09:51:08.995Z",
+    "user_id": "1077481c-6452-474d-8078-96c5e1574c21",
+    "user_email": "mentor@e17.com",
+    "target_id": "92d5ad73-1340-4993-a5c3-3a463c9ce720"
+  },
+  {
+    "id": "cfe79e4a-9fa9-4231-9009-82ca6d308662",
+    "role": "mentor",
+    "action": "Kirim Pesan",
+    "details": "Mengirim pesan ke ruang ID: 85743e44-e1f9-4592-a080-d439d0ac1f9e",
+    "created_at": "2026-09-18T09:48:49.335Z",
+    "user_id": "59fd3508-2aaf-4009-9e09-72e51a3e057f",
+    "user_email": "adi@mpl.com",
+    "target_id": "85743e44-e1f9-4592-a080-d439d0ac1f9e"
+  },
+  {
+    "id": "d7ed51e8-5433-45d1-93e1-f70c4e49d82d",
+    "role": "mentor",
+    "action": "Ubah Status Sesi",
+    "details": "Mengubah status sesi menjadi ongoing",
+    "created_at": "2026-09-18T09:47:24.940Z",
+    "user_id": "59fd3508-2aaf-4009-9e09-72e51a3e057f",
+    "user_email": "adi@mpl.com",
+    "target_id": "e540f718-540e-4b1f-ba6e-614d47465a1f"
+  },
+  {
+    "id": "c16dec7f-912b-492b-b934-f47c739c8be1",
+    "role": "admin",
+    "action": "Pembuatan Akun Staf",
+    "details": "Membuat akun mentor baru untuk adi@mpl.com",
+    "created_at": "2026-09-17T09:12:08.455Z",
+    "user_id": "bc0dac57-7449-430c-89ff-72598919c68a",
+    "user_email": "admin@e17.com",
+    "target_id": "59fd3508-2aaf-4009-9e09-72e51a3e057f"
+  },
+  {
+    "id": "fcff018b-df67-4085-b491-c02ee9eea09f",
+    "role": "admin",
+    "action": "Pembuatan Program Baru",
+    "details": "Mendaftarkan kurikulum/program baru bernama: PUSH RANK IMO",
+    "created_at": "2026-09-17T09:04:47.354Z",
+    "user_id": "bc0dac57-7449-430c-89ff-72598919c68a",
+    "user_email": "admin@e17.com"
+  },
+  {
+    "id": "16c76876-f1b3-4e06-8c33-4ba4b3829a3b",
+    "role": "mentor",
+    "action": "Penilaian Tugas",
+    "details": "Memberikan nilai 78 untuk tugas harian (Submission ID: b19f3c5c-68a7-4433-bd65-1e7eb21c9477)",
+    "created_at": "2026-09-17T02:43:02.824Z",
+    "user_id": "1077481c-6452-474d-8078-96c5e1574c21",
+    "user_email": "mentor@e17.com",
+    "target_id": "b19f3c5c-68a7-4433-bd65-1e7eb21c9477"
+  },
+  {
+    "id": "34c7c54f-d280-4eb0-ae82-03807eb6337f",
+    "role": "mentor",
+    "action": "Penilaian Tugas",
+    "details": "Memberikan nilai 99 untuk tugas harian (Submission ID: ddedec71-7033-43f0-8737-ca5979511d26)",
+    "created_at": "2026-09-17T02:42:44.318Z",
+    "user_id": "1077481c-6452-474d-8078-96c5e1574c21",
+    "user_email": "mentor@e17.com",
+    "target_id": "ddedec71-7033-43f0-8737-ca5979511d26"
+  },
+  {
+    "id": "ef8ca2da-7ee1-4333-af6f-a35e6728a344",
+    "role": "mentor",
+    "action": "Ubah Status Sesi",
+    "details": "Mengubah status sesi menjadi completed",
+    "created_at": "2026-09-17T02:42:06.846Z",
+    "user_id": "1077481c-6452-474d-8078-96c5e1574c21",
+    "user_email": "mentor@e17.com",
+    "target_id": "95d6f178-c39d-41d0-abea-369b0b9fb96e"
+  },
+  {
+    "id": "412a67d5-43cc-44ad-be03-bd330f3e04fa",
+    "role": "admin",
+    "action": "Pembuatan Akun Staf",
+    "details": "Membuat akun admin baru untuk lntykurni@gmail.com",
+    "created_at": "2026-09-15T03:23:58.503Z",
+    "target_id": "9aa1627e-24b6-4cac-8b72-8bc70b284a45"
+  },
+  {
+    "id": "127d8f82-c26a-45d2-8760-d354d0e2e535",
+    "role": "admin",
+    "action": "Pembuatan Program Baru",
+    "details": "Mendaftarkan kurikulum/program baru bernama: HTML,CSS.JAVA",
+    "created_at": "2026-09-14T06:03:39.658Z"
+  },
+  {
+    "id": "3cdb9e3e-45ba-4f77-8b12-52d701dbedb7",
+    "role": "admin",
+    "action": "Pembuatan Program Baru",
+    "details": "Mendaftarkan kurikulum/program baru bernama: cyber security",
+    "created_at": "2026-09-10T10:13:02.504Z"
+  },
+  {
+    "id": "f65f0227-556d-4056-b500-a5a84e5195a2",
+    "role": "admin",
+    "action": "Pembuatan Akun Staf",
+    "details": "Membuat akun mentor baru untuk adit@e17.com",
+    "created_at": "2026-09-10T07:19:35.847Z",
+    "target_id": "87dfa587-c834-4cbd-9678-71cf3679ac4b"
+  },
+  {
+    "id": "e672f72d-8dac-438f-a204-3649cb5528d9",
+    "role": "admin",
+    "action": "Assign Batch ke Mentor",
+    "details": "Mengassign 0 batch kepada mentor ID: 1077481c-6452-474d-8078-96c5e1574c21",
+    "created_at": "2026-09-10T07:18:04.268Z",
+    "target_id": "1077481c-6452-474d-8078-96c5e1574c21"
+  },
+  {
     "id": "6e2b4698-f1b0-4f27-bd7b-1e20da99bb83",
     "role": "admin",
     "action": "Pembuatan Program Baru",

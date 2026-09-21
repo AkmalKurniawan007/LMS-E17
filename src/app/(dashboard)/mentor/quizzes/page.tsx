@@ -3,27 +3,121 @@
 import * as React from "react"
 import { Search, Filter, CheckCircle2, Clock, FileText, X, Check, BookOpen, AlertCircle } from "lucide-react"
 
-// Mock Data
-const MOCK_QUIZZES = [
-  { id: 'q1', student: 'Budi Santoso', quiz: 'Kuis Modul 1: React Hooks', batch: 'Fullstack JS - Batch 3', status: 'completed', time: '1 jam yang lalu', score: 95 },
-  { id: 'q2', student: 'Siti Aminah', quiz: 'Kuis Modul 1: React Hooks', batch: 'Fullstack JS - Batch 3', status: 'completed', time: '2 jam yang lalu', score: 80 },
-  { id: 'q3', student: 'Andi Wijaya', quiz: 'Kuis Pengenalan UI/UX', batch: 'UI/UX Design - Batch 2', status: 'completed', time: '1 hari yang lalu', score: 100 },
-  { id: 'q4', student: 'Dewi Lestari', quiz: 'Kuis Modul 2: State Management', batch: 'Fullstack JS - Batch 3', status: 'completed', time: '2 hari yang lalu', score: 65 },
-  { id: 'q5', student: 'Eko Prasetyo', quiz: 'Kuis Modul 2: State Management', batch: 'Fullstack JS - Batch 3', status: 'failed', time: '2 hari yang lalu', score: 40 },
-]
+import { createClient } from "@/utils/supabase/client"
+import { formatDistanceToNow } from "date-fns"
+import { id } from "date-fns/locale"
+
+import { fetchQuizAttemptsByQuizIds } from "./actions"
 
 export default function MentorQuizzesPage() {
+  const supabase = createClient()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState("all")
+  const [quizzesData, setQuizzesData] = React.useState<any[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    setIsLoading(true)
+    const { data: userData } = await supabase.auth.getUser()
+    if (!userData.user) return
+
+    const mentorId = userData.user.id
+
+    // 1. Get batches assigned to this mentor
+    const { data: mentorBatches } = await supabase
+      .from('batch_mentors')
+      .select('batch_id')
+      .eq('mentor_id', mentorId)
+
+    if (!mentorBatches || mentorBatches.length === 0) {
+      setQuizzesData([])
+      setIsLoading(false)
+      return
+    }
+
+    const batchIds = mentorBatches.map(b => b.batch_id)
+
+    // 2. Get sessions for these batches
+    const { data: sessionsData } = await supabase
+      .from('sessions')
+      .select('id, batch_id, batches(name)')
+      .in('batch_id', batchIds)
+
+    if (!sessionsData || sessionsData.length === 0) {
+      setQuizzesData([])
+      setIsLoading(false)
+      return
+    }
+
+    const sessionIds = sessionsData.map(s => s.id)
+    const sessionBatchMap = sessionsData.reduce((acc, curr) => {
+       acc[curr.id] = (curr.batches as any)?.name || 'Batch'
+       return acc
+    }, {} as any)
+
+    // 3. Get quizzes for these sessions
+    const { data: quizzesDataRaw } = await supabase
+      .from('quizzes')
+      .select('id, title, session_id')
+      .in('session_id', sessionIds)
+
+    if (!quizzesDataRaw || quizzesDataRaw.length === 0) {
+      setQuizzesData([])
+      setIsLoading(false)
+      return
+    }
+
+    const quizIds = quizzesDataRaw.map(q => q.id)
+    const quizMap = quizzesDataRaw.reduce((acc, curr) => {
+       acc[curr.id] = { title: curr.title, session_id: curr.session_id }
+       return acc
+    }, {} as any)
+
+    // 4. Fetch all quiz attempts related to these quizzes via Server Action (bypasses RLS)
+    const { data: attemptsData, error: attemptError } = await fetchQuizAttemptsByQuizIds(quizIds)
+
+    if (attemptError) {
+      console.error("Error fetching attempts:", attemptError)
+    }
+
+    if (attemptsData) {
+      const formattedData = attemptsData.map((attempt: any) => {
+        const qInfo = quizMap[attempt.quiz_id]
+        const q = qInfo
+        const batchName = qInfo ? sessionBatchMap[qInfo.session_id] : 'Batch'
+        
+        return {
+          id: attempt.id,
+          student: attempt.users?.full_name || 'Siswa',
+          quiz: qInfo?.title || 'Kuis',
+          batch: batchName,
+          batchName: Array.isArray(q?.sessions?.batches) ? q.sessions.batches[0]?.name : q?.sessions?.batches?.name || batchName,
+          programName: Array.isArray(q?.sessions?.batches?.programs) 
+            ? q.sessions.batches.programs[0]?.name 
+            : q?.sessions?.batches?.programs?.name,
+          status: attempt.is_passed ? 'completed' : 'failed',
+          time: formatDistanceToNow(new Date(attempt.created_at), { addSuffix: true, locale: id }),
+          score: attempt.score
+        }
+      })
+      setQuizzesData(formattedData)
+    }
+
+    setIsLoading(false)
+  }
 
   const filteredQuizzes = React.useMemo(() => {
-    return MOCK_QUIZZES.filter(sub => {
+    return quizzesData.filter(sub => {
       const matchesSearch = sub.student.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             sub.quiz.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesStatus = statusFilter === "all" || sub.status === statusFilter
       return matchesSearch && matchesStatus
     })
-  }, [searchQuery, statusFilter])
+  }, [searchQuery, statusFilter, quizzesData])
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 relative">
@@ -78,7 +172,12 @@ export default function MentorQuizzesPage() {
 
       {/* List */}
       <div className="card-clean overflow-hidden">
-        {filteredQuizzes.length === 0 ? (
+        {isLoading ? (
+          <div className="p-12 flex flex-col items-center justify-center text-center">
+            <div className="animate-spin h-8 w-8 border-4 border-e17-navy border-t-transparent rounded-full mb-4"></div>
+            <p className="text-sm text-slate-500">Memuat data kuis...</p>
+          </div>
+        ) : filteredQuizzes.length === 0 ? (
           <div className="p-12 flex flex-col items-center justify-center text-center">
             <FileText className="h-12 w-12 text-slate-300 mb-4" />
             <h3 className="text-lg font-bold text-slate-700">Tidak ada riwayat kuis</h3>

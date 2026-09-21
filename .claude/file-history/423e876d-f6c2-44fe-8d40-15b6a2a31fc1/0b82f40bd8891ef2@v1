@@ -1,0 +1,128 @@
+import { prisma } from "@/lib/prisma";
+
+/**
+ * Sistem kunci materi (PRD §7.1, §16.2) — logika SERVER-side.
+ * Frontend hanya membaca hasil fungsi ini; tidak ada unlock di client.
+ *
+ * Urutan sesi (11 item):
+ *   [1..5] materi  [6] Kuis 1  [7..10] materi  [11] Kuis 2
+ *
+ * Aturan unlock:
+ *  - Sesi 1 selalu terbuka.
+ *  - Materi N terbuka jika materi sebelumnya (N-1) SELESAI
+ *    (watchedSeconds >= 80% durasi N-1, atau completed:true).
+ *  - Kuis 1 (sesi 6) terbuka setelah materi 5 selesai.
+ *  - Materi 7 terbuka setelah Kuis 1 lulus (nilaiKuis >= 70).
+ *  - Materi 8..10 ikuti rule normal (N-1 selesai).
+ *  - Kuis 2 (sesi 11) terbuka setelah materi 10 selesai.
+ */
+
+export type MateriSesi = {
+  id: string;
+  urutan: number;
+  tipe: "MATERI" | "KUIS";
+  judul: string;
+  durasi: number;
+  watchedSeconds: number;
+  completed: boolean;
+  nilaiKuis: number | null;
+  isLocked: boolean;
+  status: "SELESAI" | "SEDANG" | "BELUM" | "TERKUNCI";
+};
+
+type ProgressRow = { watchedSeconds: number; completed: boolean; nilaiKuis: number | null };
+
+/** `finished` = materi dianggap selesai (>=80% ditonton ATAU eksplisit di-complete). */
+function finished(p: ProgressRow | undefined, durasi: number) {
+  if (!p) return false;
+  return p.completed || p.watchedSeconds >= Math.ceil(0.8 * durasi);
+}
+
+/** Kuis dinyatakan lulus jika nilaiKuis >= ambang (K1=70, K2=75). */
+function kuisLulus(p: ProgressRow | undefined) {
+  return !!p?.nilaiKuis && p.nilaiKuis >= 70;
+}
+
+/**
+ * Annotate list materi (sudah diurutkan oleh urutan ASC) dengan status tiap sesi
+ * berdasarkan progress peserta pada enrollment.
+ */
+export function annotateMateriList(
+  materis: Array<{
+    id: string;
+    urutan: number;
+    tipe: "MATERI" | "KUIS";
+    judul: string;
+    durasi: number;
+  }>,
+  progresses: Array<{ materiId: string; watchedSeconds: number; completed: boolean; nilaiKuis: number | null }>
+): MateriSesi[] {
+  const pm = new Map(progresses.map((p) => [p.materiId, p]));
+
+  return materis.map((m) => {
+    const p = pm.get(m.id);
+
+    let isLocked = false;
+
+    if (m.urutan === 1) {
+      isLocked = false;
+    } else if (m.tipe === "KUIS") {
+      // gate: materi sebelum kuis (sesi 6 → materi 5; sesi 11 → materi 10)
+      const gate = materis.find((x) => x.urutan === m.urutan - 1);
+      isLocked = !gate || !finished(pm.get(gate.id), gate.durasi);
+    } else if (m.urutan === 7) {
+      // materi 7 terbuka setelah Kuis 1 (sesi 6) lulus
+      const kuis1 = materis.find((x) => x.tipe === "KUIS" && x.urutan === 6);
+      isLocked = !kuis1 || !kuisLulus(pm.get(kuis1.id));
+    } else {
+      // materi N → gate materi N-1
+      const prev = materis.find((x) => x.urutan === m.urutan - 1);
+      isLocked = !prev || !finished(pm.get(prev.id), prev.durasi);
+    }
+
+    const seleseai = !!p?.completed;
+    const sedang =
+      !isLocked && !seleseai && (p?.watchedSeconds ?? 0) > 0 && m.tipe === "MATERI";
+
+    const status: MateriSesi["status"] = seleseai
+      ? "SELESAI"
+      : isLocked
+        ? "TERKUNCI"
+        : sedang
+          ? "SEDANG"
+          : "BELUM";
+
+    return {
+      id: m.id,
+      urutan: m.urutan,
+      tipe: m.tipe,
+      judul: m.judul,
+      durasi: m.durasi,
+      watchedSeconds: p?.watchedSeconds ?? 0,
+      completed: seleseai,
+      nilaiKuis: p?.nilaiKuis ?? null,
+      isLocked,
+      status,
+    };
+  });
+}
+
+/**
+ * Muat list materi batch + progress enrollment, return sudah di-annotate & diurutkan.
+ * BUTUH auth: caller wajib memastikan enrollment milik user yang login.
+ */
+export async function getMateriListForEnrollment(enrollmentId: string) {
+  const [materis, progresses] = await Promise.all([
+    prisma.materi.findMany({
+      where: { batch: { enrollments: { some: { id: enrollmentId } } } },
+      orderBy: { urutan: "asc" },
+      select: { id: true, urutan: true, tipe: true, judul: true, durasi: true },
+    }),
+    prisma.progress.findMany({
+      where: { enrollmentId },
+      select: { materiId: true, watchedSeconds: true, completed: true, nilaiKuis: true },
+    }),
+  ]);
+
+  return annotateMateriList(materis, progresses);
+}

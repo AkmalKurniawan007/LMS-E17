@@ -1,0 +1,59 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
+import { getMateriListForEnrollment } from "@/lib/progress-rules";
+
+export async function GET(
+  _req: Request,
+  { params }: { params: { id: string } },
+) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const materi = await prisma.materi.findUnique({
+    where: { id: params.id },
+    include: {
+      batch: {
+        include: { program: true, enrollments: { where: { userId: user.id } } },
+      },
+    },
+  });
+
+  if (!materi) return NextResponse.json({ error: "Materi tidak ditemukan" }, { status: 404 });
+
+  const enrollment = materi.batch.enrollments[0];
+  if (!enrollment) {
+    return NextResponse.json({ error: "Anda tidak terdaftar di batch ini" }, { status: 403 });
+  }
+
+  const list = await getMateriListForEnrollment(enrollment.id);
+  const aktif = list.find((s) => s.id === materi.id);
+
+  if (aktif?.isLocked) {
+    return NextResponse.json({ error: "Materi ini masih terkunci" }, { status: 403 });
+  }
+
+  return NextResponse.json({
+    materi: {
+      id: materi.id,
+      judul: materi.judul,
+      deskripsi: materi.deskripsi,
+      videoUrl: materi.videoUrl,
+      pdfUrl: materi.pdfUrl,
+      durasi: materi.durasi,
+      urutan: materi.urutan,
+    },
+    progress: aktif
+      ? { watchedSeconds: aktif.watchedSeconds, completed: aktif.completed }
+      : null,
+    batch: { id: materi.batch.id, name: materi.batch.name, slug: materi.batch.program?.slug },
+    list: list.map((s) => ({
+      id: s.id,
+      urutan: s.urutan,
+      judul: s.judul,
+      tipe: s.tipe,
+      status: s.status,
+      isLocked: s.isLocked,
+    })),
+  });
+}

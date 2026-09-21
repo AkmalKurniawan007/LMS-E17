@@ -1,0 +1,146 @@
+import { notFound, redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { getMateriListForEnrollment } from "@/lib/progress-rules";
+import { Badge, StatusIcon } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { formatDuration } from "@/lib/format";
+import Link from "next/link";
+
+export const dynamic = "force-dynamic";
+
+export default async function MateriListPage({ params }: { params: { slug: string } }) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const program = await prisma.program.findUnique({
+    where: { slug: params.slug },
+    include: {
+      batches: {
+        include: { enrollments: { where: { userId: user.id }, include: { batch: true } } },
+        orderBy: { startDate: "desc" },
+      },
+    },
+  });
+
+  if (!program) notFound();
+
+  const enrollment = program.batches
+    .flatMap((b) => b.enrollments)
+    .find((e) => e.konsentrasi === "ONLINE");
+
+  if (!enrollment) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-12">
+        <Card>
+          <h1 className="text-[28px] font-extrabold text-navy">{program.name}</h1>
+          <p className="mt-2 text-text-secondary">
+            Anda belum terdaftar pada konsentrasi ONLINE untuk program ini.
+          </p>
+        </Card>
+      </main>
+    );
+  }
+
+  const materis = await getMateriListForEnrollment(enrollment.id);
+  const selesai = materis.filter((m) => m.status === "SELESAI").length;
+  const total = materis.length;
+  const pct = Math.round((selesai / total) * 100);
+
+  return (
+    <main className="mx-auto max-w-4xl px-6 py-8">
+      {/* Header */}
+      <header className="mb-6">
+        <p className="text-[13px] text-text-muted">E17Course · Bootcamp</p>
+        <h1 className="mt-1 text-[28px] font-extrabold text-navy">{program.name}</h1>
+        <div className="mt-2 flex items-center gap-2">
+          <Badge variant="online">Online 🎬</Badge>
+          <span className="text-[13px] text-text-secondary">{enrollment.batch.name}</span>
+        </div>
+      </header>
+
+      {/* Progress bar */}
+      <Card className="mb-8">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="font-display text-[20px] font-bold text-navy">Progres materi</p>
+          <span className="font-mono text-[13px] text-text-secondary">
+            {selesai} dari {total} selesai
+          </span>
+        </div>
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#F1EFE8]">
+          <div
+            className="h-full rounded-full bg-gold transition-all"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </Card>
+
+      {/* List sesi */}
+      <div className="space-y-3">
+        {materis.map((m) => (
+          <Card key={m.id} className="flex items-center gap-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy font-mono text-[13px] font-semibold text-gold">
+              {m.urutan}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="truncate font-display text-[15px] font-bold text-navy">
+                  {m.judul}
+                </p>
+                <StatusBadge status={m.status} tipe={m.tipe} />
+              </div>
+              <p className="mt-0.5 text-[13px] text-text-secondary">
+                {m.tipe === "KUIS"
+                  ? m.urutan === 6
+                    ? "15 soal · 30 menit"
+                    : "25 soal · 60 menit"
+                  : `${formatDuration(m.durasi)} video`}
+              </p>
+            </div>
+
+            <ActionButton m={m} slug={params.slug} />
+          </Card>
+        ))}
+      </div>
+    </main>
+  );
+}
+
+function StatusBadge({ status, tipe }: { status: string; tipe: string }) {
+  if (status === "SELESAI") return <Badge variant="success"><StatusIcon status="SELESAI" /> Selesai</Badge>;
+  if (status === "TERKUNCI") return <Badge variant="neutral"><StatusIcon status="TERKUNCI" /> Terkunci</Badge>;
+  if (status === "SEDANG") return <Badge variant="gold"><StatusIcon status="SEDANG" /> Sedang</Badge>;
+  if (tipe === "KUIS") return <Badge variant="warning">🎯 Kuis</Badge>;
+  return <Badge variant="neutral">Belum dimulai</Badge>;
+}
+
+function ActionButton({ m, slug }: { m: { id: string; tipe: string; status: string; urutan: number }; slug: string }) {
+  const isKuis = m.tipe === "KUIS";
+  const href = isKuis ? `/bootcamp/${slug}/kuis/${m.id}` : `/bootcamp/${slug}/materi/${m.id}`;
+  const label = isKuis
+    ? m.status === "SELESAI"
+      ? "Lihat nilai"
+      : m.status === "TERKUNCI"
+        ? "Terkunci"
+        : "Mulai Kuis"
+    : m.status === "SELESAI"
+      ? "Tonton ulang"
+      : m.status === "SEDANG"
+        ? "Lanjutkan"
+        : "Tonton";
+
+  if (m.status === "TERKUNCI") {
+    return (
+      <Button variant="ghost" disabled>
+        <StatusIcon status="TERKUNCI" /> Terkunci
+      </Button>
+    );
+  }
+  return (
+    <Link href={href}>
+      <Button variant={m.status === "SELESAI" ? "secondary" : "primary"}>{label}</Button>
+    </Link>
+  );
+}

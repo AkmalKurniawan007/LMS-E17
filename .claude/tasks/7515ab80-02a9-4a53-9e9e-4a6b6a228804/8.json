@@ -1,0 +1,9 @@
+{
+  "id": "8",
+  "subject": "M2: Verifikasi build + instal dependensi",
+  "description": "Instal react-player, pastikan build production lulus.",
+  "activeForm": "Memverifikasi build M2",
+  "status": "in_progress",
+  "blocks": [],
+  "blockedBy": []
+}

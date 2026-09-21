@@ -135,3 +135,57 @@ export async function revokeUserAccess(userId: string) {
     return { success: false, message: error.message || 'Terjadi kesalahan sistem.' }
   }
 }
+
+export async function assignBatchesToMentor(mentorId: string, batchIds: string[]) {
+  if (!mentorId) {
+    return { success: false, message: 'ID mentor tidak valid.' }
+  }
+
+  const supabaseAdmin = createAdminClient()
+
+  try {
+    // Get current batch assignments
+    const { data: currentAssignments } = await supabaseAdmin
+      .from('batch_mentors')
+      .select('batch_id')
+      .eq('mentor_id', mentorId)
+
+    const currentBatchIds = currentAssignments?.map(a => a.batch_id) || []
+
+    // Batches to remove
+    const toRemove = currentBatchIds.filter(id => !batchIds.includes(id))
+    // Batches to add
+    const toAdd = batchIds.filter(id => !currentBatchIds.includes(id))
+
+    // Remove old assignments
+    if (toRemove.length > 0) {
+      const { error: deleteError } = await supabaseAdmin
+        .from('batch_mentors')
+        .delete()
+        .eq('mentor_id', mentorId)
+        .in('batch_id', toRemove)
+
+      if (deleteError) throw deleteError
+    }
+
+    // Add new assignments
+    if (toAdd.length > 0) {
+      const newAssignments = toAdd.map(batchId => ({
+        mentor_id: mentorId,
+        batch_id: batchId
+      }))
+
+      const { error: insertError } = await supabaseAdmin
+        .from('batch_mentors')
+        .insert(newAssignments)
+
+      if (insertError) throw insertError
+    }
+
+    await logAction('admin', 'Assign Batch ke Mentor', `Mengassign ${batchIds.length} batch kepada mentor ID: ${mentorId}`, { target_id: mentorId })
+
+    return { success: true, message: 'Batch assignment berhasil diperbarui.' }
+  } catch (error: any) {
+    return { success: false, message: error.message || 'Terjadi kesalahan saat assign batch.' }
+  }
+}

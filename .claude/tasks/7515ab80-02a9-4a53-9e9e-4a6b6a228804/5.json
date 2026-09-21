@@ -1,0 +1,9 @@
+{
+  "id": "5",
+  "subject": "M2: Backend — sistem kunci + API progress/materi",
+  "description": "Install react-player, build backend API layer: lock/unlock logic helper + PATCH /api/progress/[materiId], GET /api/batch/[id]/materi (with status per sesi). Server-side unlock sesuai PRD §16.",
+  "activeForm": "Membangun backend sistem kunci + API",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

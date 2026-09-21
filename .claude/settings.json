@@ -1,0 +1,13 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:20128/v1",
+    "ANTHROPIC_AUTH_TOKEN": "sk-004b692c76be9ac9-7ajew4-eaf9f513",
+    "ANTHROPIC_DEFAULT_FABLE_MODEL": "opencode",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "opencode",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "opencode",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "opencode"
+  },
+  "autoUpdatesChannel": "latest",
+  "theme": "dark",
+  "hasCompletedOnboarding": true
+}

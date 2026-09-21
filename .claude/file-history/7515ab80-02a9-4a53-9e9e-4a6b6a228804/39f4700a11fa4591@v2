@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth ───
+// Note: `password` ditambahkan (String?, nullable) untuk login credentials.
+// Tidak mengubah nama model, field PRD, atau relasi apa pun.
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  name        String
+  password    String? // hash bcrypt; nullable utk akun OAuth-only nanti
+  role        Role         @default(PESERTA)
+  enrollments Enrollment[]
+  createdAt   DateTime     @default(now())
+}
+
+enum Role {
+  PESERTA
+  INSTRUKTUR
+  ADMIN
+}
+
+model Program {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  thumbnail   String?
+  batches     Batch[]
+}
+
+model Batch {
+  id          String       @id @default(cuid())
+  programId   String
+  name        String // "Gelombang 4"
+  startDate   DateTime
+  endDate     DateTime
+  quota       Int
+  program     Program      @relation(fields: [programId], references: [id])
+  enrollments Enrollment[]
+  sesis       Sesi[]       // untuk offline
+  materis     Materi[]     // untuk online
+}
+
+model Enrollment {
+  id           String         @id @default(cuid())
+  userId       String
+  batchId      String
+  konsentrasi  Konsentrasi    // ONLINE | OFFLINE
+  user         User           @relation(fields: [userId], references: [id])
+  batch        Batch          @relation(fields: [batchId], references: [id])
+  progresses   Progress[]
+  absensi      Absensi[]
+  tugasSubmits TugasSubmit[]
+
+  @@unique([userId, batchId])
+}
+
+enum Konsentrasi {
+  ONLINE
+  OFFLINE
+}
+
+model Materi {
+  id         String     @id @default(cuid())
+  batchId    String
+  urutan     Int
+  judul      String
+  deskripsi  String?
+  videoUrl   String?
+  pdfUrl     String?
+  durasi     Int // dalam detik
+  tipe       TipeMateri // MATERI | KUIS
+  batch      Batch      @relation(fields: [batchId], references: [id])
+  progresses Progress[]
+  soals      Soal[]     // hanya jika tipe KUIS
+}
+
+enum TipeMateri {
+  MATERI
+  KUIS
+}
+
+model Soal {
+  id       String  @id @default(cuid())
+  materiId String
+  teks     String
+  pilihanA String
+  pilihanB String
+  pilihanC String
+  pilihanD String
+  jawaban  String // "A" | "B" | "C" | "D"
+  bahas    String?
+  materi   Materi  @relation(fields: [materiId], references: [id])
+}
+
+model Progress {
+  id             String     @id @default(cuid())
+  enrollmentId   String
+  materiId       String
+  watchedSeconds Int        @default(0)
+  completed      Boolean    @default(false)
+  nilaiKuis      Int?
+  completedAt    DateTime?
+  enrollment     Enrollment @relation(fields: [enrollmentId], references: [id])
+  materi         Materi     @relation(fields: [materiId], references: [id])
+
+  @@unique([enrollmentId, materiId])
+}
+
+model Sesi {
+  id         String         @id @default(cuid())
+  batchId    String
+  urutan     Int
+  nama       String
+  tanggal    DateTime
+  jamMulai   DateTime
+  jamSelesai DateTime
+  lokasi     String
+  alamat     String
+  instruktur String
+  qrToken    String         @unique @default(cuid())
+  batch      Batch          @relation(fields: [batchId], references: [id])
+  absensi    Absensi[]
+  materials  SesiMaterial[]
+  tugas      Tugas?
+}
+
+model SesiMaterial {
+  id       String @id @default(cuid())
+  sesiId   String
+  namaFile String
+  url      String
+  sesi     Sesi   @relation(fields: [sesiId], references: [id])
+}
+
+model Absensi {
+  id           String     @id @default(cuid())
+  enrollmentId String
+  sesiId       String
+  hadir        Boolean    @default(false)
+  waktuScan    DateTime?
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+  sesi         Sesi       @relation(fields: [sesiId], references: [id])
+
+  @@unique([enrollmentId, sesiId])
+}
+
+model Tugas {
+  id        String        @id @default(cuid())
+  sesiId    String        @unique
+  nama      String
+  instruksi String?
+  deadline  DateTime
+  sesi      Sesi          @relation(fields: [sesiId], references: [id])
+  submits   TugasSubmit[]
+}
+
+model TugasSubmit {
+  id           String      @id @default(cuid())
+  enrollmentId String
+  tugasId      String
+  fileUrl      String
+  submittedAt  DateTime    @default(now())
+  nilai        Int?
+  feedback     String?
+  status       StatusTugas @default(SUBMITTED)
+  enrollment   Enrollment  @relation(fields: [enrollmentId], references: [id])
+  tugas        Tugas       @relation(fields: [tugasId], references: [id])
+
+  @@unique([enrollmentId, tugasId])
+}
+
+enum StatusTugas {
+  SUBMITTED
+  DINILAI
+  REVISI
+}

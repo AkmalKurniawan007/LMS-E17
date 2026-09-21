@@ -1,0 +1,52 @@
+{
+  "numStartups": 1,
+  "installMethod": "native",
+  "autoUpdates": false,
+  "tipsHistory": {
+    "new-user-warmup": 1,
+    "plan-mode-for-complex-tasks": 1,
+    "memory-command": 1,
+    "theme-command": 1,
+    "powershell-tool-env": 1,
+    "status-line": 1
+  },
+  "showExpandedTodos": true,
+  "firstStartTime": "2026-08-06T04:46:57.444Z",
+  "machineID": "9b66959dda376824e34b6875a9cf8739a6109c2b6aed34199275f1c710d62de9",
+  "opusProMigrationComplete": true,
+  "sonnet1m45MigrationComplete": true,
+  "seenNotifications": {},
+  "hasResetAutoModeOptInForDefaultOffer": true,
+  "migrationVersion": 13,
+  "userID": "ada47aa410d115d58beed5cb7bb38145a5047c1cb005b7f5475f14da69210f26",
+  "changelogLastFetched": 1785991618576,
+  "autoUpdatesProtectedForNative": true,
+  "hasCompletedOnboarding": true,
+  "lastOnboardingVersion": "2.1.223",
+  "projects": {
+    "C:/Users/USER": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 1,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "lastGracefulShutdown": false,
+      "lastVersionBase": "2.1.223"
+    }
+  },
+  "lastReleaseNotesSeen": "2.1.223",
+  "officialMarketplaceAutoInstallAttempted": true,
+  "officialMarketplaceAutoInstalled": true,
+  "tipLifetimeShownCounts": {
+    "new-user-warmup": 1,
+    "plan-mode-for-complex-tasks": 1,
+    "memory-command": 1,
+    "theme-command": 1,
+    "powershell-tool-env": 1,
+    "status-line": 1
+  }
+}

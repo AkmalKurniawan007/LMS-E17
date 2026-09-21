@@ -14,6 +14,25 @@ export async function logAction(
   options?: { user_id?: string; user_email?: string; target_id?: string }
 ) {
   try {
+    let finalUserEmail = options?.user_email
+    let finalUserId = options?.user_id
+
+    if (!finalUserEmail) {
+      try {
+        const { createClient } = await import('@/utils/supabase/server')
+        const supabase = await createClient()
+        const { data: authData } = await supabase.auth.getUser()
+        if (authData?.user) {
+          finalUserEmail = authData.user.email
+          if (!finalUserId) {
+            finalUserId = authData.user.id
+          }
+        }
+      } catch (e) {
+        // Ignored if run outside request context
+      }
+    }
+
     const dir = path.dirname(LOGS_FILE)
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true })
@@ -30,8 +49,8 @@ export async function logAction(
       action,
       details,
       created_at: new Date().toISOString(),
-      user_id: options?.user_id,
-      user_email: options?.user_email,
+      user_id: finalUserId,
+      user_email: finalUserEmail,
       target_id: options?.target_id
     }
 

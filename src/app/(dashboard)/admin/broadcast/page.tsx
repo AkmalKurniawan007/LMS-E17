@@ -3,20 +3,33 @@
 import * as React from "react"
 import { Megaphone, Send, Users, History, AlertCircle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { getBatches, getBroadcastHistory, sendBroadcast } from "./actions"
+
+export type BroadcastHistory = { id: string, subject: string, target: string, created_at: string };
 
 export default function BroadcastPage() {
   const [isSending, setIsSending] = React.useState(false)
+  const [batches, setBatches] = React.useState<{id: string, name: string}[]>([])
+  const [history, setHistory] = React.useState<BroadcastHistory[]>([])
+  
   const [formData, setFormData] = React.useState({
     target: "all",
     subject: "",
     message: ""
   })
 
-  // Mock data for history
-  const [history, setHistory] = React.useState([
-    { id: 1, date: "04 Sep 2026 10:00", subject: "Pemeliharaan Sistem Terjadwal", target: "Semua Siswa", status: "Sent" },
-    { id: 2, date: "01 Sep 2026 08:30", subject: "Selamat Datang Batch 5!", target: "Batch 5", status: "Sent" },
-  ])
+  React.useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    const [bData, hData] = await Promise.all([
+      getBatches(),
+      getBroadcastHistory()
+    ])
+    setBatches(bData)
+    setHistory(hData)
+  }
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,24 +39,27 @@ export default function BroadcastPage() {
     }
 
     setIsSending(true)
-    // Simulate API delay
-    await new Promise(r => setTimeout(r, 1500))
-    
-    // Add to history mock
-    setHistory([
-      {
-        id: Date.now(),
-        date: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        subject: formData.subject,
-        target: formData.target === 'all' ? 'Semua Siswa' : (formData.target === 'mentors' ? 'Semua Mentor' : formData.target),
-        status: "Sent"
-      },
-      ...history
-    ])
-
+    const res = await sendBroadcast(formData)
     setIsSending(false)
-    setFormData({ ...formData, subject: "", message: "" })
-    alert("Pengumuman berhasil dikirimkan!")
+
+    if (res.success) {
+      setFormData({ ...formData, subject: "", message: "" })
+      alert("Pengumuman berhasil dikirimkan!")
+      loadData()
+    } else {
+      alert(res.error || "Terjadi kesalahan")
+    }
+  }
+
+  const formatDate = (isoStr: string) => {
+    const date = new Date(isoStr)
+    return date.toLocaleString('id-ID', { 
+      day: '2-digit', 
+      month: 'short', 
+      year: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
   }
 
   return (
@@ -85,8 +101,9 @@ export default function BroadcastPage() {
                     <option value="all">Semua Siswa & Mentor</option>
                     <option value="students">Hanya Semua Siswa</option>
                     <option value="mentors">Hanya Semua Mentor</option>
-                    <option value="Batch 5">Siswa Batch 5 (Aktif)</option>
-                    <option value="Batch 4">Siswa Batch 4</option>
+                    {batches.map(b => (
+                      <option key={b.id} value={b.id}>Khusus {b.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -112,7 +129,7 @@ export default function BroadcastPage() {
                   placeholder="Ketik isi pengumuman Anda di sini..."
                 ></textarea>
                 <p className="text-xs text-slate-500 mt-2 flex items-center">
-                  <AlertCircle className="w-3 h-3 mr-1" />
+                  <AlertCircle className="w-3 h-3 mr-1 shrink-0" />
                   Pesan akan dikirim sebagai notifikasi in-app. Pengiriman via email belum diaktifkan di tahap ini.
                 </p>
               </div>
@@ -143,13 +160,17 @@ export default function BroadcastPage() {
             </div>
             
             <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
-              {history.map((item) => (
+              {history.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 text-sm">
+                  Belum ada riwayat pengumuman.
+                </div>
+              ) : history.map((item) => (
                 <div key={item.id} className="p-4 hover:bg-slate-50 transition-colors">
                   <div className="flex justify-between items-start mb-1">
-                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full uppercase tracking-wide truncate max-w-[150px]" title={item.target}>
                       {item.target}
                     </span>
-                    <span className="text-[10px] text-slate-500">{item.date}</span>
+                    <span className="text-[10px] text-slate-500 shrink-0 ml-2">{formatDate(item.created_at)}</span>
                   </div>
                   <h3 className="text-sm font-bold text-slate-800 line-clamp-2 mt-2">{item.subject}</h3>
                   <div className="mt-2 text-xs font-semibold text-emerald-600 flex items-center">

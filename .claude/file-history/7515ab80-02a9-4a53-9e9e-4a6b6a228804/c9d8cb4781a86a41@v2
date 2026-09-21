@@ -1,0 +1,57 @@
+import { Check, Lock, Loader2, Target, Play } from "lucide-react";
+import type { ReactNode } from "react";
+
+/** Badge Status — PRD §5.4. */
+export function Badge({
+  children,
+  variant = "neutral",
+  className = "",
+}: {
+  children: ReactNode;
+  variant?:
+    | "neutral"
+    | "success"
+    | "warning"
+    | "danger"
+    | "info"
+    | "online"
+    | "offline"
+    | "bnsp"
+    | "gold";
+  className?: string;
+}) {
+  const styles: Record<string, string> = {
+    neutral: "bg-[#F1EFE8] text-text-secondary",
+    success: "bg-success-bg text-online",
+    warning: "bg-warning-bg text-warning",
+    danger: "bg-danger-bg text-danger",
+    info: "bg-info-bg text-info",
+    online: "bg-online-bg text-online",
+    offline: "bg-offline-bg text-offline",
+    bnsp: "bg-navy text-gold",
+    gold: "bg-gold-light text-gold-dark",
+  };
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${styles[variant]} ${className}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+/** Ikon status sesi — dipakai di list materi & sidebar. */
+export function StatusIcon({ status }: { status: string }) {
+  switch (status) {
+    case "SELESAI":
+      return <Check className="h-3.5 w-3.5" aria-hidden />;
+    case "TERKUNCI":
+      return <Lock className="h-3.5 w-3.5" aria-hidden />;
+    case "SEDANG":
+      return <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />;
+    case "KUIS":
+      return <Target className="h-3.5 w-3.5" aria-hidden />;
+    default:
+      return <Play className="h-3.5 w-3.5" aria-hidden />;
+  }
+}

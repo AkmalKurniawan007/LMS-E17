@@ -1,0 +1,85 @@
+"use client";
+
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { AlertCircle, Loader2 } from "lucide-react";
+
+export default function LoginForm() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    setLoading(false);
+
+    if (res?.error) {
+      setError("Email atau password salah.");
+      return;
+    }
+    router.push("/dashboard");
+    router.refresh();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="w-full max-w-md space-y-5">
+      <div>
+        <label htmlFor="email" className="mb-1.5 block text-text-secondary">
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full rounded-btn border border-line bg-card px-4 py-2.5 text-[15px] text-text-primary outline-none transition focus:border-gold"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="password" className="mb-1.5 block text-text-secondary">
+          Password
+        </label>
+        <input
+          id="password"
+          type="password"
+          required
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full rounded-btn border border-line bg-card px-4 py-2.5 text-[15px] text-text-primary outline-none transition focus:border-gold"
+        />
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-btn bg-danger-bg px-4 py-3 text-sm text-danger">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="flex w-full items-center justify-center gap-2 rounded-btn bg-gold px-4 py-3 font-display text-[15px] font-bold text-navy transition-colors hover:bg-gold-dark disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+        Masuk
+      </button>
+    </form>
+  );
+}

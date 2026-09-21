@@ -1,0 +1,113 @@
+import { PrismaClient, Konsentrasi, Role, TipeMateri } from "@prisma/client";
+import { hash } from "bcryptjs";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  // ── User ──
+  const adminPass = await hash("admin123", 10);
+  const admin = await prisma.user.upsert({
+    where: { email: "admin@e17course.id" },
+    update: {},
+    create: {
+      email: "admin@e17course.id",
+      name: "Admin E17Course",
+      password: adminPass,
+      role: Role.ADMIN,
+    },
+  });
+
+  const pesertaPass = await hash("peserta123", 10);
+  const peserta = await prisma.user.upsert({
+    where: { email: "peserta@example.com" },
+    update: {},
+    create: {
+      email: "peserta@example.com",
+      name: "Rizky Pratama",
+      password: pesertaPass,
+      role: Role.PESERTA,
+    },
+  });
+
+  // ── Program ──
+  const program = await prisma.program.upsert({
+    where: { slug: "backend-nodejs" },
+    update: {},
+    create: {
+      name: "Backend Developer Node.js",
+      slug: "backend-nodejs",
+      description:
+        "Bootcamp intensif Backend Developer menggunakan Node.js, Express, dan PostgreSQL.",
+    },
+  });
+
+  // ── Batch ──
+  const batch = await prisma.batch.create({
+    data: {
+      programId: program.id,
+      name: "Gelombang 1",
+      startDate: new Date("2026-08-10T00:00:00Z"),
+      endDate: new Date("2026-11-10T00:00:00Z"),
+      quota: 30,
+    },
+  });
+
+  // ── Enrollment ONLINE (contoh) ──
+  await prisma.enrollment.create({
+    data: {
+      userId: peserta.id,
+      batchId: batch.id,
+      konsentrasi: Konsentrasi.ONLINE,
+    },
+  });
+
+  // ── Materi 10 + 2 Kuis (ONLINE) ──
+  const durasiMateri = 600; // 10 menit per materi, detik
+  const materiList = Array.from({ length: 10 }, (_, i) => ({
+    batchId: batch.id,
+    urutan: i + 1,
+    judul: `Materi ${i + 1}: Dasar Backend — Bagian ${i + 1}`,
+    deskripsi: `Pembahasan materi ke-${i + 1} untuk bootcamp Backend Developer.`,
+    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    pdfUrl: null,
+    durasi: durasiMateri,
+    tipe: TipeMateri.MATERI,
+  }));
+
+  for (const m of materiList) {
+    await prisma.materi.create({ data: m });
+  }
+
+  // Kuis 1 (urutan 6 → sesi ke-6), Kuis 2 (urutan 11 → sesi ke-11)
+  await prisma.materi.create({
+    data: {
+      batchId: batch.id,
+      urutan: 6,
+      judul: "Kuis 1: Evaluasi Tengah",
+      deskripsi: "15 soal pilihan ganda mencakup materi 1–5.",
+      durasi: 1800,
+      tipe: TipeMateri.KUIS,
+    },
+  });
+  await prisma.materi.create({
+    data: {
+      batchId: batch.id,
+      urutan: 11,
+      judul: "Kuis 2: Ujian Akhir",
+      deskripsi: "25 soal PG + 2 esai, mencakup seluruh materi.",
+      durasi: 3600,
+      tipe: TipeMateri.KUIS,
+    },
+  });
+
+  console.log("✅ Seed selesai. Akun uji:");
+  console.log(`  Admin   → admin@e17course.id / admin123`);
+  console.log(`  Peserta → peserta@example.com / peserta123`);
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());

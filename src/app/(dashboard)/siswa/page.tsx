@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { BookOpen, CheckCircle, Clock, FileText, ChevronRight, Video, MapPin, PlayCircle, Percent, AlertCircle, Calendar } from "lucide-react"
+import { BookOpen, CheckCircle, Clock, FileText, ChevronRight, Video, MapPin, PlayCircle, Percent, AlertCircle, Calendar, Loader2, Megaphone, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/client"
 import * as React from "react"
@@ -9,23 +9,106 @@ import { CalendarWidget, type CalendarEvent } from "@/components/ui/calendar-wid
 
 export default function SiswaDashboardPage() {
   const supabase = createClient()
+  const [isLoading, setIsLoading] = React.useState(true)
   const [calendarEvents, setCalendarEvents] = React.useState<{date: string, items: CalendarEvent[]}[]>([])
   const [selectedCalendarDate, setSelectedCalendarDate] = React.useState<string | null>(null)
   const [selectedDayEvents, setSelectedDayEvents] = React.useState<CalendarEvent[]>([])
 
-  React.useEffect(() => {
-    const fetchCalendarEvents = async () => {
-      // Fetch all sessions (in real app, filter by student's enrollments)
-      const { data: allSessions } = await supabase.from('sessions')
-        .select('id, title, scheduled_at, session_type, batches(name)')
-        .not('scheduled_at', 'is', null)
+  // Dashboard Data State
+  const [activeBootcamp, setActiveBootcamp] = React.useState<any>(null)
+  const [nextSession, setNextSession] = React.useState<any>(null)
+  const [pendingTasks, setPendingTasks] = React.useState<any[]>([])
+  const [latestAnnouncement, setLatestAnnouncement] = React.useState<any>(null)
 
-      if (allSessions) {
+  React.useEffect(() => {
+    const fetchDashboardData = async () => {
+      setIsLoading(true)
+      const { data: userData } = await supabase.auth.getUser()
+      if (!userData.user) return
+
+      const userId = userData.user.id
+
+      // Fetch Latest Announcement
+      const { data: latestNotifs } = await supabase
+        .from('in_app_notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_read', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        
+      if (latestNotifs && latestNotifs.length > 0) {
+        setLatestAnnouncement(latestNotifs[0])
+      }
+
+      // 1. Get Enrollments & Active Bootcamp
+      const { data: enrollments } = await supabase
+        .from('enrollments')
+        .select(`
+          batch_id,
+          batches (
+            id,
+            name,
+            batch_mentors ( users ( full_name ) )
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('status', 'aktif')
+
+      if (!enrollments || enrollments.length === 0) {
+        setIsLoading(false)
+        return
+      }
+
+      // Just pick the first active batch for dashboard
+      const currentBatch = enrollments[0].batches as any
+      const batchId = currentBatch.id
+      const mentorName = currentBatch.batch_mentors?.[0]?.users?.full_name || "Tidak ada Mentor"
+
+      // 2. Fetch Sessions for Progress and Calendar
+      const { data: sessions } = await supabase
+        .from('sessions')
+        .select('id, title, scheduled_at, session_type, status, batches(name)')
+        .eq('batch_id', batchId)
+        .order('order_number', { ascending: true })
+
+      if (sessions) {
+        // Calculate Progress
+        const totalSessions = sessions.length
+        const completedSessions = sessions.filter(s => s.status === 'completed').length
+        const progressPercentage = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0
+
+        // Determine Jadwal Hari Ini (Today's Schedule)
+        const d = new Date()
+        const localTodayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        
+        const upcomingSession = sessions.find(s => {
+          if (!s.scheduled_at) return false
+          const sessDateStr = s.scheduled_at.substring(0, 10)
+          return sessDateStr === localTodayStr
+        })
+        let formattedNextSession = null
+        if (upcomingSession) {
+          const dateObj = new Date(upcomingSession.scheduled_at)
+          formattedNextSession = {
+            id: upcomingSession.id,
+            title: upcomingSession.title,
+            date: dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
+            mode: upcomingSession.session_type === 'online' ? 'Online' : 'Offline',
+            link: "Menunggu link...", // Would come from zoom link field if it exists
+            passcode: "Menunggu..."
+          }
+        }
+
+        // Generate Calendar Events
         const eventsMap: Record<string, CalendarEvent[]> = {}
-        allSessions.forEach((s: any) => {
+        sessions.forEach((s: any) => {
           if (!s.scheduled_at) return
           const dateObj = new Date(s.scheduled_at)
-          const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`
+          
+          // Use substring to ensure date matches exactly what's in DB (YYYY-MM-DD) regardless of browser timezone
+          const dateStr = s.scheduled_at.substring(0, 10)
+          
           const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
           
           if (!eventsMap[dateStr]) eventsMap[dateStr] = []
@@ -38,53 +121,111 @@ export default function SiswaDashboardPage() {
           })
         })
         
-        const formattedEvents = Object.keys(eventsMap).map(date => ({
-          date,
-          items: eventsMap[date]
-        }))
+        setCalendarEvents(Object.keys(eventsMap).map(date => ({ date, items: eventsMap[date] })))
+        setNextSession(formattedNextSession)
+
+        // Fetch Attendance
+        const { data: attendances } = await supabase
+          .from('attendances')
+          .select('id, status')
+          .eq('user_id', userId)
+          .in('session_id', sessions.map(s => s.id))
+          
+        const attendedCount = attendances?.filter(a => a.status === 'present').length || 0
+        // Calculate eligible based on completed sessions
+        const passedSessionsCount = completedSessions > 0 ? completedSessions : 1 // prevent div by zero
+        const attPercentage = Math.round((attendedCount / passedSessionsCount) * 100)
         
-        setCalendarEvents(formattedEvents)
+        setActiveBootcamp({
+           id: currentBatch.id,
+           name: currentBatch.name,
+           batch: "Batch Saat Ini",
+           mentor: mentorName,
+           progress: { completed: completedSessions, total: totalSessions, percentage: progressPercentage > 100 ? 100 : progressPercentage },
+           attendance: { percentage: attPercentage > 100 ? 100 : attPercentage, isEligible: attPercentage >= 80 }
+        })
       }
+
+      // 3. Fetch Pending Tasks
+      if (sessions && sessions.length > 0) {
+        const sessionIds = sessions.map(s => s.id)
+        
+        // Fetch tasks
+        const { data: tasks } = await supabase
+          .from('tasks')
+          .select('id, title, deadline, sessions(title)')
+          .in('session_id', sessionIds)
+
+        // Fetch user submissions
+        const { data: submissions } = await supabase
+          .from('task_submissions')
+          .select('task_id')
+          .eq('user_id', userId)
+
+        if (tasks) {
+           const submittedTaskIds = new Set(submissions?.map(s => s.task_id) || [])
+           
+           const pending = tasks.filter(t => !submittedTaskIds.has(t.id)).map(t => ({
+             id: t.id,
+             title: t.title,
+             deadlineRaw: t.deadline,
+             deadline: t.deadline ? new Date(t.deadline).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : "Tidak ada",
+             status: "Belum Dikerjakan"
+           })).filter(t => !t.deadlineRaw || new Date() < new Date(t.deadlineRaw)) // Hanya yang belum lewat deadline
+           
+           setPendingTasks(pending)
+        }
+      }
+
+      setIsLoading(false)
     }
-    fetchCalendarEvents()
+
+    fetchDashboardData()
   }, [])
 
-  // Mock Data: Fokus pada 1 Bootcamp Aktif
-  const activeBootcamp = {
-    id: 1,
-    name: "Full-Stack Web Development",
-    batch: "Batch 3",
-    mentor: "Ahmad Rizal",
-    progress: { completed: 4, total: 10, percentage: 40 },
-    attendance: { percentage: 85, isEligible: true }
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-32">
+        <Loader2 className="w-8 h-8 animate-spin text-e17-navy" />
+      </div>
+    )
   }
 
-  const nextSession = {
-    id: 5,
-    title: "Sesi 5: React State Management",
-    date: "Hari ini, 19:00 WIB",
-    mode: "Online",
-    link: "https://zoom.us/j/123",
-    passcode: "REACT123"
+  if (!activeBootcamp) {
+    return (
+       <div className="flex flex-col items-center justify-center py-32 text-center max-w-xl mx-auto">
+         <BookOpen className="w-16 h-16 text-slate-300 mb-4" />
+         <h2 className="text-xl font-bold text-e17-dark mb-2">Belum Ada Program Aktif</h2>
+         <p className="text-slate-500 mb-6">Anda belum terdaftar dalam batch manapun atau pendaftaran Anda masih diproses. Silakan hubungi admin.</p>
+       </div>
+    )
   }
-
-  const pendingTasks = [
-    {
-      id: 1,
-      title: "Tugas Sesi 4: Membuat Counter App",
-      deadline: "Besok, 23:59 WIB",
-      status: "Belum Dikerjakan"
-    }
-  ]
-  
-  const recentGrades = [
-    { id: 1, type: "Kuis", session: "Sesi 3", score: 85, status: "Lulus" },
-    { id: 2, type: "Tugas", session: "Sesi 2", score: 90, status: "Lulus" },
-  ]
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-8">
       
+      {latestAnnouncement && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-4">
+          <div className="mt-0.5 h-10 w-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+            <Megaphone className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-blue-900">Pengumuman: {latestAnnouncement.title}</h3>
+            <p className="text-sm text-blue-800 mt-1">{latestAnnouncement.message}</p>
+          </div>
+          <button 
+            onClick={() => {
+              setLatestAnnouncement(null)
+              // Optional: Mark as read in DB if they close it
+              supabase.from('in_app_notifications').update({ is_read: true }).eq('id', latestAnnouncement.id).then()
+            }}
+            className="text-blue-400 hover:text-blue-700 bg-white/50 hover:bg-blue-100 rounded-full p-1.5 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Hero Banner: Info Bootcamp Aktif */}
       <div className="bg-e17-navy rounded-xl p-6 md:p-8 text-white relative overflow-hidden shadow-sm border border-slate-200/20">
         
@@ -131,10 +272,11 @@ export default function SiswaDashboardPage() {
           <div className="card-clean overflow-hidden">
             <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
               <h2 className="font-bold text-e17-dark flex items-center text-lg">
-                <Clock className="mr-2 h-5 w-5 text-e17-navy" /> Jadwal Sesi Berikutnya
+                <Clock className="mr-2 h-5 w-5 text-e17-navy" /> Jadwal Hari Ini
               </h2>
             </div>
             <div className="p-6">
+              {nextSession ? (
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
@@ -160,14 +302,19 @@ export default function SiswaDashboardPage() {
                       </Button>
                     </a>
                   ) : (
-                    <Link href="/siswa/attendance" className="block">
+                    <Link href="/siswa/courses" className="block">
                       <Button variant="orange" size="lg" className="w-full font-bold shadow-md text-base h-12">
-                        <MapPin className="mr-2 h-5 w-5" /> Buka QR Absensi
+                        <ChevronRight className="mr-2 h-5 w-5" /> Masuk Ruang Kelas
                       </Button>
                     </Link>
                   )}
                 </div>
               </div>
+              ) : (
+                <div className="text-center py-6 text-slate-500">
+                  <p>Tidak ada jadwal kelas hari ini.</p>
+                </div>
+              )}
             </div>
           </div>
 

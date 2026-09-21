@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Shield, ShieldAlert, History, UserCog, Search, Filter } from 'lucide-react'
+import { Shield, ShieldAlert, History, UserCog, Search, Filter, Download } from 'lucide-react'
 import { Pagination } from '@/components/ui/pagination'
 import { getAuditLogs } from '@/utils/logger-actions'
 import { AuditLog, LogRole } from '@/utils/logger'
@@ -12,7 +12,44 @@ export default function AuditPage() {
   const [filterRole, setFilterRole] = useState<LogRole | 'all'>('all')
   const [search, setSearch] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [dateFrom, setDateFrom] = useState<string>('')
+  const [dateTo, setDateTo] = useState<string>('')
   const itemsPerPage = 15
+
+  const getSeverity = (action: string) => {
+    const act = action.toLowerCase()
+    if (act.includes('hapus') || act.includes('delete') || act.includes('drop')) return 'CRITICAL'
+    if (act.includes('gagal') || act.includes('ubah peran') || act.includes('reset') || act.includes('batal')) return 'WARNING'
+    return 'INFO'
+  }
+
+  const downloadCSV = () => {
+    if (filteredLogs.length === 0) return
+    
+    const headers = ['Waktu', 'Peran', 'Aktor', 'Tingkat', 'Aktivitas', 'Detail']
+    const csvContent = [
+      headers.join(','),
+      ...filteredLogs.map(log => {
+        const date = new Date(log.created_at).toLocaleString('id-ID').replace(/,/g, '')
+        const role = log.role
+        const actor = log.user_email || 'Sistem'
+        const severity = getSeverity(log.action)
+        const action = `"${log.action.replace(/"/g, '""')}"`
+        const details = `"${log.details.replace(/"/g, '""')}"`
+        return `${date},${role},${actor},${severity},${action},${details}`
+      })
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `audit_log_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   useEffect(() => {
     fetchLogs()
@@ -31,13 +68,31 @@ export default function AuditPage() {
       const matchesSearch = log.details.toLowerCase().includes(search.toLowerCase()) || 
                             log.action.toLowerCase().includes(search.toLowerCase()) ||
                             (log.user_email && log.user_email.toLowerCase().includes(search.toLowerCase()))
-      return matchesRole && matchesSearch
+      
+      let matchesDate = true
+      if (dateFrom || dateTo) {
+        const logDate = new Date(log.created_at)
+        logDate.setHours(0, 0, 0, 0)
+        
+        if (dateFrom) {
+          const from = new Date(dateFrom)
+          from.setHours(0, 0, 0, 0)
+          if (logDate < from) matchesDate = false
+        }
+        if (dateTo) {
+          const to = new Date(dateTo)
+          to.setHours(23, 59, 59, 999)
+          if (logDate > to) matchesDate = false
+        }
+      }
+                            
+      return matchesRole && matchesSearch && matchesDate
     })
-  }, [logs, filterRole, search])
+  }, [logs, filterRole, search, dateFrom, dateTo])
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [filterRole, search])
+  }, [filterRole, search, dateFrom, dateTo])
 
   const paginatedLogs = React.useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage
@@ -55,6 +110,14 @@ export default function AuditPage() {
           </h1>
           <p className="text-sm text-slate-500 mt-1">Pantau seluruh aktivitas Admin, Mentor, dan Siswa untuk mencegah pelanggaran.</p>
         </div>
+        <button 
+          onClick={downloadCSV}
+          disabled={filteredLogs.length === 0}
+          className="flex items-center justify-center bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Download CSV
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -91,6 +154,40 @@ export default function AuditPage() {
               </button>
             </div>
           </div>
+          
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+            <h2 className="font-bold text-slate-800 mb-4 flex items-center text-sm uppercase tracking-wide">
+              <History className="w-4 h-4 mr-2" /> Waktu
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Dari Tanggal</label>
+                <input 
+                  type="date" 
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-full text-sm border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:border-e17-navy focus:ring-1 focus:ring-e17-navy"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Sampai Tanggal</label>
+                <input 
+                  type="date" 
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full text-sm border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:border-e17-navy focus:ring-1 focus:ring-e17-navy"
+                />
+              </div>
+              {(dateFrom || dateTo) && (
+                <button 
+                  onClick={() => { setDateFrom(''); setDateTo(''); }}
+                  className="w-full text-xs font-bold text-red-600 hover:text-red-800 transition-colors py-1"
+                >
+                  Reset Tanggal
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Main Table */}
@@ -115,9 +212,10 @@ export default function AuditPage() {
               <table className="w-full text-sm text-left">
                 <thead className="text-[11px] text-slate-500 bg-white border-b border-slate-200 uppercase tracking-wider">
                   <tr>
-                    <th className="px-6 py-3 font-bold w-48">Waktu (WIB)</th>
-                    <th className="px-6 py-3 font-bold w-32">Peran</th>
-                    <th className="px-6 py-3 font-bold w-48">Aktor (Email)</th>
+                    <th className="px-6 py-3 font-bold w-40">Waktu (WIB)</th>
+                    <th className="px-6 py-3 font-bold w-28">Peran</th>
+                    <th className="px-6 py-3 font-bold w-40">Aktor (Email)</th>
+                    <th className="px-6 py-3 font-bold w-32">Tingkat</th>
                     <th className="px-6 py-3 font-bold">Aktivitas & Detail</th>
                   </tr>
                 </thead>
@@ -152,6 +250,14 @@ export default function AuditPage() {
                         </td>
                         <td className="px-6 py-4 text-xs font-semibold text-slate-700 truncate max-w-[150px]">
                           {log.user_email || 'Sistem'}
+                        </td>
+                        <td className="px-6 py-4">
+                          {(() => {
+                            const sev = getSeverity(log.action)
+                            if (sev === 'CRITICAL') return <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-700 border border-red-200">CRITICAL</span>
+                            if (sev === 'WARNING') return <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-200">WARNING</span>
+                            return <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 border border-blue-200">INFO</span>
+                          })()}
                         </td>
                         <td className="px-6 py-4">
                           <div className="font-bold text-slate-800 text-sm mb-1">{log.action}</div>

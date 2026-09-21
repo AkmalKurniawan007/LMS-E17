@@ -1,0 +1,56 @@
+import type { Config } from "tailwindcss";
+
+const colors = {
+  navy: "var(--color-navy)",
+  "navy-light": "var(--color-navy-light)",
+  gold: "var(--color-gold)",
+  "gold-dark": "var(--color-gold-dark)",
+  "gold-light": "var(--color-gold-light)",
+  surface: "var(--color-surface)",
+  card: "var(--color-card)",
+  line: "var(--color-border)",
+  "text-primary": "var(--color-text-primary)",
+  "text-secondary": "var(--color-text-secondary)",
+  "text-muted": "var(--color-text-muted)",
+  success: "var(--color-success)",
+  "success-bg": "var(--color-success-bg)",
+  warning: "var(--color-warning)",
+  "warning-bg": "var(--color-warning-bg)",
+  danger: "var(--color-danger)",
+  "danger-bg": "var(--color-danger-bg)",
+  info: "var(--color-info)",
+  "info-bg": "var(--color-info-bg)",
+  online: "var(--color-online-text)",
+  "online-bg": "var(--color-online-bg)",
+  offline: "var(--color-offline-text)",
+  "offline-bg": "var(--color-offline-bg)",
+};
+
+const fontFamily = {
+  display: "var(--font-display)",
+  body: "var(--font-body)",
+  mono: "var(--font-mono)",
+};
+
+const config: Config = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors,
+      fontFamily,
+      boxShadow: {
+        card: "0 1px 3px rgba(26,34,64,0.06)",
+      },
+      borderRadius: {
+        card: "12px",
+        btn: "8px",
+      },
+    },
+  },
+  plugins: [],
+};
+export default config;
