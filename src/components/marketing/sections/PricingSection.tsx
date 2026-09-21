@@ -89,7 +89,7 @@ export default function PricingSection() {
                     exit={{ opacity: 0, y: -20, scale: 0.95 }}
                     whileHover={{ y: -8 }}
                     transition={{ duration: 0.4, delay: i * 0.1, type: "spring" }}
-                    className={`relative rounded-3xl flex flex-col group ${
+                    className={`relative rounded-3xl flex flex-col group h-full ${
                       isPopular ? "z-10 p-[3px] shadow-[0_0_40px_rgba(249,115,22,0.2)]" : "z-0 mt-0 md:mt-4 mb-0 md:mb-4 p-[1px]"
                     }`}
                   >
@@ -102,7 +102,7 @@ export default function PricingSection() {
                       )}
                     </div>
 
-                    <div className={`relative z-10 flex-1 rounded-[21px] p-8 md:p-10 flex flex-col bg-white ${
+                    <div className={`relative z-10 flex-1 rounded-[21px] p-6 md:p-8 flex flex-col bg-white h-full ${
                       isPopular ? "shadow-2xl shadow-orange-500/10" : "shadow-md shadow-slate-200/50"
                     }`}>
                       
@@ -119,24 +119,24 @@ export default function PricingSection() {
                         </div>
                       )}
 
-                      <h3 className="font-extrabold text-2xl text-slate-900 mb-2">
+                      <h3 className="font-extrabold text-xl md:text-2xl text-slate-900 mb-2 text-center">
                         {tier.label}
                       </h3>
-                      <p className="text-sm font-semibold text-slate-500 mb-8">
+                      <p className="text-xs md:text-sm font-semibold text-slate-500 mb-8 text-center">
                         {activeProgram.shortName}
                       </p>
 
                       {/* Price */}
-                      <div className="mb-10">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="text-sm line-through font-bold text-slate-400">
+                      <div className="mb-10 text-center">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <span className="text-xs md:text-sm line-through font-bold text-slate-400">
                             {formatPrice(tier.originalPrice)}
                           </span>
-                          <span className="px-2 py-1 rounded-md text-xs font-extrabold bg-orange-50 text-orange-600 border border-orange-100">
+                          <span className="px-2 py-1 rounded-md text-[10px] md:text-xs font-extrabold bg-orange-50 text-orange-600 border border-orange-100">
                             Hemat {discount}%
                           </span>
                         </div>
-                        <p className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">
+                        <p className="text-3xl md:text-4xl lg:text-[2.5rem] font-black tracking-tight text-slate-900 whitespace-nowrap">
                           {formatPrice(tier.price)}
                         </p>
                       </div>
@@ -148,7 +148,7 @@ export default function PricingSection() {
                             <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isPopular ? "bg-orange-100" : "bg-slate-100"}`}>
                               <Check className={`w-3 h-3 ${isPopular ? "text-orange-600" : "text-slate-600"}`} />
                             </div>
-                            <span className="text-[15px] font-medium text-slate-700 leading-snug">{f}</span>
+                            <span className="text-sm md:text-[15px] font-medium text-slate-700 leading-snug">{f}</span>
                           </li>
                         ))}
                         {tier.excludes?.map((f, fi) => (
@@ -156,25 +156,27 @@ export default function PricingSection() {
                             <div className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 bg-slate-100">
                               <X className="w-3 h-3 text-slate-500" />
                             </div>
-                            <span className="text-[15px] font-medium text-slate-500 leading-snug line-through">{f}</span>
+                            <span className="text-sm md:text-[15px] font-medium text-slate-500 leading-snug line-through">{f}</span>
                           </li>
                         ))}
                       </ul>
 
                       {/* CTA */}
-                      <button
-                        onClick={() => handleCheckoutClick(tier)}
-                        className={`w-full py-4 rounded-xl text-center text-[15px] font-bold transition-all duration-300 relative overflow-hidden group ${
-                          isPopular
-                            ? "bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-900/30 hover:shadow-orange-500/20"
-                            : "bg-white text-slate-900 hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-300"
-                        }`}
-                      >
-                        {isPopular && (
-                          <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
-                        )}
-                        <span className="relative z-10">{isPopular ? "Ambil Paket Bootcamp" : "Ambil Paket Video"}</span>
-                      </button>
+                      <div className="mt-auto pt-4 flex justify-center">
+                        <button
+                          onClick={() => handleCheckoutClick(tier)}
+                          className={`w-full max-w-[240px] py-3.5 rounded-xl text-center text-sm md:text-[15px] font-bold transition-all duration-300 relative overflow-hidden group ${
+                            isPopular
+                              ? "bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-900/30 hover:shadow-orange-500/20"
+                              : "bg-white text-slate-900 hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          {isPopular && (
+                            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
+                          )}
+                          <span className="relative z-10">{isPopular ? "Ambil Paket Bootcamp" : "Ambil Paket Video"}</span>
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 );
