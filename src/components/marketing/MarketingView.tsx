@@ -21,7 +21,7 @@ import { User as UserIcon } from "lucide-react";
 // Testimonials section disabled: all data is still dummy.
 // Re-enable once real testimonials are collected.
 
-function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
+function Navbar({ isLoggedIn, purchasedProgramId }: { isLoggedIn?: boolean, purchasedProgramId?: string }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -73,13 +73,23 @@ function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
 
           <div className="flex items-center gap-3">
             {isLoggedIn ? (
-              <Link
-                href="/siswa"
-                className="hidden sm:flex items-center justify-center bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors border border-slate-700/50"
-              >
-                <UserIcon className="w-4 h-4 mr-2" />
-                Dashboard Saya
-              </Link>
+              <>
+                {purchasedProgramId && (
+                  <Link
+                    href={`/kelas/${purchasedProgramId}`}
+                    className="hidden lg:flex items-center justify-center bg-orange-100 hover:bg-orange-200 text-orange-700 text-sm font-bold px-4 py-2 rounded-lg transition-colors border border-orange-200"
+                  >
+                    Materi Kelas
+                  </Link>
+                )}
+                <Link
+                  href="/siswa"
+                  className="hidden sm:flex items-center justify-center bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors border border-slate-700/50"
+                >
+                  <UserIcon className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Link>
+              </>
             ) : (
               <>
                 <Link
@@ -156,8 +166,8 @@ export default function MarketingView() {
   return (
     <div suppressHydrationWarning className="min-h-screen bg-[#FAFAF8] font-sans text-slate-900 selection:bg-orange-100 selection:text-slate-900">
       <ScrollProgressBar />
-      {/* MOCKUP: Menandakan user sudah login. Jika ingin lihat versi logout, ubah isLoggedIn={false} */}
-      <Navbar isLoggedIn={true} />
+      {/* MOCKUP: Menandakan user sudah login & sudah membeli kelas. Jika ingin versi logout, hapus prop ini */}
+      <Navbar isLoggedIn={true} purchasedProgramId="fullstack-web" />
       <HeroSection />
       <VideoGallery />
       <ValueProposition />
