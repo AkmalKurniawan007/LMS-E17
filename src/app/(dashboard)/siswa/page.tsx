@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/client"
 import * as React from "react"
 import { CalendarWidget, type CalendarEvent } from "@/components/ui/calendar-widget"
+import { programs, formatPrice } from "@/components/marketing/data/marketing-data"
 
 export default function SiswaDashboardPage() {
   const supabase = createClient()
@@ -193,11 +194,40 @@ export default function SiswaDashboardPage() {
 
   if (!activeBootcamp) {
     return (
-       <div className="flex flex-col items-center justify-center py-32 text-center max-w-xl mx-auto">
-         <BookOpen className="w-16 h-16 text-slate-300 mb-4" />
-         <h2 className="text-xl font-bold text-e17-dark mb-2">Belum Ada Program Aktif</h2>
-         <p className="text-slate-500 mb-6">Anda belum terdaftar dalam batch manapun atau pendaftaran Anda masih diproses. Silakan hubungi admin.</p>
-       </div>
+      <div className="max-w-6xl mx-auto pb-12 pt-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center mb-8 shadow-sm">
+          <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Pilih Program Belajar Anda</h2>
+          <p className="text-slate-500 max-w-lg mx-auto">Anda belum memiliki program aktif. Silakan pilih salah satu bootcamp atau paket belajar di bawah ini untuk memulai perjalanan karir Anda.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {programs.map(program => (
+            <div key={program.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow flex flex-col">
+              <div className="p-6 flex-1">
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{program.name}</h3>
+                <p className="text-slate-600 text-sm mb-4 line-clamp-2">{program.description}</p>
+                
+                <div className="space-y-2 mb-6">
+                  {program.features.slice(0, 3).map((feat, i) => (
+                    <div key={i} className="flex items-center text-sm text-slate-600">
+                      <CheckCircle className="w-4 h-4 text-green-500 mr-2 shrink-0" />
+                      <span>{feat}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="p-6 bg-slate-50 border-t border-slate-100 mt-auto">
+                <div className="text-xs text-slate-500 mb-1">Mulai dari</div>
+                <div className="text-xl font-bold text-slate-900 mb-4">{formatPrice(program.tiers?.[0]?.price || program.price)}</div>
+                <Link href={`/checkout?program=${program.id}`} className="block w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white text-center rounded-lg text-sm font-semibold transition-colors">
+                  Lihat Paket & Daftar
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     )
   }
 
