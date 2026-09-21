@@ -43,10 +43,10 @@ function Navbar() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className={`sticky top-0 left-0 right-0 z-50 transition-all duration-400 flex items-center ${
+        className={`sticky top-0 left-0 right-0 z-50 transition-all duration-400 flex items-center border-b border-white/5 ${
           scrolled
-            ? "h-16 bg-white/90 backdrop-blur-lg shadow-[0_1px_0_0_rgba(0,0,0,0.06)]"
-            : "h-20 bg-[#FAFAF8]"
+            ? "h-16 bg-[#0B1120]/90 backdrop-blur-lg shadow-lg"
+            : "h-20 bg-[#0B1120]"
         }`}
       >
         <div className="max-w-6xl mx-auto px-6 w-full flex items-center justify-between">
@@ -54,7 +54,7 @@ function Navbar() {
             <img
               src="/assets/logo-wide.png"
               alt="E17 Course"
-              className="h-7 md:h-8 w-auto object-contain"
+              className="h-7 md:h-8 w-auto object-contain brightness-0 invert"
             />
           </Link>
 
@@ -63,7 +63,7 @@ function Navbar() {
               <a
                 key={link.label}
                 href={link.href}
-                className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-200"
+                className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200"
               >
                 {link.label}
               </a>
@@ -73,20 +73,20 @@ function Navbar() {
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="hidden sm:block text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+              className="hidden sm:block text-sm font-medium text-slate-300 hover:text-white transition-colors"
             >
               Masuk
             </Link>
             <Link
               href="/login"
-              className="hidden sm:flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors duration-200"
+              className="hidden sm:flex items-center justify-center bg-white hover:bg-slate-100 text-slate-900 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors duration-200"
             >
               Daftar Bootcamp
             </Link>
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+              className="md:hidden w-10 h-10 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
               aria-label={mobileMenuOpen ? "Tutup menu" : "Buka menu"}
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -141,7 +141,7 @@ function Navbar() {
 
 export default function MarketingView() {
   return (
-    <div className="min-h-screen bg-[#FAFAF8] font-sans text-slate-900 selection:bg-orange-100 selection:text-slate-900">
+    <div suppressHydrationWarning className="min-h-screen bg-[#FAFAF8] font-sans text-slate-900 selection:bg-orange-100 selection:text-slate-900">
       <ScrollProgressBar />
       <Navbar />
       <HeroSection />
