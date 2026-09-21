@@ -226,12 +226,5 @@ function PricingCard({ tier, activeProgram, discount, i, handleCheckoutClick }: 
                       </ul>
                     </div>
                   </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-        </div>
-      </section>
-    </>
   );
 }
