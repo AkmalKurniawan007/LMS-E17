@@ -5,8 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, Sparkles } from "lucide-react";
 import { programs, formatPrice, getDiscountPercent, PricingTier } from "../data/marketing-data";
 import CheckoutLoginModal from "./CheckoutLoginModal";
+import { useRouter } from "next/navigation";
 
-export default function PricingSection() {
+export default function PricingSection({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(programs[0].id);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState<PricingTier | undefined>(undefined);
@@ -14,8 +16,12 @@ export default function PricingSection() {
   const activeProgram = programs.find((p) => p.id === activeTab) || programs[0];
 
   const handleCheckoutClick = (tier: PricingTier) => {
-    setSelectedTier(tier);
-    setIsModalOpen(true);
+    if (isLoggedIn) {
+      router.push(`/checkout?program=${activeProgram.id}&tier=${tier.type}`);
+    } else {
+      setSelectedTier(tier);
+      setIsModalOpen(true);
+    }
   };
 
   return (

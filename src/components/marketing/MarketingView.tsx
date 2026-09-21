@@ -12,15 +12,15 @@ import PromoSection from "./sections/PromoSection";
 import CurriculumSection from "./sections/CurriculumSection";
 import PricingSection from "./sections/PricingSection";
 import FAQSection from "./sections/FAQSection";
-import FinalCTA from "./sections/FinalCTA";
 import FooterSection from "./sections/FooterSection";
 import WhatsAppFAB from "./sections/WhatsAppFAB";
 import ScrollProgressBar from "./sections/ScrollProgressBar";
+import { User as UserIcon } from "lucide-react";
 
 // Testimonials section disabled: all data is still dummy.
 // Re-enable once real testimonials are collected.
 
-function Navbar() {
+function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -71,18 +71,30 @@ function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="hidden sm:block text-sm font-medium text-slate-300 hover:text-white transition-colors"
-            >
-              Masuk
-            </Link>
-            <Link
-              href="/login"
-              className="hidden sm:flex items-center justify-center bg-white hover:bg-slate-100 text-slate-900 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors duration-200"
-            >
-              Daftar Bootcamp
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/siswa"
+                className="hidden sm:flex items-center justify-center bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors border border-slate-700/50"
+              >
+                <UserIcon className="w-4 h-4 mr-2" />
+                Dashboard Saya
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="hidden sm:block text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  href="/login"
+                  className="hidden sm:flex items-center justify-center bg-white hover:bg-slate-100 text-slate-900 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors duration-200"
+                >
+                  Daftar Bootcamp
+                </Link>
+              </>
+            )}
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -143,13 +155,14 @@ export default function MarketingView() {
   return (
     <div suppressHydrationWarning className="min-h-screen bg-[#FAFAF8] font-sans text-slate-900 selection:bg-orange-100 selection:text-slate-900">
       <ScrollProgressBar />
-      <Navbar />
+      {/* MOCKUP: Menandakan user sudah login. Jika ingin lihat versi logout, ubah isLoggedIn={false} */}
+      <Navbar isLoggedIn={true} />
       <HeroSection />
       <VideoGallery />
       <ValueProposition />
       <PromoSection />
       <CurriculumSection />
-      <PricingSection />
+      <PricingSection isLoggedIn={true} />
       <FAQSection />
       <FinalCTA />
       <FooterSection />
