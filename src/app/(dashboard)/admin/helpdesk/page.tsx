@@ -8,5 +8,5 @@ export default async function HelpdeskPage() {
     return <div className="p-8 text-center text-red-500">Gagal memuat tiket: {error}</div>
   }
 
-  return <AdminHelpdeskClient initialTickets={tickets || []} />
+  return <AdminHelpdeskClient initialTickets={(tickets as any) || []} />
 }
