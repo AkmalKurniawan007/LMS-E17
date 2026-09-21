@@ -9,6 +9,7 @@ import HeroSection from "./sections/HeroSection";
 import VideoGallery from "./sections/VideoGallery";
 import ValueProposition from "./sections/ValueProposition";
 import PromoSection from "./sections/PromoSection";
+import CurriculumSection from "./sections/CurriculumSection";
 import PricingSection from "./sections/PricingSection";
 import FAQSection from "./sections/FAQSection";
 import FinalCTA from "./sections/FinalCTA";
@@ -31,6 +32,7 @@ function Navbar() {
 
   const navLinks = [
     { label: "Program", href: "#programs" },
+    { label: "Kurikulum", href: "#curriculum" },
     { label: "Harga", href: "#pricing" },
     { label: "FAQ", href: "#faq" },
   ];
@@ -146,6 +148,7 @@ export default function MarketingView() {
       <VideoGallery />
       <ValueProposition />
       <PromoSection />
+      <CurriculumSection />
       <PricingSection />
       <FAQSection />
       <FinalCTA />
