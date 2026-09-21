@@ -18,7 +18,7 @@ function CheckoutForm() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <h2 className="text-2xl font-bold text-slate-900 mb-4">Program tidak ditemukan</h2>
-        <Link href="/siswa" className="text-orange-500 hover:underline">Kembali ke Dashboard</Link>
+        <Link href="/" className="text-orange-500 hover:underline">Kembali ke Beranda</Link>
       </div>
     );
   }
@@ -39,8 +39,8 @@ function CheckoutForm() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12 md:py-20 min-h-screen">
-      <Link href="/siswa" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4 mr-2" /> Kembali ke Dashboard
+      <Link href="/" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 mb-8 transition-colors">
+        <ArrowLeft className="w-4 h-4 mr-2" /> Kembali ke Beranda
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
