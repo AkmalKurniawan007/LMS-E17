@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence, Variants } from "framer-motion";
 import Link from "next/link";
-import { MessageCircle, Code, PenTool, Database, MonitorPlay, Sparkles } from "lucide-react";
+import { MessageCircle, Sparkles, Users, Award, Briefcase, Video } from "lucide-react";
 import { getWhatsAppUrl } from "../data/marketing-data";
 
 // --- Animasi untuk Staggered Text ---
@@ -32,25 +32,39 @@ const FloatingCard = ({
   subtitle, 
   delay, 
   position, 
-  floatRange 
+  floatRangeY,
+  floatRangeX = [-5, 5],
+  rotateRange = [-2, 2]
 }: { 
   icon: any, 
   title: string, 
   subtitle: string, 
   delay: number, 
   position: string, 
-  floatRange: number[] 
+  floatRangeY: number[],
+  floatRangeX?: number[],
+  rotateRange?: number[]
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 1, delay, type: "spring" }}
+      initial={{ opacity: 0, scale: 0.8, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.8, delay, type: "spring", bounce: 0.4 }}
       className={`absolute ${position} hidden lg:flex items-center gap-3 bg-white/70 backdrop-blur-xl border border-white/40 p-4 rounded-2xl shadow-xl shadow-slate-200/50 z-20`}
     >
       <motion.div
-        animate={{ y: floatRange }}
-        transition={{ duration: 4, repeat: Infinity, repeatType: "reverse", ease: "easeInOut", delay }}
+        animate={{ 
+          y: floatRangeY,
+          x: floatRangeX,
+          rotate: rotateRange
+        }}
+        transition={{ 
+          duration: 6, 
+          repeat: Infinity, 
+          repeatType: "reverse", 
+          ease: "easeInOut", 
+          delay 
+        }}
         className="flex items-center gap-3 w-full"
       >
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center text-orange-500 shrink-0 border border-orange-100 shadow-sm">
@@ -179,36 +193,44 @@ export default function HeroSection() {
 
       {/* --- Floating Glassmorphism Cards (Decorations) --- */}
       <FloatingCard 
-        icon={Code} 
-        title="Fullstack Web" 
-        subtitle="24 Sesi Live" 
+        icon={Users} 
+        title="Live Mentoring" 
+        subtitle="Sesi 1-on-1 Intensif" 
         delay={0.2} 
         position="top-[20%] left-[8%]"
-        floatRange={[-10, 10]}
+        floatRangeY={[-10, 15]}
+        floatRangeX={[-5, 5]}
+        rotateRange={[-2, 2]}
       />
       <FloatingCard 
-        icon={PenTool} 
-        title="UI/UX Design" 
-        subtitle="16 Sesi Live" 
+        icon={Award} 
+        title="Sertifikat Kelulusan" 
+        subtitle="Kredibilitas Industri" 
         delay={0.5} 
         position="bottom-[25%] left-[12%]"
-        floatRange={[15, -15]}
+        floatRangeY={[15, -10]}
+        floatRangeX={[5, -5]}
+        rotateRange={[2, -2]}
       />
       <FloatingCard 
-        icon={Database} 
-        title="Data Science" 
-        subtitle="20 Sesi Live" 
+        icon={Briefcase} 
+        title="Bimbingan Karir" 
+        subtitle="Review CV & Portfolio" 
         delay={0.8} 
         position="top-[25%] right-[8%]"
-        floatRange={[-15, 15]}
+        floatRangeY={[-15, 10]}
+        floatRangeX={[-3, 4]}
+        rotateRange={[-1, 3]}
       />
       <FloatingCard 
-        icon={MonitorPlay} 
-        title="Project Nyata" 
-        subtitle="Portfolio Ready" 
+        icon={Video} 
+        title="Akses Selamanya" 
+        subtitle="Belajar Kapan Saja" 
         delay={1.1} 
         position="bottom-[30%] right-[10%]"
-        floatRange={[10, -10]}
+        floatRangeY={[10, -15]}
+        floatRangeX={[4, -4]}
+        rotateRange={[3, -1]}
       />
 
     </section>
