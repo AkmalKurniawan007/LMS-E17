@@ -50,7 +50,7 @@ const FloatingCard = ({
       initial={{ opacity: 0, scale: 0.8, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.8, delay, type: "spring", bounce: 0.4 }}
-      className={`absolute ${position} hidden lg:flex items-center gap-3 bg-white/70 backdrop-blur-xl border border-white/40 p-4 rounded-2xl shadow-xl shadow-slate-200/50 z-20`}
+      className={`absolute ${position} hidden lg:block z-20`}
     >
       <motion.div
         animate={{ 
@@ -62,10 +62,10 @@ const FloatingCard = ({
           duration: 6, 
           repeat: Infinity, 
           repeatType: "reverse", 
-          ease: "easeInOut", 
+          ease: "easeInOut",
           delay 
         }}
-        className="flex items-center gap-3 w-full"
+        className="flex items-center gap-3 bg-white/70 backdrop-blur-xl border border-white/40 p-4 rounded-2xl shadow-xl shadow-slate-200/50"
       >
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center text-orange-500 shrink-0 border border-orange-100 shadow-sm">
           <Icon className="w-5 h-5" />
