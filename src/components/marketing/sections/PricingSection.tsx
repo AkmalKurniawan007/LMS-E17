@@ -213,7 +213,7 @@ function PricingCard({ tier, activeProgram, discount, i, handleCheckoutClick }: 
 
                       {/* Features */}
                       <ul className="space-y-4 mb-4 flex-1">
-                        {tier.features.map((f, fi) => (
+                        {tier.features.map((f: string, fi: number) => (
                           <li key={fi} className="flex items-start gap-3">
                             <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isPopular ? "bg-orange-100" : "bg-slate-100"}`}>
                               <Check className={`w-3 h-3 ${isPopular ? "text-orange-600" : "text-slate-600"}`} />
@@ -221,7 +221,7 @@ function PricingCard({ tier, activeProgram, discount, i, handleCheckoutClick }: 
                             <span className="text-sm md:text-[15px] font-medium text-slate-700 leading-snug">{f}</span>
                           </li>
                         ))}
-                        {tier.excludes?.map((f, fi) => (
+                        {tier.excludes?.map((f: string, fi: number) => (
                           <li key={`ex-${fi}`} className="flex items-start gap-3 opacity-40">
                             <div className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 bg-slate-100">
                               <X className="w-3 h-3 text-slate-500" />
