@@ -75,7 +75,7 @@ export default function PricingSection() {
           </div>
 
           {/* Pricing cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             <AnimatePresence mode="wait">
               {activeProgram.tiers?.map((tier, i) => {
                 const discount = getDiscountPercent(tier.originalPrice, tier.price);

@@ -15,7 +15,7 @@ export interface CurriculumVideo {
 }
 
 export interface PricingTier {
-  type: 'video_only' | 'bootcamp';
+  type: 'junior' | 'expert' | 'bootcamp';
   label: string;
   price: number;
   originalPrice: number;
@@ -67,11 +67,19 @@ export const programs: ProgramData[] = [
     ],
     tiers: [
       {
-        type: 'video_only',
-        label: 'Video Only',
+        type: 'junior',
+        label: 'Junior (Video Only)',
+        price: 800000,
+        originalPrice: 1500000,
+        features: ["Akses Video Materi Basic", "28 Modul Materi", "Sertifikat Digital"],
+        excludes: ["Materi Expert", "Tanpa Mentor", "Tanpa Career", "Tanpa Akses LMS"],
+      },
+      {
+        type: 'expert',
+        label: 'Expert (Video Only)',
         price: 1200000,
         originalPrice: 2000000,
-        features: ["Akses Video Seumur Hidup", "28 Modul Materi", "Sertifikat Digital"],
+        features: ["Akses Materi Basic & Expert", "Semua Modul Materi", "Sertifikat Digital"],
         excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
       },
       {
@@ -79,7 +87,7 @@ export const programs: ProgramData[] = [
         label: 'Bootcamp Lengkap',
         price: 2800000,
         originalPrice: 4000000,
-        features: ["Semua di Video Only +", "16 Sesi Live Mentoring", "Design Portfolio Review", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
+        features: ["Semua di Paket Expert +", "16 Sesi Live Mentoring", "Design Portfolio Review", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
         popular: true,
       }
     ]
@@ -108,11 +116,19 @@ export const programs: ProgramData[] = [
     ],
     tiers: [
       {
-        type: 'video_only',
-        label: 'Video Only',
+        type: 'junior',
+        label: 'Junior (Video Only)',
+        price: 1000000,
+        originalPrice: 1800000,
+        features: ["Akses Video Materi Basic", "40 Modul Materi", "Sertifikat Digital"],
+        excludes: ["Materi Expert", "Tanpa Mentor", "Tanpa Career", "Tanpa Akses LMS"],
+      },
+      {
+        type: 'expert',
+        label: 'Expert (Video Only)',
         price: 1500000,
         originalPrice: 2500000,
-        features: ["Akses Video Seumur Hidup", "40 Modul Materi", "Sertifikat Digital"],
+        features: ["Akses Materi Basic & Expert", "Semua Modul Materi", "Sertifikat Digital"],
         excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
       },
       {
@@ -120,7 +136,7 @@ export const programs: ProgramData[] = [
         label: 'Bootcamp Lengkap',
         price: 3500000,
         originalPrice: 5000000,
-        features: ["Semua di Video Only +", "24 Sesi Live Mentoring", "Code Review Personal", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
+        features: ["Semua di Paket Expert +", "24 Sesi Live Mentoring", "Code Review Personal", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
         popular: true,
       }
     ]
@@ -141,11 +157,19 @@ export const programs: ProgramData[] = [
     features: ["Python & SQL", "Machine Learning", "Capstone Project", "Kaggle Competitions", "Job Connector"],
     tiers: [
       {
-        type: 'video_only',
-        label: 'Video Only',
+        type: 'junior',
+        label: 'Junior (Video Only)',
+        price: 1200000,
+        originalPrice: 2200000,
+        features: ["Akses Video Materi Basic", "35 Modul Materi", "Sertifikat Digital"],
+        excludes: ["Materi Expert", "Tanpa Mentor", "Tanpa Career", "Tanpa Akses LMS"],
+      },
+      {
+        type: 'expert',
+        label: 'Expert (Video Only)',
         price: 1800000,
         originalPrice: 3000000,
-        features: ["Akses Video Seumur Hidup", "35 Modul Materi", "Sertifikat Digital"],
+        features: ["Akses Materi Basic & Expert", "Semua Modul Materi", "Sertifikat Digital"],
         excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
       },
       {
@@ -153,7 +177,7 @@ export const programs: ProgramData[] = [
         label: 'Bootcamp Lengkap',
         price: 4000000,
         originalPrice: 6000000,
-        features: ["Semua di Video Only +", "20 Sesi Live Mentoring", "Capstone Project Review", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
+        features: ["Semua di Paket Expert +", "20 Sesi Live Mentoring", "Capstone Project Review", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
         popular: true,
       }
     ]
@@ -174,11 +198,19 @@ export const programs: ProgramData[] = [
     features: ["Meta & Google Ads", "SEO Optimization", "Budgeting Strategy", "Live Campaign", "Career Support"],
     tiers: [
       {
-        type: 'video_only',
-        label: 'Video Only',
+        type: 'junior',
+        label: 'Junior (Video Only)',
+        price: 600000,
+        originalPrice: 1200000,
+        features: ["Akses Video Materi Basic", "25 Modul Materi", "Sertifikat Digital"],
+        excludes: ["Materi Expert", "Tanpa Mentor", "Tanpa Career", "Tanpa Akses LMS"],
+      },
+      {
+        type: 'expert',
+        label: 'Expert (Video Only)',
         price: 1000000,
         originalPrice: 1800000,
-        features: ["Akses Video Seumur Hidup", "25 Modul Materi", "Sertifikat Digital"],
+        features: ["Akses Materi Basic & Expert", "Semua Modul Materi", "Sertifikat Digital"],
         excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
       },
       {
@@ -186,7 +218,7 @@ export const programs: ProgramData[] = [
         label: 'Bootcamp Lengkap',
         price: 2500000,
         originalPrice: 3500000,
-        features: ["Semua di Video Only +", "16 Sesi Live Mentoring", "Live Campaign Review", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
+        features: ["Semua di Paket Expert +", "16 Sesi Live Mentoring", "Live Campaign Review", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
         popular: true,
       }
     ]
