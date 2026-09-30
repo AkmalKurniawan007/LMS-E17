@@ -48,11 +48,11 @@ export default function ValueProposition() {
           className="mb-16 max-w-2xl mx-auto text-center"
         >
           <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-6 tracking-tight">
-            Standar baru dalam <br/>
-            <span className="text-orange-500">bootcamp teknologi.</span>
+            Kenapa alumni kami <br/>
+            <span className="text-orange-500">dapat interview lebih cepat?</span>
           </h2>
           <p className="text-slate-500 text-lg md:text-xl leading-relaxed">
-            Kami tidak hanya menjual video tutorial. Kami membimbing Anda sampai siap bersaing di industri nyata.
+            Karena mereka bawa portfolio berisi project sungguhan, bukan sertifikat dari video yang ditonton setengah.
           </p>
         </motion.div>
 

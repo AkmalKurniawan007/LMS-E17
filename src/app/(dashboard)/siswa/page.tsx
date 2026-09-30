@@ -19,6 +19,9 @@ export default function SiswaDashboardPage() {
   const [nextSession, setNextSession] = React.useState<any>(null)
   const [pendingTasks, setPendingTasks] = React.useState<any[]>([])
   const [latestAnnouncement, setLatestAnnouncement] = React.useState<any>(null)
+  const [videoAccesses, setVideoAccesses] = React.useState<any[]>([])
+  const [hasPendingOrder, setHasPendingOrder] = React.useState(false)
+  const [pendingOrderData, setPendingOrderData] = React.useState<{ id: string; hasProof: boolean } | null>(null)
 
   React.useEffect(() => {
     const fetchDashboardData = async () => {
@@ -56,6 +59,33 @@ export default function SiswaDashboardPage() {
         .eq('status', 'aktif')
 
       if (!enrollments || enrollments.length === 0) {
+        // Cek apakah user punya akses video (tier junior/expert)
+        const { data: videoData } = await supabase
+          .from('video_access')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('is_active', true)
+
+        if (videoData && videoData.length > 0) {
+          setVideoAccesses(videoData)
+        } else {
+          // Cek apakah ada order pending (sudah beli tapi belum dikonfirmasi)
+          const { data: pendingOrders } = await supabase
+            .from('checkout_orders')
+            .select('id, payment_proof_url')
+            .eq('user_id', userId)
+            .eq('status', 'pending')
+            .limit(1)
+
+          if (pendingOrders && pendingOrders.length > 0) {
+            const order = pendingOrders[0]
+            setHasPendingOrder(true)
+            setPendingOrderData({
+              id: order.id,
+              hasProof: !!order.payment_proof_url
+            })
+          }
+        }
         setIsLoading(false)
         return
       }
@@ -192,11 +222,91 @@ export default function SiswaDashboardPage() {
   }
 
   if (!activeBootcamp) {
+    // Punya akses video (junior/expert)
+    if (videoAccesses.length > 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-24 text-center max-w-lg mx-auto">
+          <div className="w-20 h-20 bg-sky-50 border-2 border-sky-200 rounded-full flex items-center justify-center mb-6">
+            <Video className="w-10 h-10 text-sky-500" />
+          </div>
+          <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Akses Video Aktif!</h2>
+          <p className="text-slate-500 mb-2">
+            Paket Anda memberikan akses ke materi video.
+            Klik tombol di bawah untuk mulai belajar.
+          </p>
+          <p className="text-xs text-slate-400 mb-8">
+            Untuk akses penuh LMS (sesi live, tugas, mentor), upgrade ke paket Bootcamp Lengkap.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+            <Link
+              href="/siswa/video"
+              className="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+            >
+              <Video className="w-4 h-4" />
+              Tonton Materi
+            </Link>
+            <Link
+              href="/#pricing"
+              className="flex-1 flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-3 px-6 rounded-xl transition-colors"
+            >
+              Upgrade
+            </Link>
+          </div>
+        </div>
+      )
+    }
+
+    // Ada order pending, belum dikonfirmasi
+    if (hasPendingOrder && pendingOrderData) {
+      // Belum upload bukti pembayaran
+      if (!pendingOrderData.hasProof) {
+        return (
+          <div className="flex flex-col items-center justify-center py-24 text-center max-w-lg mx-auto">
+            <div className="w-20 h-20 bg-orange-50 border-2 border-orange-200 rounded-full flex items-center justify-center mb-6">
+              <AlertCircle className="w-10 h-10 text-orange-500" />
+            </div>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Upload Bukti Pembayaran</h2>
+            <p className="text-slate-500 mb-8">
+              Pesanan Anda sudah dibuat. Silakan upload bukti pembayaran agar tim kami dapat memverifikasi dan mengaktifkan akses Anda.
+            </p>
+            <Link
+              href="/checkout"
+              className="inline-flex items-center gap-2 bg-e17-navy hover:bg-e17-navy/90 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+            >
+              Upload Bukti Sekarang
+            </Link>
+          </div>
+        )
+      }
+
+      // Sudah upload, menunggu verifikasi
+      return (
+        <div className="flex flex-col items-center justify-center py-24 text-center max-w-lg mx-auto">
+          <div className="w-20 h-20 bg-amber-50 border-2 border-amber-200 rounded-full flex items-center justify-center mb-6">
+            <Clock className="w-10 h-10 text-amber-500" />
+          </div>
+          <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Pembayaran Sedang Diverifikasi</h2>
+          <p className="text-slate-500 mb-8">
+            Tim E17 Course sedang memverifikasi pembayaran Anda.
+            Akses akan aktif dalam 1×24 jam setelah dikonfirmasi.
+            Tidak perlu melakukan apa pun sekarang.
+          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+          >
+            Kembali ke Beranda
+          </Link>
+        </div>
+      )
+    }
+
+    // Belum beli apa-apa
     return (
        <div className="flex flex-col items-center justify-center py-32 text-center max-w-xl mx-auto">
          <BookOpen className="w-16 h-16 text-slate-300 mb-4" />
          <h2 className="text-xl font-bold text-e17-dark mb-2">Belum Ada Program Aktif</h2>
-         <p className="text-slate-500 mb-6">Anda belum terdaftar dalam batch manapun atau pendaftaran Anda masih diproses. Silakan pilih program di halaman utama.</p>
+         <p className="text-slate-500 mb-6">Anda belum terdaftar dalam program manapun. Pilih program dan mulai perjalanan belajar Anda.</p>
          <Link href="/#pricing" className="bg-e17-navy hover:bg-e17-navy/90 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
            Lihat Program Kami
          </Link>

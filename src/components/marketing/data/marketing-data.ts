@@ -15,7 +15,7 @@ export interface CurriculumVideo {
 }
 
 export interface PricingTier {
-  type: 'junior' | 'expert' | 'bootcamp';
+  type: 'junior' | 'expert' | 'complete';
   label: string;
   price: number;
   originalPrice: number;
@@ -83,7 +83,7 @@ export const programs: ProgramData[] = [
         excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
       },
       {
-        type: 'bootcamp',
+        type: 'complete',
         label: 'Bootcamp Lengkap',
         price: 2800000,
         originalPrice: 4000000,
@@ -132,7 +132,7 @@ export const programs: ProgramData[] = [
         excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
       },
       {
-        type: 'bootcamp',
+        type: 'complete',
         label: 'Bootcamp Lengkap',
         price: 3500000,
         originalPrice: 5000000,
@@ -145,7 +145,7 @@ export const programs: ProgramData[] = [
     id: "data-science",
     name: "Data Science & AI",
     shortName: "Data Science",
-    description: "Pelajari Python, SQL, Machine Learning, dan Data Visualization untuk karir data.",
+    description: "Pelajari analisis data dari dasar hingga visualisasi menggunakan tools industri terkemuka.",
     sessions: 20,
     modules: 35,
     price: 4000000,
@@ -173,7 +173,7 @@ export const programs: ProgramData[] = [
         excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
       },
       {
-        type: 'bootcamp',
+        type: 'complete',
         label: 'Bootcamp Lengkap',
         price: 4000000,
         originalPrice: 6000000,
@@ -214,7 +214,7 @@ export const programs: ProgramData[] = [
         excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
       },
       {
-        type: 'bootcamp',
+        type: 'complete',
         label: 'Bootcamp Lengkap',
         price: 2500000,
         originalPrice: 3500000,
@@ -236,24 +236,25 @@ export interface ValueProp {
 
 export const valueProps: ValueProp[] = [
   {
-    icon: "briefcase",
-    title: "Portfolio dari Project Nyata",
-    description: "Bukan tugas simulasi. Setiap project dikerjakan berdasarkan studi kasus industri yang bisa langsung masuk portfolio Anda.",
+    icon: "play-circle",
+    title: "Akses Video Materi & LMS Secara Instan",
+    description: "Setelah pembelian berhasil, Anda langsung mendapatkan akses ke dalam sistem LMS (Learning Management System) untuk mulai belajar detik itu juga.",
   },
   {
     icon: "monitor",
-    title: "Live Mentoring, Bukan Rekaman",
-    description: "Sesi tatap muka virtual langsung dengan mentor. Tanya jawab real-time, bukan komentar di bawah video.",
+    title: "Tatap Muka dengan Mentor, Tiap Minggu (Khusus Paket Komplit)",
+    description: "Belajar bareng mentor lewat Zoom, bisa tanya langsung saat stuck. Beda jauh dari nonton video sendiri jam 2 pagi.",
   },
   {
     icon: "users",
-    title: "Mentor dari Industri",
-    description: "Praktisi aktif di perusahaan teknologi. Mereka tahu apa yang dicari recruiter karena mereka sendiri yang merekrut.",
+    title: "Mentor yang Masih Aktif Merekrut (Khusus Paket Komplit)",
+    // TODO: Verifikasi klaim "aktif merekrut" ini kebenarannya dengan user
+    description: "Bukan pengajar penuh waktu. Mereka praktisi yang tiap bulan mewawancarai kandidat, jadi tahu persis apa yang bikin CV lolos atau ditolak.",
   },
   {
-    icon: "shield-check",
-    title: "Dukungan Cari Kerja",
-    description: "Review CV, simulasi interview, dan koneksi ke perusahaan yang sedang hiring. Proses lengkap sampai Anda diterima.",
+    icon: "award",
+    title: "Sertifikat Kelulusan Resmi",
+    description: "Dapatkan sertifikat kelulusan yang diakui untuk memvalidasi skill baru Anda setelah menyelesaikan seluruh materi kelas.",
   },
 ];
 
@@ -267,24 +268,24 @@ export interface FAQData {
 
 export const faqData: FAQData[] = [
   {
-    question: "Apa itu E17 Course?",
-    answer: "E17 Course adalah platform bootcamp intensif untuk membantu Anda switch career atau up-skilling di bidang teknologi. Format belajarnya live mentoring, bukan sekadar nonton video.",
+    question: "Saya pemula dan belum punya dasar ilmunya sama sekali. Bisa ikut?",
+    answer: "Bisa. Kurikulum dimulai dari nol, dari istilah dasar sampai bikin project utuh. Yang perlu Anda siapkan: laptop yang bisa buka browser, dan waktu 10-15 jam per minggu.",
   },
   {
-    question: "Bagaimana format belajarnya?",
-    answer: "Live mentoring via Zoom, bukan video rekaman. Anda bertatap muka langsung dengan mentor, bisa tanya jawab real-time. Semua materi dan tugas dikumpulkan lewat LMS.",
+    question: "Bedanya E17 sama kursus online lain?",
+    answer: "Kami mengintegrasikan pembelian kelas langsung ke sistem LMS eksklusif kami. Anda bisa akses video rekaman, materi bacaan, dan tugas tambahan dalam satu platform yang terpusat.",
   },
   {
-    question: "Apakah cocok untuk pemula tanpa background IT?",
-    answer: "Ya. Kurikulum dimulai dari level dasar. Yang Anda butuhkan hanya laptop dan komitmen untuk belajar.",
+    question: "Kalau saya ketinggalan sesi live, bagaimana?",
+    answer: "Untuk Anda yang mengambil Paket Komplit, rekaman setiap sesi mentoring live tersedia di LMS dalam 24 jam. Anda bisa tonton ulang kapan saja.",
   },
   {
-    question: "Apakah ada jaminan kerja setelah lulus?",
-    answer: "Kami tidak menjanjikan garansi 100% diterima kerja. Yang kami sediakan: review CV, latihan interview, dan koneksi ke perusahaan yang sedang mencari talent.",
+    question: "Bagaimana cara akses kelasnya setelah membayar?",
+    answer: "Sistem kami terotomatisasi penuh. Setelah pembayaran terkonfirmasi, Anda akan diarahkan ke Dashboard LMS dan semua modul video terbuka sesuai masa aktif paket Anda (6 Bulan / 1 Tahun).",
   },
   {
-    question: "Bagaimana jika saya tidak bisa hadir di sesi live?",
-    answer: "Setiap sesi direkam dan bisa Anda tonton ulang kapan saja lewat LMS.",
+    question: "Saya sudah kerja full-time. Jadwalnya fleksibel?",
+    answer: "Sangat fleksibel. Untuk Paket Junior dan Expert, Anda bisa menonton video materi kapan saja tanpa batasan jadwal. Khusus untuk Paket Komplit, sesi mentoring live diadakan malam hari (19.00-21.00 WIB) agar tidak bentrok jam kerja.",
   },
 ];
 
@@ -314,3 +315,110 @@ export const formatPrice = (price: number) => {
 export const getDiscountPercent = (original: number, current: number) => {
   return Math.round(((original - current) / original) * 100);
 };
+
+export const useCasesData = [
+  {
+    icon: "GraduationCap",
+    title: "Mahasiswa",
+    description: "Lengkapi skill yang tidak diajarkan di kampus dengan praktik langsung.",
+  },
+  {
+    icon: "Briefcase",
+    title: "Profesional",
+    description: "Tingkatkan kompetensi untuk promosi atau perpindahan karir yang lebih baik.",
+  },
+  {
+    icon: "Laptop",
+    title: "Freelancer",
+    description: "Tambah portofolio dengan project nyata untuk menarik lebih banyak klien.",
+  },
+  {
+    icon: "Compass",
+    title: "Career Switcher",
+    description: "Mulai dari nol hingga mahir dengan bimbingan mentor yang berpengalaman.",
+  },
+  {
+    icon: "BookOpen",
+    title: "Pelajar SMA/SMK",
+    description: "Curi start belajar skill industri sebelum masuk dunia perkuliahan.",
+  },
+  {
+    icon: "Building",
+    title: "Tim Perusahaan",
+    description: "Upskill tim Anda dengan materi terstruktur dan terpantau lewat dashboard.",
+  },
+];
+
+export const featureShowcaseData = [
+  {
+    title: "Video Materi Berkualitas HD",
+    description: "Belajar mandiri kapan saja dengan ratusan video materi yang direkam secara profesional.",
+    points: [
+      "Kualitas video dan audio jernih",
+      "Materi selalu di-update secara berkala",
+      "Akses penuh sesuai masa aktif paket (6 Bulan / 1 Tahun)"
+    ],
+    imageType: "video",
+    align: "left"
+  },
+  {
+    title: "Live Class via Zoom",
+    description: "Interaksi langsung dengan instruktur profesional. Tanyakan hal yang membingungkan secara real-time.",
+    points: [
+      "Jadwal fleksibel (malam hari/weekend)",
+      "Rekaman sesi tersedia di LMS",
+      "Diskusi interaktif dengan peserta lain"
+    ],
+    imageType: "live",
+    align: "right"
+  },
+  {
+    title: "Dashboard Progress Belajar",
+    description: "Pantau perkembangan belajar Anda dengan mudah. Sistem LMS kami terintegrasi secara otomatis.",
+    points: [
+      "Tracking penyelesaian modul",
+      "Kumpulan nilai tugas dan kuis",
+      "Akses instan setelah pembelian"
+    ],
+    imageType: "dashboard",
+    align: "left"
+  },
+  {
+    title: "Sertifikat Resmi",
+    description: "Validasi skill Anda dengan sertifikat kelulusan yang diakui industri setelah menyelesaikan kelas.",
+    points: [
+      "Sertifikat digital dengan ID unik",
+      "Dapat langsung diunggah ke LinkedIn",
+      "Meningkatkan kredibilitas profesional Anda"
+    ],
+    imageType: "certificate",
+    align: "right"
+  }
+];
+
+export const testimonialsData = [
+  {
+    name: "Budi Santoso",
+    role: "Data Analyst",
+    rating: 5,
+    quote: "Materi sangat terstruktur. Awalnya saya sama sekali tidak mengerti SQL, sekarang saya bisa membuat dashboard data sendiri. Sangat direkomendasikan!"
+  },
+  {
+    name: "Siti Rahmawati",
+    role: "Mahasiswa Tingkat Akhir",
+    rating: 5,
+    quote: "Live class-nya sangat membantu. Mentornya sabar dan jelas dalam menjelaskan materi. Berasa punya tutor pribadi."
+  },
+  {
+    name: "Andi Wijaya",
+    role: "Freelance Web Developer",
+    rating: 4.5,
+    quote: "Materi video yang terstruktur itu yang paling saya suka. Kalau lupa sesuatu, tinggal login dan tonton lagi videonya. Sangat praktis."
+  },
+  {
+    name: "Rina Kusuma",
+    role: "Digital Marketer",
+    rating: 5,
+    quote: "Sistem LMS-nya gampang banget dipakai. Begitu bayar, langsung bisa akses semua video. Gak perlu nunggu admin manual."
+  }
+];

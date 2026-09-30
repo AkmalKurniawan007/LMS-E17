@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { X, Mail, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
 import { formatPrice } from "../data/marketing-data";
 import { useRouter } from "next/navigation";
 
@@ -16,19 +16,81 @@ interface CheckoutLoginModalProps {
 export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: CheckoutLoginModalProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const { createClient } = await import("@/utils/supabase/client");
+      const supabase = createClient();
+
+      if (mode === "login") {
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (authError) throw new Error(authError.message);
+      } else {
+        const { data: signUpData, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: name } },
+        });
+        if (authError) throw new Error(authError.message);
+
+        if (signUpData.user && name) {
+          await supabase
+            .from("users")
+            .upsert({
+              id: signUpData.user.id,
+              email,
+              full_name: name,
+              role: "siswa",
+            });
+        }
+      }
+
       onClose();
       if (program && tier) {
-        router.push(`/checkout/${program.id}?tier=${tier.type}`);
+        router.push(`/checkout?program=${program.id}&tier=${tier.type}`);
       }
-    }, 1500);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Terjadi kesalahan. Coba lagi.";
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { createClient } = await import("@/utils/supabase/client");
+      const supabase = createClient();
+      const redirectTo = program && tier
+        ? `${window.location.origin}/checkout?program=${program.id}&tier=${tier.type}`
+        : `${window.location.origin}/siswa`;
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
+      });
+    } catch {
+      setError("Gagal masuk dengan Google. Coba lagi.");
+      setIsLoading(false);
+    }
+  };
+
+  const handleModeChange = (newMode: "login" | "register") => {
+    setMode(newMode);
+    setError(null);
   };
 
   return (
@@ -113,7 +175,7 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
               <div className="flex p-1 bg-slate-100 rounded-lg mb-7">
                 <button
                   type="button"
-                  onClick={() => setMode("login")}
+                  onClick={() => handleModeChange("login")}
                   className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${
                     mode === "login"
                       ? "bg-white text-slate-900 shadow-sm"
@@ -124,7 +186,7 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
                 </button>
                 <button
                   type="button"
-                  onClick={() => setMode("register")}
+                  onClick={() => handleModeChange("register")}
                   className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${
                     mode === "register"
                       ? "bg-white text-slate-900 shadow-sm"
@@ -134,6 +196,14 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
                   Register
                 </button>
               </div>
+
+              {/* Error Banner */}
+              {error && (
+                <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
+                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {mode === "register" && (
@@ -146,6 +216,8 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
                       <input
                         type="text"
                         required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
                         className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all outline-none text-sm"
                         placeholder="Nama lengkap Anda"
                       />
@@ -162,6 +234,8 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
                     <input
                       type="email"
                       required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all outline-none text-sm"
                       placeholder="nama@email.com"
                     />
@@ -177,8 +251,11 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
                     <input
                       type="password"
                       required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all outline-none text-sm"
                       placeholder="Minimal 8 karakter"
+                      minLength={8}
                     />
                   </div>
                 </div>
@@ -207,7 +284,9 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
 
               <button
                 type="button"
-                className="mt-5 w-full flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 py-3 rounded-lg font-medium text-sm hover:bg-slate-50 transition-colors"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="mt-5 w-full flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 py-3 rounded-lg font-medium text-sm hover:bg-slate-50 transition-colors disabled:opacity-70"
               >
                 <img
                   src="https://www.svgrepo.com/show/475656/google-color.svg"

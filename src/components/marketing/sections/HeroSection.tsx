@@ -1,238 +1,121 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { motion, useScroll, useTransform, AnimatePresence, Variants } from "framer-motion";
+import React from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { MessageCircle, Sparkles, Users, Award, Briefcase, Video } from "lucide-react";
 import { getWhatsAppUrl } from "../data/marketing-data";
 
-// --- Animasi untuk Staggered Text ---
-const textContainer: Variants = {
-  hidden: { opacity: 0 },
-  visible: (i = 1) => ({
-    opacity: 1,
-    transition: { staggerChildren: 0.12, delayChildren: 0.1 * i },
-  }),
-};
+export default function HeroSection({ dbContent = {}, dbPrograms = [] }: { dbContent?: any, dbPrograms?: any[] }) {
+  const shouldReduceMotion = useReducedMotion();
 
-const textWord: Variants = {
-  hidden: { opacity: 0, y: 30, filter: "blur(8px)" },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { type: "spring", damping: 20, stiffness: 100 },
-  },
-};
-
-// --- Komponen Floating Card ---
-const FloatingCard = ({ 
-  icon: Icon, 
-  title, 
-  subtitle, 
-  delay, 
-  position, 
-  floatRangeY,
-  floatRangeX = [-5, 5],
-  rotateRange = [-2, 2]
-}: { 
-  icon: any, 
-  title: string, 
-  subtitle: string, 
-  delay: number, 
-  position: string, 
-  floatRangeY: number[],
-  floatRangeX?: number[],
-  rotateRange?: number[]
-}) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.8, delay, type: "spring", bounce: 0.4 }}
-      className={`absolute ${position} hidden lg:block z-20`}
-    >
-      <motion.div
-        animate={{ 
-          y: floatRangeY,
-          x: floatRangeX,
-          rotate: rotateRange
-        }}
-        transition={{ 
-          duration: 6, 
-          repeat: Infinity, 
-          repeatType: "reverse", 
-          ease: "easeInOut",
-          delay 
-        }}
-        className="flex items-center gap-3 bg-white/70 backdrop-blur-xl border border-white/40 p-4 rounded-2xl shadow-xl shadow-slate-200/50"
-      >
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center text-orange-500 shrink-0 border border-orange-100 shadow-sm">
-          <Icon className="w-5 h-5" />
-        </div>
-        <div>
-          <p className="text-sm font-bold text-slate-800 leading-tight">{title}</p>
-          <p className="text-[11px] font-semibold text-slate-500">{subtitle}</p>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-};
-
-export default function HeroSection() {
-  const { scrollY } = useScroll();
-  const yBackground = useTransform(scrollY, [0, 1000], [0, 300]);
-  const opacityHero = useTransform(scrollY, [0, 500], [1, 0]);
-
-  const words = "Bootcamp intensif untuk jadi profesional tech.".split(" ");
+  // Use DB data or fallback to defaults
+  const hl1 = dbContent.headline_line1 || "Bangun karir tech Anda";
+  const hl2 = dbContent.headline_line2 || "dengan portofolio nyata.";
+  const subheadline = dbContent.subheadline || "E17 Course adalah bootcamp berstandar nasional. Belajar langsung dari praktisi, bangun proyek sungguhan, dan siapkan diri Anda untuk dilirik rekruter.";
+  const ctaPrimary = dbContent.cta_primary || "Lihat Paket";
+  const ctaSecondary = dbContent.cta_secondary || "Lihat Story";
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center bg-[#FAFAF8] overflow-hidden pt-20 pb-32">
-      {/* --- Dynamic Aurora / Mesh Gradient Background --- */}
-      <motion.div suppressHydrationWarning style={{ y: yBackground, opacity: opacityHero }} className="absolute inset-0 z-0 pointer-events-none">
-        {/* Animated Orbs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            x: [0, 50, 0],
-            y: [0, -30, 0],
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-orange-300/20 rounded-full blur-[100px] mix-blend-multiply"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, -60, 0],
-            y: [0, 40, 0],
-          }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-blue-300/20 rounded-full blur-[120px] mix-blend-multiply"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.15, 1],
-            x: [0, 30, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 5 }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-amber-200/10 rounded-full blur-[100px] mix-blend-multiply"
-        />
-      </motion.div>
+    <section className="relative w-full overflow-hidden bg-white pt-24 pb-32 lg:pt-32 lg:pb-48">
+      {/* Bold yellow block on the right side for the "bold moment" */}
+      <div className="absolute top-0 right-0 w-1/3 lg:w-[45%] h-full bg-[#FFD400] rounded-bl-[80px] pointer-events-none hidden md:block" />
 
-      {/* --- Main Content --- */}
-      <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, type: "spring" }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur-md border border-white/80 shadow-sm mb-8"
-        >
-          <Sparkles className="w-4 h-4 text-orange-500" />
-          <span className="text-sm font-bold text-slate-700 tracking-wide">Pendaftaran Batch Baru Telah Dibuka</span>
-        </motion.div>
-
-        {/* Staggered Headline */}
-        <motion.h1
-          variants={textContainer}
-          initial="hidden"
-          animate="visible"
-          className="text-5xl md:text-6xl lg:text-[5rem] font-extrabold text-slate-900 leading-[1.05] tracking-tight mb-8"
-        >
-          {words.map((word, i) => (
-            <motion.span
-              key={i}
-              variants={textWord}
-              className="inline-block mr-[0.3em] last:mr-0"
-            >
-              {word === "profesional" || word === "tech." ? (
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500">
-                  {word}
-                </span>
-              ) : (
-                word
-              )}
-            </motion.span>
-          ))}
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="text-slate-600 text-lg md:text-xl leading-relaxed mb-12 max-w-2xl mx-auto font-medium"
-        >
-          Belajar langsung dari praktisi industri, bangun portfolio nyata, dan dapatkan bimbingan karir intensif untuk mendapatkan pekerjaan impian Anda.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-          <Link
-            href="/login"
-            className="group relative overflow-hidden bg-slate-900 text-white px-8 py-4 rounded-xl font-bold text-[15px] shadow-xl shadow-slate-900/20 transition-all duration-300 hover:shadow-2xl hover:shadow-slate-900/30 hover:-translate-y-0.5 w-full sm:w-auto"
+      <div className="max-w-[1200px] mx-auto px-6 lg:px-12 relative z-10">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
+          
+          {/* Left Column: Text content */}
+          <motion.div 
+            initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.6, ease: "easeOut" }}
+            className="w-full lg:w-[55%] pt-8 lg:pt-16"
           >
-            {/* Shimmer effect inside button */}
-            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
-            <span className="relative z-10">Eksplorasi Program</span>
-          </Link>
-          <a
-            href={getWhatsAppUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center justify-center gap-2.5 text-slate-700 hover:text-slate-900 px-8 py-4 rounded-xl font-bold text-[15px] transition-all duration-300 bg-white/80 backdrop-blur-md border border-slate-200/60 hover:bg-white hover:border-slate-300 shadow-sm hover:shadow-md hover:-translate-y-0.5 w-full sm:w-auto"
+            <h1 className="text-[34px] md:text-[48px] lg:text-[56px] font-extrabold text-[#1C1A14] leading-[1.1] mb-6 tracking-tight">
+              {hl1} <br />
+              <span className="text-[#6B6355]">{hl2}</span>
+            </h1>
+            
+            <p className="text-[16px] md:text-[18px] text-[#6B6355] font-medium leading-relaxed mb-12 max-w-lg">
+              {subheadline}
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <Link
+                href="/programs"
+                className="w-full sm:w-auto text-center px-7 py-3.5 rounded-[10px] bg-gradient-to-br from-[#FF7A1A] to-[#FF3D68] text-white font-bold text-[16px] shadow-[0_8px_24px_rgba(28,26,20,0.08)] hover:-translate-y-0.5 transition-transform focus:outline-none focus:ring-2 focus:ring-[#FF7A1A] focus:ring-offset-2"
+              >
+                {ctaPrimary}
+              </Link>
+              
+              <Link
+                href="#story"
+                className="w-full sm:w-auto text-center px-7 py-3.5 rounded-[10px] border border-[#EFE6CC] text-[#1C1A14] font-bold text-[16px] hover:bg-[#FFFBEF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFD400] focus:ring-offset-2"
+              >
+                {ctaSecondary}
+              </Link>
+            </div>
+
+            {/* Social Proof Stats */}
+            <div className="mt-8 flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 border-t border-[#EFE6CC] pt-6">
+              <div className="flex -space-x-3">
+                <div className="w-9 h-9 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center overflow-hidden">
+                  <svg className="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center overflow-hidden">
+                  <svg className="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center overflow-hidden">
+                  <svg className="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                </div>
+              </div>
+              <p className="text-[14px] text-[#6B6355] font-medium max-w-[200px] leading-tight">
+                Bergabung bersama <strong className="text-[#1C1A14]">50+ siswa aktif</strong> di {dbPrograms.length || 4} program pilihan.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Right Column: Visual */}
+          <motion.div 
+            initial={shouldReduceMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.8, ease: "easeOut", delay: shouldReduceMotion ? 0 : 0.2 }}
+            className="w-full lg:w-[45%] mt-12 lg:mt-0 relative"
           >
-            <MessageCircle className="w-5 h-5 text-green-500 group-hover:scale-110 transition-transform duration-300" />
-            Tanya via WhatsApp
-          </a>
-        </motion.div>
+            {/* Main Visual Image - Realistic UI or Mentor */}
+            <div className="relative rounded-[16px] overflow-hidden shadow-[0_8px_24px_rgba(28,26,20,0.08)] bg-white border border-[#EFE6CC] aspect-[4/3] md:aspect-square lg:aspect-[4/5]">
+              {/* Fallback image block representing UI/Mentor photo */}
+              <img 
+                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                alt="Mentor mengajarkan materi di kelas E17 Course"
+                className="w-full h-full object-cover"
+              />
+              
+              {/* Top Left Badge: Kurikulum Industri */}
+              <div className="absolute top-4 left-4 sm:-left-6 lg:-left-12 bg-white/95 backdrop-blur-sm px-4 py-3 rounded-[10px] shadow-lg border border-[#EFE6CC] flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#FFFBEF] flex items-center justify-center text-[#FFD400]">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </div>
+                <div>
+                  <p className="text-[#1C1A14] font-bold text-[14px]">Kurikulum Industri {new Date().getFullYear()}</p>
+                </div>
+              </div>
+              
+              {/* Floating overlay card for extra context (HIDDEN)
+              <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-4 rounded-[10px] shadow-lg border border-[#EFE6CC] flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-[#FFFBEF] flex items-center justify-center text-[#FF7A1A] font-bold text-xl shrink-0">
+                  98%
+                </div>
+                <div>
+                  <p className="text-[#1C1A14] font-bold text-[15px]">Tingkat Kelulusan</p>
+                  <p className="text-[#6B6355] text-[13px] font-semibold">Berdasarkan data alumni 2025</p>
+                </div>
+              </div>
+              */}
+            </div>
+          </motion.div>
+
+        </div>
       </div>
-
-      {/* --- Floating Glassmorphism Cards (Decorations) --- */}
-      <FloatingCard 
-        icon={Users} 
-        title="Live Mentoring" 
-        subtitle="Sesi 1-on-1 Intensif" 
-        delay={0.2} 
-        position="top-[20%] left-[8%]"
-        floatRangeY={[-10, 15]}
-        floatRangeX={[-5, 5]}
-        rotateRange={[-2, 2]}
-      />
-      <FloatingCard 
-        icon={Award} 
-        title="Sertifikat Kelulusan" 
-        subtitle="Kredibilitas Industri" 
-        delay={0.5} 
-        position="bottom-[25%] left-[12%]"
-        floatRangeY={[15, -10]}
-        floatRangeX={[5, -5]}
-        rotateRange={[2, -2]}
-      />
-      <FloatingCard 
-        icon={Briefcase} 
-        title="Bimbingan Karir" 
-        subtitle="Review CV & Portfolio" 
-        delay={0.8} 
-        position="top-[25%] right-[8%]"
-        floatRangeY={[-15, 10]}
-        floatRangeX={[-3, 4]}
-        rotateRange={[-1, 3]}
-      />
-      <FloatingCard 
-        icon={Video} 
-        title="Akses Selamanya" 
-        subtitle="Belajar Kapan Saja" 
-        delay={1.1} 
-        position="bottom-[30%] right-[10%]"
-        floatRangeY={[10, -15]}
-        floatRangeX={[4, -4]}
-        rotateRange={[3, -1]}
-      />
-
     </section>
   );
 }

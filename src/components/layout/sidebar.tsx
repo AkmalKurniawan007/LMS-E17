@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, BookOpen, Users, Folder, Settings, FileText, CheckSquare, Award, Scan, Trophy, PieChart, ShieldAlert, Megaphone, Ticket, MessageSquare } from "lucide-react"
+import { LayoutDashboard, BookOpen, Users, Folder, Settings, FileText, CheckSquare, Award, Scan, Trophy, PieChart, ShieldAlert, Megaphone, Ticket, MessageSquare, Globe, ShoppingCart, Wallet, Key, Video } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export type UserRole = "Super Admin" | "Mentor" | "Siswa"
@@ -17,11 +17,22 @@ interface SidebarProps {
 
 export function Sidebar({ role, className, isMobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
+  const [adminMode, setAdminMode] = React.useState<"lms" | "marketing">("lms")
+
+  React.useEffect(() => {
+    if (role === "Super Admin") {
+      if (pathname.startsWith("/admin/marketing")) {
+        setAdminMode("marketing")
+      } else {
+        setAdminMode("lms")
+      }
+    }
+  }, [pathname, role])
 
   const navItems = React.useMemo(() => {
     switch (role) {
       case "Super Admin":
-        return [
+        const lmsAdminItems = [
           { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
           { name: "Manajemen Program", href: "/admin/programs", icon: BookOpen },
           { name: "Manajemen Batch", href: "/admin/batches", icon: Folder },
@@ -36,6 +47,18 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
           { name: "Log Audit", href: "/admin/audit", icon: ShieldAlert },
           { name: "Pengaturan", href: "/admin/settings", icon: Settings },
         ]
+
+        const marketingAdminItems = [
+          { name: "Dashboard Marketing", href: "/admin/marketing/dashboard", icon: LayoutDashboard },
+          { name: "Lead CRM", href: "/admin/marketing/leads", icon: Users },
+          { name: "Program & Video", href: "/admin/marketing/programs", icon: BookOpen },
+          { name: "Konten Marketing", href: "/admin/marketing", icon: Globe },
+          { name: "Order Pendaftaran", href: "/admin/marketing/orders", icon: ShoppingCart },
+          { name: "Akses Manual Video", href: "/admin/marketing/manual-access", icon: Key },
+          { name: "Rekening Pembayaran", href: "/admin/marketing/payment-accounts", icon: Wallet },
+        ]
+        
+        return adminMode === "lms" ? lmsAdminItems : marketingAdminItems
       case "Mentor":
         return [
           { name: "Dashboard", href: "/mentor", icon: LayoutDashboard },
@@ -50,6 +73,7 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
       case "Siswa":
         return [
           { name: "Dashboard", href: "/siswa", icon: LayoutDashboard },
+          { name: "Akses Video", href: "/siswa/video", icon: Video },
           { name: "Materi Belajar", href: "/siswa/courses", icon: BookOpen },
           { name: "Pesan & Diskusi", href: "/siswa/messages", icon: MessageSquare },
           { name: "Tugas Harian", href: "/siswa/assignments", icon: CheckSquare },
@@ -61,7 +85,7 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
       default:
         return []
     }
-  }, [role])
+  }, [role, adminMode])
 
   return (
     <>
@@ -100,6 +124,32 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
             <span className="text-xs font-semibold text-blue-200 uppercase tracking-wider">{role}</span>
           </div>
         </div>
+
+        {/* Toggle Mode for Super Admin */}
+        {role === "Super Admin" && (
+          <div className="px-4 py-3 border-b border-white/5 shrink-0">
+            <div className="flex p-1 bg-e17-navy-active rounded-lg">
+              <button
+                onClick={() => setAdminMode("lms")}
+                className={cn(
+                  "flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors",
+                  adminMode === "lms" ? "bg-e17-primary text-white" : "text-blue-200 hover:text-white"
+                )}
+              >
+                LMS
+              </button>
+              <button
+                onClick={() => setAdminMode("marketing")}
+                className={cn(
+                  "flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors",
+                  adminMode === "marketing" ? "bg-e17-primary text-white" : "text-blue-200 hover:text-white"
+                )}
+              >
+                Marketing
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">

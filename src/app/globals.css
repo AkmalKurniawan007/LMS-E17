@@ -4,30 +4,19 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   
-  /* === E17 Professional Minimalist Palette === */
+  /* === E17 Marketing Palette (from spec) === */
+  --color-primary: #FFD400;
+  --color-primary-ink: #2A2100;
+  --color-accent-start: #FF7A1A;
+  --color-accent-end: #FF3D68;
+  --color-bg: #FFFFFF;
+  --color-bg-soft: #FFFBEF;
+  --color-ink: #1C1A14;
+  --color-ink-muted: #6B6355;
+  --color-border: #EFE6CC;
+  --color-locked: #B8AF9C;
   
-  /* Primary: Bright Golden Yellow (CTA, Active states, Highlights) */
-  --color-e17-primary: #FDBA2A; 
-  --color-e17-primary-hover: #E5A31F; 
-  
-  /* Secondary: Warm Orange (Gradient accents) */
-  --color-e17-secondary: #F97316; /* Orange-500 */
-  
-  /* Typography: Dark Slate (Text, Headings) */
-  --color-e17-dark: #1E293B;
-  --color-e17-dark-muted: #475569;
-  
-  /* Complementary: Dark Navy (Sidebar, Navbar, Banner) */
-  --color-e17-navy: #1F2844;
-  --color-e17-navy-hover: #161D33;
-  --color-e17-navy-active: #0D1120;
-  
-  /* Semantic */
-  --color-e17-success: #16A34A;
-  --color-e17-danger: #DC2626;
-  --color-e17-info: #2563EB;
-  
-  --font-sans: 'Inter', Arial, Helvetica, sans-serif;
+  --font-sans: var(--font-plus-jakarta), 'Plus Jakarta Sans', Arial, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 

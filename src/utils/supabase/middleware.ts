@@ -50,20 +50,37 @@ export async function updateSession(request: NextRequest) {
     // User is logged in, but trying to access login page. Redirect to their dashboard.
     // We need to know their role. We can fetch it from public.users table.
     const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
-    const role = userData?.role || 'siswa' // default
     
     const url = request.nextUrl.clone()
-    url.pathname = `/${role}`
+    if (!userData) {
+      // Ini murni akun marketing (guest login via Google).
+      // Jangan redirect ke /siswa, tapi kembali ke halaman utama atau biarkan di halaman profil marketing
+      url.pathname = '/'
+    } else {
+      url.pathname = `/${userData.role}`
+    }
+    
     return NextResponse.redirect(url)
   }
 
   // Basic Role-Based Protection for specific routes
   if (user && isDashboardPage) {
     const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
-    const role = userData?.role || 'siswa'
+    
+    // Jika user tidak ada di tabel public.users, berarti ini murni akun marketing (belum beli kelas/diberi akses LMS)
+    if (!userData) {
+      // Bolehkan akses ke halaman checkout atau profil marketing, tapi block dashboard LMS
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      // Bisa tambahkan query parameter untuk memunculkan notifikasi "Anda belum punya akses LMS"
+      url.searchParams.set('error', 'no_lms_access')
+      return NextResponse.redirect(url)
+    }
+
+    const role = userData.role
 
     const path = request.nextUrl.pathname
-    if (path.startsWith('/admin') && role !== 'admin') {
+    if (path.startsWith('/admin') && role !== 'admin' && role !== 'superadmin') {
       return NextResponse.redirect(new URL(`/${role}`, request.url))
     }
     if (path.startsWith('/mentor') && role !== 'mentor') {

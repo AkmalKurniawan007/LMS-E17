@@ -1,0 +1,1339 @@
+[
+  {
+    "file": "app/(auth)/login/actions.ts",
+    "line": 30,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/create/page.tsx",
+    "line": 41,
+    "table": "users",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/create/page.tsx",
+    "line": 64,
+    "table": "batches",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/create/page.tsx",
+    "line": 85,
+    "table": "batch_mentors",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/page.tsx",
+    "line": 94,
+    "table": "batches",
+    "op": "delete",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/certificate-manager.tsx",
+    "line": 37,
+    "table": "certificates",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/certificate-manager.tsx",
+    "line": 75,
+    "table": "batches",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/certificate-manager.tsx",
+    "line": 169,
+    "table": "certificates",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 125,
+    "table": "users",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 136,
+    "table": "batches",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 148,
+    "table": "batch_mentors",
+    "op": "delete",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 149,
+    "table": "batch_mentors",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 163,
+    "table": "sessions",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 186,
+    "table": "sessions",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 220,
+    "table": "sessions",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 234,
+    "table": "sessions",
+    "op": "delete",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 264,
+    "table": "sessions",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 277,
+    "table": "enrollments",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 292,
+    "table": "users",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/page.tsx",
+    "line": 313,
+    "table": "enrollments",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 78,
+    "table": "sessions",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 94,
+    "table": "sessions",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/broadcast/actions.ts",
+    "line": 30,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/broadcast/actions.ts",
+    "line": 56,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/broadcast/actions.ts",
+    "line": 63,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/broadcast/actions.ts",
+    "line": 67,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/broadcast/actions.ts",
+    "line": 71,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/broadcast/actions.ts",
+    "line": 104,
+    "table": "broadcasts",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/broadcast/actions.ts",
+    "line": 127,
+    "table": "in_app_notifications",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/certificates/page.tsx",
+    "line": 67,
+    "table": "certificates",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/certificates/page.tsx",
+    "line": 99,
+    "table": "certificates",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/helpdesk/actions.ts",
+    "line": 50,
+    "table": "helpdesk_messages",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/helpdesk/actions.ts",
+    "line": 65,
+    "table": "helpdesk_tickets",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/helpdesk/actions.ts",
+    "line": 71,
+    "table": "helpdesk_tickets",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/helpdesk/actions.ts",
+    "line": 89,
+    "table": "helpdesk_tickets",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 95,
+    "table": "marketing_content",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 105,
+    "table": "marketing_content",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 151,
+    "table": "checkout_orders",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 186,
+    "table": "checkout_orders",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 230,
+    "table": "checkout_orders",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 255,
+    "table": "checkout_orders",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 264,
+    "table": "checkout_orders",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 309,
+    "table": "video_access",
+    "op": "upsert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 329,
+    "table": "checkout_orders",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 351,
+    "table": "video_access",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 471,
+    "table": "payment_accounts",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 520,
+    "table": "payment_accounts",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 542,
+    "table": "payment_accounts",
+    "op": "delete",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/actions.ts",
+    "line": 586,
+    "table": "checkout_orders",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/leads-actions.ts",
+    "line": 55,
+    "table": "marketing_leads",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/leads-actions.ts",
+    "line": 70,
+    "table": "marketing_leads",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/leads-actions.ts",
+    "line": 116,
+    "table": "marketing_leads",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/leads-actions.ts",
+    "line": 132,
+    "table": "marketing_leads",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/leads-actions.ts",
+    "line": 148,
+    "table": "marketing_leads",
+    "op": "delete",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/manual-access/page.tsx",
+    "line": 25,
+    "table": "users",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/program-actions.ts",
+    "line": 127,
+    "table": "marketing_programs",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/program-actions.ts",
+    "line": 187,
+    "table": "marketing_programs",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/program-actions.ts",
+    "line": 206,
+    "table": "marketing_programs",
+    "op": "delete",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/program-actions.ts",
+    "line": 241,
+    "table": "marketing_program_tiers",
+    "op": "upsert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/program-actions.ts",
+    "line": 282,
+    "table": "marketing_program_curriculum",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/program-actions.ts",
+    "line": 318,
+    "table": "marketing_program_curriculum",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/marketing/program-actions.ts",
+    "line": 337,
+    "table": "marketing_program_curriculum",
+    "op": "delete",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/mentors/actions.ts",
+    "line": 39,
+    "table": "users",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/mentors/actions.ts",
+    "line": 75,
+    "table": "batch_mentors",
+    "op": "delete",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/mentors/actions.ts",
+    "line": 91,
+    "table": "batch_mentors",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/mentors/actions.ts",
+    "line": 128,
+    "table": "batch_mentors",
+    "op": "delete",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/mentors/actions.ts",
+    "line": 151,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/mentors/page.tsx",
+    "line": 51,
+    "table": "users",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/page.tsx",
+    "line": 95,
+    "table": "users",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/page.tsx",
+    "line": 96,
+    "table": "users",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/page.tsx",
+    "line": 154,
+    "table": "checkout_orders",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/portfolios/actions.ts",
+    "line": 32,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/portfolios/actions.ts",
+    "line": 36,
+    "table": "portfolio_projects",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/portfolios/actions.ts",
+    "line": 75,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/portfolios/actions.ts",
+    "line": 79,
+    "table": "portfolio_projects",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/portfolios/actions.ts",
+    "line": 102,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/portfolios/actions.ts",
+    "line": 106,
+    "table": "portfolio_projects",
+    "op": "delete",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/programs/actions.ts",
+    "line": 14,
+    "table": "programs",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/programs/actions.ts",
+    "line": 50,
+    "table": "programs",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/programs/actions.ts",
+    "line": 74,
+    "table": "programs",
+    "op": "delete",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/programs/[programId]/page.tsx",
+    "line": 83,
+    "table": "program_sessions",
+    "op": "delete",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/programs/[programId]/page.tsx",
+    "line": 94,
+    "table": "program_sessions",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/reports/page.tsx",
+    "line": 103,
+    "table": "certificates",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/reports/page.tsx",
+    "line": 210,
+    "table": "certificates",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/settings/actions.ts",
+    "line": 58,
+    "table": "global_settings",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/settings/actions.ts",
+    "line": 80,
+    "table": "global_settings",
+    "op": "upsert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/students/actions.ts",
+    "line": 39,
+    "table": "enrollments",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/students/import/actions.ts",
+    "line": 31,
+    "table": "bulk_import_jobs",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/students/import/actions.ts",
+    "line": 50,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/students/import/actions.ts",
+    "line": 88,
+    "table": "enrollments",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/students/import/actions.ts",
+    "line": 114,
+    "table": "bulk_import_jobs",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/students/page.tsx",
+    "line": 176,
+    "table": "enrollments",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/admin/users/actions.ts",
+    "line": 10,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/users/actions.ts",
+    "line": 75,
+    "table": "users",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/users/actions.ts",
+    "line": 97,
+    "table": "users",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/users/actions.ts",
+    "line": 163,
+    "table": "batch_mentors",
+    "op": "delete",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/admin/users/actions.ts",
+    "line": 179,
+    "table": "batch_mentors",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/layout.tsx",
+    "line": 29,
+    "table": "users",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/assignments/actions.ts",
+    "line": 91,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/assignments/actions.ts",
+    "line": 405,
+    "table": "manual_grades",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/assignments/actions.ts",
+    "line": 414,
+    "table": "manual_grades",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/assignments/actions.ts",
+    "line": 427,
+    "table": "manual_grades",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/assignments/actions.ts",
+    "line": 444,
+    "table": "task_submissions",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/page.tsx",
+    "line": 163,
+    "table": "sessions",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/page.tsx",
+    "line": 177,
+    "table": "tasks",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/page.tsx",
+    "line": 203,
+    "table": "tasks",
+    "op": "delete",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 86,
+    "table": "attendances",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 111,
+    "table": "sessions",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 133,
+    "table": "materials",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 157,
+    "table": "tasks",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 194,
+    "table": "quizzes",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 212,
+    "table": "tasks",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 247,
+    "table": "quizzes",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 262,
+    "table": "materials",
+    "op": "delete",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 269,
+    "table": "tasks",
+    "op": "delete",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 276,
+    "table": "quizzes",
+    "op": "delete",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 289,
+    "table": "attendances",
+    "op": "delete",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 299,
+    "table": "attendances",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/page.tsx",
+    "line": 308,
+    "table": "attendances",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/quiz-builder-client.tsx",
+    "line": 32,
+    "table": "quiz_questions",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/quiz-builder-client.tsx",
+    "line": 52,
+    "table": "quiz_questions",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/batches/[batchId]/sessions/[sessionId]/quiz-builder-client.tsx",
+    "line": 80,
+    "table": "quiz_questions",
+    "op": "delete",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/helpdesk/actions.ts",
+    "line": 50,
+    "table": "helpdesk_tickets",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/helpdesk/actions.ts",
+    "line": 65,
+    "table": "helpdesk_messages",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/helpdesk/actions.ts",
+    "line": 92,
+    "table": "helpdesk_messages",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/helpdesk/actions.ts",
+    "line": 106,
+    "table": "helpdesk_tickets",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 45,
+    "table": "chat_participants",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 71,
+    "table": "messages",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 80,
+    "table": "messages",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 90,
+    "table": "chat_participants",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 146,
+    "table": "messages",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 167,
+    "table": "chat_participants",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 194,
+    "table": "messages",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 208,
+    "table": "chat_participants",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 280,
+    "table": "chat_participants",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 289,
+    "table": "chat_participants",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 305,
+    "table": "chat_rooms",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 312,
+    "table": "chat_participants",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/messages/actions.ts",
+    "line": 275,
+    "table": "RPC: get_direct_room_id",
+    "op": "rpc",
+    "env": "Server"
+  },
+  {
+    "file": "app/(dashboard)/mentor/page.tsx",
+    "line": 186,
+    "table": "in_app_notifications",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/mentor/portfolio-review/actions.ts",
+    "line": 42,
+    "table": "portfolio_projects",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/portfolio-review/actions.ts",
+    "line": 87,
+    "table": "portfolio_projects",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/projects/actions.ts",
+    "line": 91,
+    "table": "users",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/projects/actions.ts",
+    "line": 406,
+    "table": "manual_grades",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/projects/actions.ts",
+    "line": 415,
+    "table": "manual_grades",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/projects/actions.ts",
+    "line": 428,
+    "table": "manual_grades",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/projects/actions.ts",
+    "line": 445,
+    "table": "task_submissions",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/mentor/quizzes/actions.ts",
+    "line": 14,
+    "table": "quiz_attempts",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/assignments/page.tsx",
+    "line": 165,
+    "table": "task_submissions",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/assignments/[assignmentId]/page.tsx",
+    "line": 104,
+    "table": "task_submissions",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/certificates/page.tsx",
+    "line": 43,
+    "table": "certificates",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/courses/page.tsx",
+    "line": 64,
+    "table": "attendances",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/courses/page.tsx",
+    "line": 101,
+    "table": "attendances",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/helpdesk/actions.ts",
+    "line": 50,
+    "table": "helpdesk_tickets",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/helpdesk/actions.ts",
+    "line": 65,
+    "table": "helpdesk_messages",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/helpdesk/actions.ts",
+    "line": 92,
+    "table": "helpdesk_messages",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/helpdesk/actions.ts",
+    "line": 106,
+    "table": "helpdesk_tickets",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/learn/[sessionId]/[materialId]/page.tsx",
+    "line": 31,
+    "table": "materials",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 44,
+    "table": "chat_participants",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 70,
+    "table": "messages",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 79,
+    "table": "messages",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 89,
+    "table": "chat_participants",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 145,
+    "table": "messages",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 166,
+    "table": "chat_participants",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 193,
+    "table": "messages",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 207,
+    "table": "chat_participants",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 268,
+    "table": "chat_participants",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 277,
+    "table": "chat_participants",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 293,
+    "table": "chat_rooms",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/messages/actions.ts",
+    "line": 300,
+    "table": "chat_participants",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/page.tsx",
+    "line": 74,
+    "table": "checkout_orders",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/page.tsx",
+    "line": 159,
+    "table": "attendances",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/page.tsx",
+    "line": 333,
+    "table": "in_app_notifications",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/portfolio/actions.ts",
+    "line": 35,
+    "table": "portfolio_projects",
+    "op": "select",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/portfolio/actions.ts",
+    "line": 79,
+    "table": "portfolio_projects",
+    "op": "insert",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/portfolio/actions.ts",
+    "line": 113,
+    "table": "portfolio_projects",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/portfolio/actions.ts",
+    "line": 144,
+    "table": "portfolio_projects",
+    "op": "delete",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/portfolio/actions.ts",
+    "line": 169,
+    "table": "portfolio_projects",
+    "op": "update",
+    "env": "Server Action/Route"
+  },
+  {
+    "file": "app/(dashboard)/siswa/projects/page.tsx",
+    "line": 165,
+    "table": "task_submissions",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/projects/[projectId]/page.tsx",
+    "line": 104,
+    "table": "task_submissions",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/quiz/[quizId]/page.tsx",
+    "line": 56,
+    "table": "quiz_questions",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/quiz/[quizId]/page.tsx",
+    "line": 76,
+    "table": "quiz_attempts",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/(dashboard)/siswa/quiz/[quizId]/page.tsx",
+    "line": 109,
+    "table": "quiz_attempts",
+    "op": "insert",
+    "env": "Client"
+  },
+  {
+    "file": "app/portfolio/[username]/page.tsx",
+    "line": 40,
+    "table": "users",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/portfolio/[username]/page.tsx",
+    "line": 64,
+    "table": "certificates",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "app/verify/[certId]/page.tsx",
+    "line": 53,
+    "table": "certificates",
+    "op": "select",
+    "env": "Client"
+  },
+  {
+    "file": "components/layout/topbar.tsx",
+    "line": 84,
+    "table": "in_app_notifications",
+    "op": "update",
+    "env": "Client"
+  },
+  {
+    "file": "components/marketing/sections/CheckoutLoginModal.tsx",
+    "line": 50,
+    "table": "users",
+    "op": "upsert",
+    "env": "Client"
+  },
+  {
+    "file": "components/marketing/sections/VideoGallery.tsx",
+    "line": 180,
+    "table": "RPC: get_program_materials",
+    "op": "rpc",
+    "env": "Client"
+  },
+  {
+    "file": "utils/supabase/middleware.ts",
+    "line": 52,
+    "table": "users",
+    "op": "select",
+    "env": "Server"
+  },
+  {
+    "file": "utils/supabase/middleware.ts",
+    "line": 68,
+    "table": "users",
+    "op": "select",
+    "env": "Server"
+  }
+]

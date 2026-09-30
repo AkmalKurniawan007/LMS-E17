@@ -4,13 +4,20 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Copy, CheckCircle2, Clock, Sparkles } from "lucide-react";
 
-export default function PromoSection() {
+export default function PromoSection({ dbContent = {} }: { dbContent?: any }) {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState({
     hours: 23,
     minutes: 59,
     seconds: 59,
   });
+
+  // DB Data
+  const isActive = dbContent.is_active ?? true;
+  const title = dbContent.title || "Early Bird Batch 8";
+  const desc = dbContent.description || "Daftar sebelum kuota batch ini penuh dan hemat hingga 40% untuk semua program bootcamp.";
+  const badgeText = dbContent.badge_text || "TERBATAS";
+  const promoCode = "BATCHBARU50"; // Can be added to DB later if needed
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -29,10 +36,12 @@ export default function PromoSection() {
   }, []);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText("BATCHBARU50");
+    navigator.clipboard.writeText(promoCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (!isActive) return null;
 
   return (
     <section className="py-20 md:py-32 bg-white relative z-20 overflow-hidden">
@@ -65,16 +74,13 @@ export default function PromoSection() {
             <div className="flex-1 text-center md:text-left relative z-20">
               <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
-                Flash Sale
+                {badgeText}
               </div>
               <h3 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4 tracking-tight">
-                Diskon 50% untuk <br className="hidden md:block"/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">
-                  batch berikutnya.
-                </span>
+                {title}
               </h3>
               <p className="text-slate-400 text-base md:text-lg mb-8 max-w-md">
-                Gunakan kode voucher ini saat mendaftar. Berlaku untuk semua program bootcamp intensif.
+                {desc}
               </p>
 
               {/* Countdown */}
@@ -109,7 +115,7 @@ export default function PromoSection() {
                   className="bg-white w-full px-8 py-4 rounded-2xl cursor-pointer group hover:bg-slate-50 transition-all duration-300 border border-slate-200 flex items-center justify-between gap-6 shadow-xl shadow-orange-900/20 hover:-translate-y-1"
                 >
                   <span className="text-2xl font-black text-slate-900 tracking-widest">
-                    BATCHBARU50
+                    {promoCode}
                   </span>
                   <div className="bg-slate-100 text-slate-500 p-2.5 rounded-xl group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors">
                     {copied ? <CheckCircle2 className="w-5 h-5" /> : <Copy className="w-5 h-5" />}

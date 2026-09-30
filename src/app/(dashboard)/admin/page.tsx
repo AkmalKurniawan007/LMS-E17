@@ -149,6 +149,27 @@ export default function AdminDashboardPage() {
         })
       })
     }
+
+    // Pending Orders with Payment Proof
+    const { data: pendingOrders, error: errOrders } = await supabase.from('checkout_orders')
+      .select('id, created_at, payment_proof_uploaded_at, users(full_name), program_name')
+      .eq('status', 'pending')
+      .not('payment_proof_url', 'is', null)
+      .order('payment_proof_uploaded_at', { ascending: false })
+      .limit(5)
+
+    if (!errOrders && pendingOrders) {
+      pendingOrders.forEach((order: any) => {
+        combinedAlerts.push({
+          id: `order-${order.id}`,
+          type: 'order',
+          title: 'Pembayaran: Bukti Diunggah',
+          desc: `${order.users?.full_name || 'User'} menunggu verifikasi untuk ${order.program_name}`,
+          isError: false,
+          date: new Date(order.payment_proof_uploaded_at || order.created_at)
+        })
+      })
+    }
     
     // Sort alerts by date
     combinedAlerts.sort((a, b) => b.date.getTime() - a.date.getTime())

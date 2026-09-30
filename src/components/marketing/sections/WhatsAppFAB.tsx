@@ -5,9 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X } from "lucide-react";
 import { getWhatsAppUrl } from "../data/marketing-data";
 
-export default function WhatsAppFAB() {
+export default function WhatsAppFAB({ dbContent = {} }: { dbContent?: any }) {
   const [isVisible, setIsVisible] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+
+  // DB Data
+  const waNumber = dbContent.number || "6281234567890";
+  const greeting = dbContent.greeting || "Halo, saya tertarik mendaftar bootcamp di E17 Course. Mohon info lebih lanjut.";
+  const dynamicWaUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(greeting)}`;
 
   useEffect(() => {
     const handleScroll = () => setIsVisible(window.scrollY > 600);
@@ -61,7 +66,7 @@ export default function WhatsAppFAB() {
 
           {/* FAB */}
           <a
-            href={getWhatsAppUrl()}
+            href={dynamicWaUrl}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Chat via WhatsApp"

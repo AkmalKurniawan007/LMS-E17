@@ -3,39 +3,43 @@
 import React from "react";
 import { programs, getWhatsAppUrl } from "../data/marketing-data";
 
-export default function FooterSection() {
+export default function FooterSection({ dbContent = {} }: { dbContent?: any }) {
   const currentYear = new Date().getFullYear();
 
+  const tagline = dbContent.tagline || "Platform pembelajaran interaktif dengan video materi lengkap, live class, dan instruktur profesional di berbagai bidang.";
+  const email = dbContent.email || "hello@e17course.com";
+  const copyrightText = dbContent.copyright || "E17 Course. Hak cipta dilindungi.";
+
   return (
-    <footer className="bg-[#0B1120] border-t border-white/5 relative">
-      <div className="max-w-6xl mx-auto px-6 py-16 lg:py-20 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-20">
-          {/* Col 1: Brand */}
-          <div>
-            <div className="mb-5">
+    <footer className="bg-white border-t border-[#EFE6CC]">
+      <div className="max-w-[1200px] mx-auto px-6 py-16 lg:py-24">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 lg:gap-8">
+          
+          {/* Col 1: Brand & Tagline */}
+          <div className="md:col-span-2">
+            <div className="mb-6">
               <img
                 src="/assets/logo-wide.png"
-                alt="E17 Course"
-                className="h-8 md:h-9 w-auto object-contain"
+                alt="E17 Course Logo"
+                className="h-8 md:h-10 w-auto object-contain"
               />
             </div>
-            <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
-              Bootcamp intensif untuk pelatihan profesional teknologi.
-              Live mentoring, project nyata, career support.
+            <p className="text-[#6B6355] text-[15px] leading-relaxed max-w-sm">
+              {tagline}
             </p>
           </div>
 
           {/* Col 2: Program */}
           <div>
-            <p className="text-white text-sm font-semibold mb-5">
+            <h4 className="text-[#1C1A14] font-bold mb-6 tracking-wide">
               Program
-            </p>
-            <ul className="space-y-3">
+            </h4>
+            <ul className="space-y-4">
               {programs.map((p) => (
                 <li key={p.id}>
                   <a
-                    href="#programs"
-                    className="text-slate-400 text-sm hover:text-white transition-colors duration-200"
+                    href={`/?program=${p.id}#pricing`}
+                    className="text-[#6B6355] hover:text-[#1C1A14] text-[15px] transition-colors focus:outline-none focus:underline"
                   >
                     {p.name}
                   </a>
@@ -46,50 +50,45 @@ export default function FooterSection() {
 
           {/* Col 3: Contact */}
           <div>
-            <p className="text-white text-sm font-semibold mb-5">
+            <h4 className="text-[#1C1A14] font-bold mb-6 tracking-wide">
               Kontak
-            </p>
-            <ul className="space-y-3 text-slate-400 text-sm">
+            </h4>
+            <ul className="space-y-4 text-[15px]">
               <li>
                 <a
                   href={getWhatsAppUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-white transition-colors duration-200"
+                  className="text-[#6B6355] hover:text-[#1C1A14] transition-colors focus:outline-none focus:underline flex items-center gap-2"
                 >
-                  WhatsApp: +62 812-3456-7890
+                  WhatsApp Admin
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:info@e17course.com"
-                  className="hover:text-white transition-colors duration-200"
+                  href={`mailto:${email}`}
+                  className="text-[#6B6355] hover:text-[#1C1A14] transition-colors focus:outline-none focus:underline flex items-center gap-2"
                 >
-                  info@e17course.com
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/verify"
-                  className="hover:text-white transition-colors duration-200"
-                >
-                  Verifikasi Sertifikat
+                  {email}
                 </a>
               </li>
             </ul>
           </div>
         </div>
-      </div>
 
-      {/* Bottom bar */}
-      <div className="border-t border-white/5 relative z-10">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col md:flex-row justify-between items-center gap-3">
-          <p className="text-slate-500 text-xs">
-            &copy; {currentYear} E17 Course
+        {/* Bottom Bar */}
+        <div className="mt-16 pt-8 border-t border-[#EFE6CC] flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-[#B8AF9C] text-[14px]">
+            &copy; {currentYear} {copyrightText}
           </p>
-          <p className="text-slate-600 text-xs">
-            Jakarta, Indonesia
-          </p>
+          <div className="flex items-center gap-6 text-[14px]">
+            <a href="#" className="text-[#B8AF9C] hover:text-[#6B6355] transition-colors focus:outline-none focus:underline">
+              Syarat & Ketentuan
+            </a>
+            <a href="#" className="text-[#B8AF9C] hover:text-[#6B6355] transition-colors focus:outline-none focus:underline">
+              Kebijakan Privasi
+            </a>
+          </div>
         </div>
       </div>
     </footer>

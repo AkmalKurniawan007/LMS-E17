@@ -421,3 +421,87 @@ CREATE TABLE public.helpdesk_messages (
   CONSTRAINT helpdesk_messages_ticket_id_fkey FOREIGN KEY (ticket_id) REFERENCES public.helpdesk_tickets(id),
   CONSTRAINT helpdesk_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id)
 );
+CREATE TABLE public.global_settings (
+  id integer NOT NULL CHECK (id = 1),
+  data jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT global_settings_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.marketing_content (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  section_key text NOT NULL UNIQUE,
+  label text NOT NULL,
+  data jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_at timestamp with time zone DEFAULT now(),
+  updated_by uuid,
+  CONSTRAINT marketing_content_pkey PRIMARY KEY (id),
+  CONSTRAINT marketing_content_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.checkout_orders (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid,
+  program_id text NOT NULL,
+  program_name text NOT NULL,
+  tier_type text NOT NULL,
+  tier_label text NOT NULL,
+  amount numeric NOT NULL,
+  payment_method text NOT NULL DEFAULT 'transfer'::text,
+  status text NOT NULL DEFAULT 'pending'::text,
+  notes text,
+  admin_notes text,
+  confirmed_by uuid,
+  confirmed_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT checkout_orders_pkey PRIMARY KEY (id),
+  CONSTRAINT checkout_orders_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT checkout_orders_confirmed_by_fkey FOREIGN KEY (confirmed_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.marketing_programs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  slug text NOT NULL UNIQUE,
+  name text NOT NULL,
+  short_name text NOT NULL,
+  description text,
+  sessions_count integer NOT NULL DEFAULT 0,
+  modules_count integer NOT NULL DEFAULT 0,
+  rating numeric NOT NULL DEFAULT 5.0,
+  students_count integer NOT NULL DEFAULT 0,
+  thumbnail_text text,
+  is_active boolean NOT NULL DEFAULT true,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_by uuid,
+  CONSTRAINT marketing_programs_pkey PRIMARY KEY (id),
+  CONSTRAINT marketing_programs_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.marketing_program_tiers (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  program_id uuid NOT NULL,
+  tier_type text NOT NULL CHECK (tier_type = ANY (ARRAY['junior'::text, 'expert'::text, 'bootcamp'::text])),
+  label text NOT NULL,
+  price integer NOT NULL DEFAULT 0,
+  original_price integer NOT NULL DEFAULT 0,
+  is_popular boolean NOT NULL DEFAULT false,
+  is_active boolean NOT NULL DEFAULT true,
+  sort_order integer NOT NULL DEFAULT 0,
+  features ARRAY NOT NULL DEFAULT '{}'::text[],
+  excludes ARRAY NOT NULL DEFAULT '{}'::text[],
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT marketing_program_tiers_pkey PRIMARY KEY (id),
+  CONSTRAINT marketing_program_tiers_program_id_fkey FOREIGN KEY (program_id) REFERENCES public.marketing_programs(id)
+);
+CREATE TABLE public.marketing_program_curriculum (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  program_id uuid NOT NULL,
+  title text NOT NULL,
+  description text,
+  duration text,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT marketing_program_curriculum_pkey PRIMARY KEY (id),
+  CONSTRAINT marketing_program_curriculum_program_id_fkey FOREIGN KEY (program_id) REFERENCES public.marketing_programs(id)
+);
