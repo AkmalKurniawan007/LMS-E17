@@ -40,11 +40,15 @@ export async function login(prevState: any, formData: FormData) {
 
     const role = userData?.role
 
-    let redirectPath = '/siswa'
-    if (role === 'admin') {
+    let redirectPath = '/pembeli/kelas-saya'
+    if (role === 'admin' || role === 'superadmin') {
       redirectPath = '/admin'
     } else if (role === 'mentor') {
       redirectPath = '/mentor'
+    } else if (role === 'siswa') {
+      redirectPath = '/pembeli/kelas-saya'
+    } else if (role === null) {
+      redirectPath = '/'
     }
 
     return { success: true, redirectUrl: redirectPath, error: null }

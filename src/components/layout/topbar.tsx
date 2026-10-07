@@ -11,10 +11,11 @@ import type { UserRole } from "./sidebar"
 interface TopbarProps {
   role: UserRole
   userName: string
+  avatarUrl?: string
   onMobileMenuToggle: () => void
 }
 
-export function Topbar({ role, userName, onMobileMenuToggle }: TopbarProps) {
+export function Topbar({ role, userName, avatarUrl, onMobileMenuToggle }: TopbarProps) {
   const router = useRouter()
   const supabase = createClient()
   const [isNotificationOpen, setIsNotificationOpen] = React.useState(false)
@@ -182,8 +183,12 @@ export function Topbar({ role, userName, onMobileMenuToggle }: TopbarProps) {
             <span className="text-sm font-semibold text-e17-dark leading-none mb-1">{userName}</span>
             <span className="text-xs text-slate-500 font-medium leading-none">{role}</span>
           </div>
-          <Link href="/profile" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 hover:text-e17-navy transition-colors cursor-pointer" title="Profil">
-            <User className="h-4 w-4" />
+          <Link href="/profile" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 hover:text-e17-navy transition-colors cursor-pointer overflow-hidden" title="Profil">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={userName} className="h-full w-full object-cover" />
+            ) : (
+              <User className="h-4 w-4" />
+            )}
           </Link>
           <button 
             onClick={handleLogout}

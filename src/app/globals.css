@@ -4,27 +4,49 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   
-  /* === E17 Marketing Palette (from spec) === */
-  --color-primary: #FFD400;
-  --color-primary-ink: #2A2100;
-  --color-accent-start: #FF7A1A;
-  --color-accent-end: #FF3D68;
+  /* === E17 Marketing Palette === */
+  --color-ink: #1C234A;
+  --color-signal: #DCA204;
+  --color-signal-hover: #D4A200;
+  --color-signal-soft: #FFCA28;
+  --color-bronze: #D4A200;
+  --color-butter: #FEE685;
+  --color-mint: #A4F4CF;
+  --color-sky: #B8E6FE;
+  --color-line-strong: #D1D5DC;
+  --color-subtle: #99A1AF;
+  --color-paper: #F3F4F6;
+  --color-cream-line: #E5E7EB;
+  --color-muted: #6A7282;
+  --color-muted-light: #6A7282;
+  /* Legacy/Compatibility colors */
   --color-bg: #FFFFFF;
-  --color-bg-soft: #FFFBEF;
-  --color-ink: #1C1A14;
-  --color-ink-muted: #6B6355;
-  --color-border: #EFE6CC;
-  --color-locked: #B8AF9C;
+  --color-bg-soft: #F3F4F6;
+  --color-border: #E5E7EB;
+  --color-primary: #DCA204;
+
+  /* === Custom Shadows === */
+  --shadow-btn: 0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+  --shadow-gold: 0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0), oklab(0.748001 0.0189557 0.151958 / 0.3) 0px 10px 15px -3px, oklab(0.748001 0.0189557 0.151958 / 0.3) 0px 4px 6px -4px;
+  --shadow-card-featured: 0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0), oklab(0.748001 0.0189557 0.151958 / 0.2) 0px 0px 0px 4px, oklab(0.748001 0.0189557 0.151958 / 0.3) 0px 25px 50px -12px;
+
+  /* === E17 LMS Palette === */
+  --color-e17-navy: #0F172A;
+  --color-e17-navy-hover: #1E293B;
+  --color-e17-navy-active: #0B1120;
+  --color-e17-primary: #FFD400;
+  --color-e17-dark: #1E293B;
   
   --font-sans: var(--font-plus-jakarta), 'Plus Jakarta Sans', Arial, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-display: var(--font-archivo), 'Archivo', sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 :root {
   /* Background: Off-White */
-  --background: #F9FAFB;
+  --background: #FFFFFF;
   /* Foreground: Dark Slate */
-  --foreground: #1E293B;
+  --foreground: #1C234A;
 }
 
 /* === Global Base === */
@@ -41,8 +63,8 @@ html {
 
 /* === Selection color === */
 ::selection {
-  background-color: #FACC15;
-  color: #1E293B;
+  background-color: #FEE685;
+  color: #1C234A;
 }
 
 /* === Custom scrollbar (minimalist) === */
@@ -54,11 +76,11 @@ html {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: #CBD5E1;
+  background-color: #D1D5DC;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #94A3B8;
+  background-color: #6A7282;
 }
 
 /* === Utility Classes === */

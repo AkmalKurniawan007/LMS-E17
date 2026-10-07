@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { LayoutDashboard, BookOpen, Users, Folder, Settings, FileText, CheckSquare, Award, Scan, Trophy, PieChart, ShieldAlert, Megaphone, Ticket, MessageSquare, Globe, ShoppingCart, Wallet, Key, Video } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -17,6 +17,7 @@ interface SidebarProps {
 
 export function Sidebar({ role, className, isMobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [adminMode, setAdminMode] = React.useState<"lms" | "marketing">("lms")
 
   React.useEffect(() => {
@@ -50,9 +51,8 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
 
         const marketingAdminItems = [
           { name: "Dashboard Marketing", href: "/admin/marketing/dashboard", icon: LayoutDashboard },
-          { name: "Lead CRM", href: "/admin/marketing/leads", icon: Users },
+          { name: "Pengguna Web", href: "/admin/marketing/leads", icon: Users },
           { name: "Program & Video", href: "/admin/marketing/programs", icon: BookOpen },
-          { name: "Konten Marketing", href: "/admin/marketing", icon: Globe },
           { name: "Order Pendaftaran", href: "/admin/marketing/orders", icon: ShoppingCart },
           { name: "Akses Manual Video", href: "/admin/marketing/manual-access", icon: Key },
           { name: "Rekening Pembayaran", href: "/admin/marketing/payment-accounts", icon: Wallet },
@@ -72,7 +72,7 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
         ]
       case "Siswa":
         return [
-          { name: "Dashboard", href: "/siswa", icon: LayoutDashboard },
+          { name: "Kelas Saya", href: "/pembeli/kelas-saya", icon: LayoutDashboard },
           { name: "Akses Video", href: "/siswa/video", icon: Video },
           { name: "Materi Belajar", href: "/siswa/courses", icon: BookOpen },
           { name: "Pesan & Diskusi", href: "/siswa/messages", icon: MessageSquare },
@@ -130,7 +130,10 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
           <div className="px-4 py-3 border-b border-white/5 shrink-0">
             <div className="flex p-1 bg-e17-navy-active rounded-lg">
               <button
-                onClick={() => setAdminMode("lms")}
+                onClick={() => {
+                  setAdminMode("lms")
+                  router.push("/admin")
+                }}
                 className={cn(
                   "flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors",
                   adminMode === "lms" ? "bg-e17-primary text-white" : "text-blue-200 hover:text-white"
@@ -139,7 +142,10 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
                 LMS
               </button>
               <button
-                onClick={() => setAdminMode("marketing")}
+                onClick={() => {
+                  setAdminMode("marketing")
+                  router.push("/admin/marketing/dashboard")
+                }}
                 className={cn(
                   "flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors",
                   adminMode === "marketing" ? "bg-e17-primary text-white" : "text-blue-200 hover:text-white"

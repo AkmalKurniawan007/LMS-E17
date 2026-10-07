@@ -12,6 +12,10 @@ CREATE TABLE public.users (
   tagline text,
   bio text,
   portfolio_status boolean DEFAULT true,
+  phone text,
+  domicile text,
+  birth_date date,
+  institution text,
   CONSTRAINT users_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.programs (
@@ -53,9 +57,12 @@ CREATE TABLE public.enrollments (
   final_grade numeric,
   attendance_percentage numeric,
   created_at timestamp with time zone DEFAULT now(),
+  enrollment_source text NOT NULL DEFAULT 'manual_admin'::text CHECK (enrollment_source = ANY (ARRAY['manual_admin'::text, 'web_checkout'::text, 'bulk_import'::text])),
+  checkout_order_id uuid,
   CONSTRAINT enrollments_pkey PRIMARY KEY (id),
   CONSTRAINT enrollments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT enrollments_batch_id_fkey FOREIGN KEY (batch_id) REFERENCES public.batches(id)
+  CONSTRAINT enrollments_batch_id_fkey FOREIGN KEY (batch_id) REFERENCES public.batches(id),
+  CONSTRAINT enrollments_checkout_order_id_fkey FOREIGN KEY (checkout_order_id) REFERENCES public.checkout_orders(id)
 );
 CREATE TABLE public.sessions (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -453,9 +460,13 @@ CREATE TABLE public.checkout_orders (
   confirmed_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  lead_id uuid,
+  payment_proof_url text,
+  rejected_reason text,
   CONSTRAINT checkout_orders_pkey PRIMARY KEY (id),
   CONSTRAINT checkout_orders_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT checkout_orders_confirmed_by_fkey FOREIGN KEY (confirmed_by) REFERENCES public.users(id)
+  CONSTRAINT checkout_orders_confirmed_by_fkey FOREIGN KEY (confirmed_by) REFERENCES public.users(id),
+  CONSTRAINT checkout_orders_lead_id_fkey FOREIGN KEY (lead_id) REFERENCES public.marketing_leads(id)
 );
 CREATE TABLE public.marketing_programs (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -473,13 +484,16 @@ CREATE TABLE public.marketing_programs (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_by uuid,
+  is_flagship boolean NOT NULL DEFAULT false,
+  lms_program_id uuid,
   CONSTRAINT marketing_programs_pkey PRIMARY KEY (id),
-  CONSTRAINT marketing_programs_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id)
+  CONSTRAINT marketing_programs_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id),
+  CONSTRAINT marketing_programs_lms_program_id_fkey FOREIGN KEY (lms_program_id) REFERENCES public.programs(id)
 );
 CREATE TABLE public.marketing_program_tiers (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   program_id uuid NOT NULL,
-  tier_type text NOT NULL CHECK (tier_type = ANY (ARRAY['junior'::text, 'expert'::text, 'bootcamp'::text])),
+  tier_type text NOT NULL CHECK (tier_type = ANY (ARRAY['junior'::text, 'expert'::text, 'complete'::text])),
   label text NOT NULL,
   price integer NOT NULL DEFAULT 0,
   original_price integer NOT NULL DEFAULT 0,
@@ -502,6 +516,69 @@ CREATE TABLE public.marketing_program_curriculum (
   sort_order integer NOT NULL DEFAULT 0,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  video_url text,
+  preview_video_url text,
+  access_tiers ARRAY DEFAULT '{junior,expert,bootcamp}'::text[],
   CONSTRAINT marketing_program_curriculum_pkey PRIMARY KEY (id),
   CONSTRAINT marketing_program_curriculum_program_id_fkey FOREIGN KEY (program_id) REFERENCES public.marketing_programs(id)
+);
+CREATE TABLE public.marketing_leads (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  full_name text NOT NULL,
+  email text NOT NULL UNIQUE,
+  phone text,
+  program_interest text,
+  source text NOT NULL DEFAULT 'web_register'::text CHECK (source = ANY (ARRAY['web_register'::text, 'web_checkout_guest'::text, 'whatsapp_form'::text, 'imported'::text])),
+  status text NOT NULL DEFAULT 'new'::text CHECK (status = ANY (ARRAY['new'::text, 'contacted'::text, 'interested'::text, 'converted'::text, 'lost'::text])),
+  notes text,
+  converted_user_id uuid,
+  converted_at timestamp with time zone,
+  last_activity timestamp with time zone DEFAULT now(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT marketing_leads_pkey PRIMARY KEY (id),
+  CONSTRAINT marketing_leads_converted_user_fkey FOREIGN KEY (converted_user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public._bak_users_policies_20260930 (
+  dibackup_pada timestamp with time zone,
+  schemaname name,
+  tablename name,
+  policyname name,
+  permissive text,
+  roles ARRAY,
+  cmd text,
+  qual text,
+  with_check text
+);
+CREATE TABLE public.payment_accounts (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  method_type text NOT NULL CHECK (method_type = ANY (ARRAY['bank_transfer'::text, 'ewallet'::text])),
+  provider_name text NOT NULL,
+  account_number text NOT NULL,
+  account_holder text NOT NULL,
+  instructions text,
+  is_active boolean NOT NULL DEFAULT true,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  created_by uuid,
+  CONSTRAINT payment_accounts_pkey PRIMARY KEY (id),
+  CONSTRAINT payment_accounts_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.video_access (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid NOT NULL,
+  program_id text NOT NULL,
+  tier character varying NOT NULL,
+  order_id uuid,
+  granted_by uuid,
+  granted_at timestamp with time zone DEFAULT now(),
+  is_active boolean DEFAULT true,
+  notes text,
+  expires_at timestamp with time zone,
+  CONSTRAINT video_access_pkey PRIMARY KEY (id),
+  CONSTRAINT video_access_user_program_key UNIQUE (user_id, program_id),
+  CONSTRAINT va_user_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT va_order_fkey FOREIGN KEY (order_id) REFERENCES public.checkout_orders(id),
+  CONSTRAINT va_granter_fkey FOREIGN KEY (granted_by) REFERENCES public.users(id)
 );

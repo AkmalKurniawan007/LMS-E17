@@ -18,17 +18,17 @@ export default function TrustBar({ dbContent = {} }: { dbContent?: any }) {
   ];
 
   return (
-    <section className="py-8 bg-white border-b border-[#EFE6CC] overflow-hidden">
+    <section className="py-8 bg-[var(--color-bg)] border-b border-[var(--color-cream-line)] overflow-hidden">
       <div className="max-w-[1200px] mx-auto px-6 mb-6">
-        <p className="text-center text-[13px] font-semibold text-[#6B6355] uppercase tracking-wider">
+        <p className="text-center text-[13px] font-semibold text-[var(--color-muted)] uppercase tracking-wider">
           {headline}
         </p>
       </div>
 
       <div className="relative w-full flex overflow-hidden">
         {/* Gradient Masks */}
-        <div className="absolute left-0 top-0 bottom-0 w-20 md:w-32 z-10 bg-gradient-to-r from-white to-transparent pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-20 md:w-32 z-10 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-20 md:w-32 z-10 bg-gradient-to-r from-[var(--color-bg)] to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 md:w-32 z-10 bg-gradient-to-l from-[var(--color-bg)] to-transparent pointer-events-none" />
 
         <motion.div
           animate={shouldReduceMotion ? { x: 0 } : { x: ["0%", "-50%"] }}
@@ -45,7 +45,7 @@ export default function TrustBar({ dbContent = {} }: { dbContent?: any }) {
               key={index}
               className="flex items-center justify-center opacity-40 hover:opacity-100 grayscale hover:grayscale-0 transition-all duration-300"
             >
-              <span className="text-xl font-bold text-[#6B6355] font-sans tracking-tight">
+              <span className="text-xl font-bold text-[var(--color-muted)] font-sans tracking-tight">
                 {partner}
               </span>
             </div>

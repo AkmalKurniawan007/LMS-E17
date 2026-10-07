@@ -54,9 +54,9 @@ function PricingSectionInner({ isLoggedIn = false, dynamicPrograms }: { isLogged
 
   const activeProgram = programsToUse.find((p: any) => p.id === activeTab) || programsToUse[0] || defaultPrograms[0];
 
-  const handleCheckoutClick = (tier: PricingTier) => {
+  const handleCheckoutClick = (tier: PricingTier | any) => {
     if (isLoggedIn) {
-      router.push(`/checkout?program=${activeProgram.id}&tier=${tier.type}`);
+      router.push(`/checkout?program=${activeProgram.id}&tier=${tier.tier_type ?? tier.type}`);
     } else {
       setAuthSelectedProgram(activeProgram);
       setAuthSelectedTier(tier);
@@ -73,7 +73,7 @@ function PricingSectionInner({ isLoggedIn = false, dynamicPrograms }: { isLogged
         tier={authSelectedTier}
       />
 
-      <section id="pricing" className="py-24 md:py-32 bg-[#FAFAF8] relative overflow-hidden">
+      <section id="pricing" className="py-24 md:py-32 bg-[var(--color-paper)] relative overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-6 relative z-10">
           
           <motion.div
@@ -83,11 +83,11 @@ function PricingSectionInner({ isLoggedIn = false, dynamicPrograms }: { isLogged
             transition={{ duration: shouldReduceMotion ? 0 : 0.6 }}
             className="mb-12 text-center max-w-2xl mx-auto"
           >
-            <h2 className="text-[36px] md:text-[48px] font-extrabold text-[#1C1A14] leading-[1.1] mb-6 tracking-tight">
+            <h2 className="text-[36px] md:text-[48px] font-extrabold text-[var(--color-ink)] leading-[1.1] mb-6 tracking-tight">
               Pilih cara belajar <br className="hidden md:block"/>
               yang cocok untuk Anda.
             </h2>
-            <p className="text-[#6B6355] text-[18px] leading-relaxed">
+            <p className="text-[var(--color-muted)] text-[18px] leading-relaxed">
               Mau belajar mandiri lewat video, atau langsung dibimbing mentor
               sampai siap kerja? Keduanya tersedia.
             </p>
@@ -95,7 +95,7 @@ function PricingSectionInner({ isLoggedIn = false, dynamicPrograms }: { isLogged
 
           {/* Selector Program (Pills) */}
           <div className="flex justify-center mb-16">
-            <div className="inline-flex bg-white border border-[#EFE6CC] p-1.5 rounded-full shadow-sm max-w-full overflow-x-auto hide-scrollbar">
+            <div className="inline-flex bg-[var(--color-bg)] border border-[var(--color-cream-line)] p-1.5 rounded-full shadow-sm max-w-full overflow-x-auto hide-scrollbar">
               {programsToUse.map((program: any) => {
                 const isActive = activeTab === program.id;
                 return (
@@ -104,16 +104,16 @@ function PricingSectionInner({ isLoggedIn = false, dynamicPrograms }: { isLogged
                     onClick={() => handleTabChange(program.id)}
                     role="button"
                     aria-pressed={isActive}
-                    className={`relative px-6 py-2.5 rounded-full text-[15px] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#FFD400] whitespace-nowrap ${
+                    className={`relative px-6 py-2.5 rounded-full text-[15px] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--color-signal)] whitespace-nowrap ${
                       isActive
-                        ? "text-[#2A2100] font-bold"
-                        : "text-[#6B6355] hover:text-[#1C1A14] font-medium hover:bg-[#FFFBEF]"
+                        ? "text-[var(--color-ink)] font-bold"
+                        : "text-[var(--color-muted)] hover:text-[var(--color-ink)] font-medium hover:bg-[var(--color-bg-soft)]"
                     }`}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="active-pill"
-                        className="absolute inset-0 bg-[#FFD400] rounded-full shadow-sm"
+                        className="absolute inset-0 bg-[var(--color-signal)] rounded-full shadow-sm"
                         initial={false}
                         transition={{ type: "spring", stiffness: 400, damping: 30, duration: shouldReduceMotion ? 0 : undefined }}
                       />
@@ -128,12 +128,14 @@ function PricingSectionInner({ isLoggedIn = false, dynamicPrograms }: { isLogged
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-[1200px] mx-auto items-end">
             <AnimatePresence>
               {activeProgram.tiers?.map((tier: any, i: number) => {
-                const discount = getDiscountPercent(tier.originalPrice, tier.price);
-                const durationText = tier.type === "complete" ? "Akses 1 Tahun" : "Akses 6 Bulan";
+                const originalPrice = tier.original_price ?? tier.originalPrice ?? 0;
+                const price = tier.price ?? 0;
+                const discount = getDiscountPercent(originalPrice, price);
+                const durationText = (tier.tier_type ?? tier.type) === "complete" ? "Akses 1 Tahun" : "Akses 6 Bulan";
                 
                 return (
                   <PricingCard 
-                    key={`${activeProgram.id}-${tier.type}`} 
+                    key={`${activeProgram.id}-${tier.tier_type ?? tier.type}`} 
                     tier={tier} 
                     discount={discount} 
                     durationText={durationText}
@@ -153,66 +155,66 @@ function PricingSectionInner({ isLoggedIn = false, dynamicPrograms }: { isLogged
 
 // Sub-component for individual pricing card
 function PricingCard({ tier, discount, durationText, i, handleCheckoutClick, shouldReduceMotion }: any) {
-  const isPopular = tier.popular;
+  const isPopular = tier.is_popular ?? tier.popular;
   
   return (
     <motion.div
-      key={tier.type} // Ensures AnimatePresence works properly when changing programs
+      key={tier.tier_type ?? tier.type} // Ensures AnimatePresence works properly when changing programs
       initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -16 }}
       transition={{ duration: shouldReduceMotion ? 0 : 0.3, delay: shouldReduceMotion ? 0 : i * 0.05, ease: "easeOut" }}
-      className={`relative rounded-[16px] flex flex-col bg-white h-full ${
+      className={`relative rounded-[16px] flex flex-col h-full ${
         isPopular 
-          ? "z-10 shadow-[0_16px_48px_rgba(28,26,20,0.12)] border-2 border-[#FFD400] -mt-4 mb-4" 
-          : "z-0 shadow-[0_8px_24px_rgba(28,26,20,0.06)] border border-[#EFE6CC] mt-4"
+          ? "z-10 bg-[var(--color-ink)] shadow-[var(--shadow-card-featured)] border-2 border-[var(--color-signal)] -mt-4 mb-4" 
+          : "z-0 bg-[var(--color-bg)] shadow-sm border border-[var(--color-cream-line)] mt-4"
       }`}
     >
       <div className="flex-1 p-8 flex flex-col h-full relative">
         {isPopular && (
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
-            <span className="flex items-center gap-1.5 bg-[#FFD400] text-[#2A2100] text-[12px] font-extrabold tracking-widest uppercase px-4 py-1.5 rounded-full shadow-sm whitespace-nowrap">
+            <span className="flex items-center gap-1.5 bg-[var(--color-signal)] text-[var(--color-ink)] text-[12px] font-extrabold tracking-widest uppercase px-4 py-1.5 rounded-full shadow-sm whitespace-nowrap">
               <Sparkles className="w-3.5 h-3.5" /> Rekomendasi
             </span>
           </div>
         )}
 
-        <h3 className="font-extrabold text-[24px] text-[#1C1A14] mb-8 text-center">
+        <h3 className={`font-extrabold text-[24px] mb-8 text-center ${isPopular ? "text-white" : "text-[var(--color-ink)]"}`}>
           {tier.label}
         </h3>
 
         {/* Price */}
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <span className="text-[14px] line-through font-bold text-[#B8AF9C]">
-              {formatPrice(tier.originalPrice)}
+            <span className={`text-[14px] line-through font-bold ${isPopular ? "text-[var(--color-muted)]" : "text-[var(--color-line-strong)]"}`}>
+              {formatPrice(tier.original_price ?? tier.originalPrice ?? 0)}
             </span>
-            <span className="px-2.5 py-1 rounded-[6px] text-[12px] font-extrabold bg-[#FFFBEF] text-[#FF7A1A] border border-[#FFD400]/30">
+            <span className={`px-2.5 py-1 rounded-[6px] text-[12px] font-extrabold ${isPopular ? "bg-[var(--color-signal)]/10 text-[var(--color-signal)] border border-[var(--color-signal)]/30" : "bg-[var(--color-bg-soft)] text-[var(--color-signal-hover)] border border-[var(--color-signal)]/30"}`}>
               Hemat {discount}%
             </span>
           </div>
-          <p className="text-[32px] lg:text-[40px] font-extrabold tracking-tight text-[#1C1A14] whitespace-nowrap">
+          <p className={`text-[32px] lg:text-[40px] font-extrabold tracking-tight whitespace-nowrap ${isPopular ? "text-white" : "text-[var(--color-ink)]"}`}>
             {formatPrice(tier.price)}
           </p>
-          <p className="text-[14px] text-[#FF7A1A] font-bold mt-2">{durationText}</p>
+          <p className={`text-[14px] font-bold mt-2 ${isPopular ? "text-[var(--color-mint)]" : "text-[var(--color-signal-hover)]"}`}>{durationText}</p>
         </div>
 
         {/* Features */}
-        <ul className="space-y-4 mb-8 flex-1 border-t border-[#EFE6CC] pt-8">
+        <ul className={`space-y-4 mb-8 flex-1 border-t pt-8 ${isPopular ? "border-[var(--color-ink-2)]" : "border-[var(--color-cream-line)]"}`}>
           {tier.features.map((f: string, fi: number) => (
             <li key={fi} className="flex items-start gap-3">
-              <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isPopular ? "bg-[#FFFBEF]" : "bg-[#FAFAF8]"}`}>
-                <Check className={`w-3.5 h-3.5 ${isPopular ? "text-[#FF7A1A]" : "text-[#1C1A14]"}`} />
+              <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isPopular ? "bg-[var(--color-mint)]/20" : "bg-[var(--color-mint)]/10"}`}>
+                <Check className={`w-3.5 h-3.5 ${isPopular ? "text-[var(--color-mint)]" : "text-[var(--color-mint)]"}`} />
               </div>
-              <span className="text-[15px] font-medium text-[#1C1A14] leading-snug">{f}</span>
+              <span className={`text-[15px] font-medium leading-snug ${isPopular ? "text-white" : "text-[var(--color-ink)]"}`}>{f}</span>
             </li>
           ))}
           {tier.excludes?.map((f: string, fi: number) => (
             <li key={`ex-${fi}`} className="flex items-start gap-3 opacity-40">
-              <div className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 bg-[#EFE6CC]">
-                <XIcon className="w-3.5 h-3.5 text-[#6B6355]" />
+              <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isPopular ? "bg-[var(--color-ink-2)]" : "bg-[var(--color-cream-line)]"}`}>
+                <XIcon className={`w-3.5 h-3.5 ${isPopular ? "text-[var(--color-muted)]" : "text-[var(--color-muted)]"}`} />
               </div>
-              <span className="text-[15px] font-medium text-[#6B6355] leading-snug line-through">{f}</span>
+              <span className={`text-[15px] font-medium leading-snug line-through ${isPopular ? "text-[var(--color-muted)]" : "text-[var(--color-muted)]"}`}>{f}</span>
             </li>
           ))}
         </ul>
@@ -221,10 +223,10 @@ function PricingCard({ tier, discount, durationText, i, handleCheckoutClick, sho
         <div className="flex justify-center mt-auto">
           <button
             onClick={handleCheckoutClick}
-            className={`w-full py-4 rounded-[12px] text-center text-[16px] font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1C1A14] ${
+            className={`w-full py-4 rounded-[12px] text-center text-[16px] font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--color-signal)] ${
               isPopular
-                ? "bg-gradient-to-br from-[#FF7A1A] to-[#FF3D68] text-white shadow-[0_8px_16px_rgba(255,122,26,0.2)] hover:-translate-y-1"
-                : "bg-white text-[#1C1A14] hover:bg-[#FFFBEF] border border-[#EFE6CC] shadow-sm hover:border-[#FFD400]"
+                ? "bg-[var(--color-signal)] text-[var(--color-ink)] shadow-[var(--shadow-btn)] hover:bg-[var(--color-signal-hover)] hover:-translate-y-1"
+                : "bg-[var(--color-bg)] text-[var(--color-ink)] hover:bg-[var(--color-bg-soft)] border border-[var(--color-cream-line)] shadow-sm hover:border-[var(--color-signal)]"
             }`}
           >
             {isPopular ? "Pilih Paket Bootcamp" : "Pilih Paket Video"}

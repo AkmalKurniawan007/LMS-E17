@@ -35,9 +35,9 @@ export default function CurriculumSection({ dynamicPrograms, isLoggedIn, purchas
   };
 
   return (
-    <section id="curriculum" className="py-24 bg-[#FAFAF8] relative overflow-hidden border-b border-slate-200">
+    <section id="curriculum" className="py-24 bg-[var(--color-bg)] relative overflow-hidden border-b border-[var(--color-cream-line)]">
       {/* Decorative Background */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-orange-50/50 to-transparent pointer-events-none" />
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-[var(--color-sky)]/10 to-transparent pointer-events-none" />
 
       <div className="max-w-6xl mx-auto px-6 relative z-10">
         
@@ -48,10 +48,10 @@ export default function CurriculumSection({ dynamicPrograms, isLoggedIn, purchas
           transition={{ duration: 0.6 }}
           className="text-center max-w-2xl mx-auto mb-16"
         >
-          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-6">
+          <h2 className="text-3xl md:text-5xl font-extrabold text-[var(--color-ink)] leading-tight mb-6">
             Intip isi kelasnya
           </h2>
-          <p className="text-slate-500 text-lg">
+          <p className="text-[var(--color-muted)] text-lg">
             Kurikulum disusun oleh instruktur dan praktisi profesional. Tiap materi dirancang agar mudah dipahami dan bisa langsung dipraktikkan.
           </p>
         </motion.div>
@@ -70,19 +70,19 @@ export default function CurriculumSection({ dynamicPrograms, isLoggedIn, purchas
                   }}
                   className={`w-full text-left px-6 py-5 rounded-2xl font-bold transition-all duration-300 relative overflow-hidden ${
                     activeTab === program.id
-                      ? "bg-slate-900 text-white shadow-xl shadow-slate-900/10"
-                      : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
+                      ? "bg-[var(--color-ink)] text-white shadow-xl shadow-[var(--color-ink)]/10"
+                      : "bg-[var(--color-bg)] text-[var(--color-muted)] hover:bg-[var(--color-bg-soft)] border border-[var(--color-cream-line)]"
                   }`}
                 >
                   {activeTab === program.id && (
                     <motion.div 
                       layoutId="curriculum-active-tab"
-                      className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500"
+                      className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--color-signal)]"
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
                   <h3 className="text-lg relative z-10">{program.shortName}</h3>
-                  <p className={`text-sm mt-1 relative z-10 ${activeTab === program.id ? "text-slate-300" : "text-slate-400"}`}>
+                  <p className={`text-sm mt-1 relative z-10 ${activeTab === program.id ? "text-[var(--color-line-strong)]" : "text-[var(--color-muted-light)]"}`}>
                    {program.modules_count ?? program.modules ?? 0} Modul Total
                   </p>
                 </button>
@@ -108,8 +108,8 @@ export default function CurriculumSection({ dynamicPrograms, isLoggedIn, purchas
                       <motion.div
                         key={module.id}
                         initial={false}
-                        className={`bg-white rounded-2xl border transition-all duration-300 ${
-                          isExpanded ? "border-orange-200 shadow-md shadow-orange-500/5 ring-1 ring-orange-500/10" : "border-slate-200 hover:border-slate-300 hover:shadow-sm"
+                        className={`bg-[var(--color-bg)] rounded-2xl border transition-all duration-300 ${
+                          isExpanded ? "border-[var(--color-signal)]/30 shadow-md shadow-[var(--color-signal)]/5 ring-1 ring-[var(--color-signal)]/10" : "border-[var(--color-cream-line)] hover:border-[var(--color-line-strong)] hover:shadow-sm"
                         }`}
                       >
                         <button
@@ -118,23 +118,23 @@ export default function CurriculumSection({ dynamicPrograms, isLoggedIn, purchas
                         >
                           <div className="flex items-center gap-5">
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-bold text-sm transition-colors ${
-                              isExpanded ? "bg-orange-100 text-orange-600" : "bg-slate-100 text-slate-500"
+                              isExpanded ? "bg-[var(--color-signal)]/10 text-[var(--color-signal-hover)]" : "bg-[var(--color-bg-soft)] text-[var(--color-muted)]"
                             }`}>
                               {index + 1}
                             </div>
                             <div>
                               <h4 className={`text-lg font-bold transition-colors ${
-                                isExpanded ? "text-slate-900" : "text-slate-700"
+                                isExpanded ? "text-[var(--color-ink)]" : "text-[var(--color-muted)]"
                               }`}>
                                 {module.title}
                               </h4>
-                              <div className="flex items-center gap-2 mt-1 text-sm text-slate-500 font-medium">
+                              <div className="flex items-center gap-2 mt-1 text-sm text-[var(--color-muted-light)] font-medium">
                                 <Clock className="w-3.5 h-3.5" />
                                 <span>{module.duration}</span>
                               </div>
                             </div>
                           </div>
-                          <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
+                          <ChevronDown className={`w-5 h-5 text-[var(--color-muted)] transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
                         </button>
                         
                         <AnimatePresence>
@@ -148,12 +148,12 @@ export default function CurriculumSection({ dynamicPrograms, isLoggedIn, purchas
                             >
                               <div className="px-6 pb-6 pt-0">
                                 <div className="pl-[60px]">
-                                  <p className="text-slate-600 leading-relaxed text-[15px]">
+                                  <p className="text-[var(--color-muted)] leading-relaxed text-[15px]">
                                     {module.description}
                                   </p>
                                   <div className="mt-4">
                                     {purchasedProgramId === activeProgram.id ? (
-                                      <Link href={`/kelas/${activeProgram.id}`} className="inline-flex items-center gap-2 text-sm font-semibold text-green-600 hover:text-green-700 group bg-green-50 px-4 py-2 rounded-lg transition-colors">
+                                      <Link href={`/kelas/${activeProgram.id}`} className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-mint)] hover:text-green-500 group bg-[var(--color-mint)]/10 px-4 py-2 rounded-lg transition-colors">
                                         <PlayCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
                                         Mulai Belajar (Materi Lengkap)
                                       </Link>
@@ -161,19 +161,19 @@ export default function CurriculumSection({ dynamicPrograms, isLoggedIn, purchas
                                       index === 0 ? (
                                         <button 
                                           onClick={() => setPreviewVideo({ title: module.title, url: module.videoUrl || "" })}
-                                          className="flex items-center gap-2 text-sm font-semibold text-orange-600 hover:text-orange-700 group bg-orange-50 px-4 py-2 rounded-lg transition-colors"
+                                          className="flex items-center gap-2 text-sm font-semibold text-[var(--color-signal-hover)] hover:text-[var(--color-signal-active)] group bg-[var(--color-signal)]/10 px-4 py-2 rounded-lg transition-colors"
                                         >
                                           <PlayCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
                                           Tonton Cuplikan Video
                                         </button>
                                       ) : (
-                                        <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 bg-slate-100 px-4 py-2 rounded-lg border border-slate-200">
+                                        <div className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-muted)] bg-[var(--color-bg-soft)] px-4 py-2 rounded-lg border border-[var(--color-cream-line)]">
                                           <Lock className="w-4 h-4" />
                                           Video Terkunci (Khusus Member)
                                         </div>
                                       )
                                     ) : (
-                                      <Link href="/login" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-700 group bg-slate-100 px-4 py-2 rounded-lg transition-colors border border-slate-200">
+                                      <Link href="/pembeli/login" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-muted)] hover:text-[var(--color-ink)] group bg-[var(--color-bg-soft)] px-4 py-2 rounded-lg transition-colors border border-[var(--color-cream-line)]">
                                         <Lock className="w-4 h-4 group-hover:scale-110 transition-transform" />
                                         Login untuk melihat cuplikan
                                       </Link>
@@ -188,8 +188,8 @@ export default function CurriculumSection({ dynamicPrograms, isLoggedIn, purchas
                     );
                   })
                 ) : (
-                  <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-                    <p className="text-slate-500">Materi kurikulum sedang dalam proses pembaruan.</p>
+                  <div className="bg-[var(--color-bg)] rounded-2xl border border-[var(--color-cream-line)] p-10 text-center">
+                    <p className="text-[var(--color-muted)]">Materi kurikulum sedang dalam proses pembaruan.</p>
                   </div>
                 )}
               </motion.div>

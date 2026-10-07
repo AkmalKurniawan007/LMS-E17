@@ -33,28 +33,42 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Protect routes
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/forgot-password')
+  const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/forgot-password') || request.nextUrl.pathname.startsWith('/pembeli/login') || request.nextUrl.pathname.startsWith('/pembeli/register')
   const isDashboardPage = request.nextUrl.pathname.startsWith('/admin') || 
                           request.nextUrl.pathname.startsWith('/mentor') || 
                           request.nextUrl.pathname.startsWith('/siswa') ||
                           request.nextUrl.pathname.startsWith('/profile')
 
-  if (!user && isDashboardPage) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  const isBuyerRoute = request.nextUrl.pathname.startsWith('/checkout')
+
+  if (!user) {
+    if (isDashboardPage) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      url.searchParams.set('next', request.nextUrl.pathname)
+      return NextResponse.redirect(url)
+    }
+    if (isBuyerRoute) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/pembeli/login'
+      url.searchParams.set('next', request.nextUrl.pathname)
+      return NextResponse.redirect(url)
+    }
   }
 
   if (user && isAuthPage) {
-    // User is logged in, but trying to access login page. Redirect to their dashboard.
-    // We need to know their role. We can fetch it from public.users table.
+    // Check if there is a 'next' query parameter to redirect back to
+    const nextPath = request.nextUrl.searchParams.get('next')
+    if (nextPath && nextPath.startsWith('/')) {
+      return NextResponse.redirect(new URL(nextPath, request.url))
+    }
+
+    // Otherwise, redirect to their dashboard based on role
     const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
     
     const url = request.nextUrl.clone()
-    if (!userData) {
+    if (!userData || userData.role === null) {
       // Ini murni akun marketing (guest login via Google).
-      // Jangan redirect ke /siswa, tapi kembali ke halaman utama atau biarkan di halaman profil marketing
       url.pathname = '/'
     } else {
       url.pathname = `/${userData.role}`
@@ -68,7 +82,7 @@ export async function updateSession(request: NextRequest) {
     const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
     
     // Jika user tidak ada di tabel public.users, berarti ini murni akun marketing (belum beli kelas/diberi akses LMS)
-    if (!userData) {
+    if (!userData || userData.role === null) {
       // Bolehkan akses ke halaman checkout atau profil marketing, tapi block dashboard LMS
       const url = request.nextUrl.clone()
       url.pathname = '/'

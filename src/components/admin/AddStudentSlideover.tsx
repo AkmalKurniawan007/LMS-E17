@@ -4,7 +4,7 @@ import * as React from "react"
 import { X, Loader2, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { addManualStudent } from "@/app/(dashboard)/admin/students/actions"
+import { addManualStudent } from "@/app/(lms)/(dashboard)/admin/students/actions"
 
 interface BatchOption {
   id: string

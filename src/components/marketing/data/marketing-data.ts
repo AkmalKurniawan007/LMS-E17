@@ -268,24 +268,36 @@ export interface FAQData {
 
 export const faqData: FAQData[] = [
   {
-    question: "Saya pemula dan belum punya dasar ilmunya sama sekali. Bisa ikut?",
-    answer: "Bisa. Kurikulum dimulai dari nol, dari istilah dasar sampai bikin project utuh. Yang perlu Anda siapkan: laptop yang bisa buka browser, dan waktu 10-15 jam per minggu.",
+    question: "Apakah kelas ini cocok untuk pemula atau yang bukan dari jurusan IT?",
+    answer: "Sangat cocok. Kurikulum kami dirancang dari nol, jadi siapa pun bisa ikut walau tanpa dasar coding. Jika kamu memilih Paket Complete, mentor akan membimbingmu perlahan sampai kamu benar-benar paham.",
   },
   {
-    question: "Bedanya E17 sama kursus online lain?",
-    answer: "Kami mengintegrasikan pembelian kelas langsung ke sistem LMS eksklusif kami. Anda bisa akses video rekaman, materi bacaan, dan tugas tambahan dalam satu platform yang terpusat.",
+    question: "Bagaimana sistem belajarnya di E17 Course?",
+    answer: "Kamu akan belajar mandiri lewat video materi berkualitas di LMS kami kapan saja. Jika kamu mengambil Paket Complete, kamu mendapat tambahan bimbingan mentor untuk membantu pengerjaan proyek dan portofolio.",
   },
   {
-    question: "Kalau saya ketinggalan sesi live, bagaimana?",
-    answer: "Untuk Anda yang mengambil Paket Komplit, rekaman setiap sesi mentoring live tersedia di LMS dalam 24 jam. Anda bisa tonton ulang kapan saja.",
+    question: "Apa bedanya Paket Junior, Expert, dan Complete?",
+    answer: "Junior untuk materi video tingkat dasar, Expert untuk materi video tingkat lanjutan (keduanya belajar mandiri). Complete adalah paket penuh berisi seluruh video, akses kelas bootcamp LMS, bimbingan mentor, dan pengerjaan portofolio.",
   },
   {
-    question: "Bagaimana cara akses kelasnya setelah membayar?",
-    answer: "Sistem kami terotomatisasi penuh. Setelah pembayaran terkonfirmasi, Anda akan diarahkan ke Dashboard LMS dan semua modul video terbuka sesuai masa aktif paket Anda (6 Bulan / 1 Tahun).",
+    question: "Berapa lama masa akses materinya?",
+    answer: "Untuk Paket Junior dan Expert, kamu mendapat masa akses 6 bulan. Khusus Paket Complete, masa aksesmu adalah 1 tahun.",
   },
   {
-    question: "Saya sudah kerja full-time. Jadwalnya fleksibel?",
-    answer: "Sangat fleksibel. Untuk Paket Junior dan Expert, Anda bisa menonton video materi kapan saja tanpa batasan jadwal. Khusus untuk Paket Komplit, sesi mentoring live diadakan malam hari (19.00-21.00 WIB) agar tidak bentrok jam kerja.",
+    question: "Bagaimana cara pembayaran dan konfirmasi aksesnya?",
+    answer: "Pembayaran dapat dilakukan melalui metode transfer yang tersedia. Setelah kamu melakukan pembayaran, admin kami akan memverifikasinya. Setelah dikonfirmasi, akses kelasmu akan terbuka di akun LMS.",
+  },
+  {
+    question: "Apakah saya akan mendapat sertifikat dan portofolio?",
+    answer: "Sertifikat dan bimbingan pembuatan portofolio tersedia untuk pendaftar Paket Complete.",
+  },
+  {
+    question: "Apakah saya perlu laptop spesifikasi tinggi untuk ikut kelas ini?",
+    answer: "Tidak perlu. Komputer standar yang bisa menjalankan browser dan code editor ringan sudah cukup untuk mulai belajar.",
+  },
+  {
+    question: "Bagaimana kalau saya stuck dan butuh bantuan saat belajar?",
+    answer: "Jika kamu mengambil Paket Complete, kamu akan mendapatkan bimbingan mentor. Kami tidak akan membiarkanmu bingung sendirian.",
   },
 ];
 
@@ -396,29 +408,4 @@ export const featureShowcaseData = [
   }
 ];
 
-export const testimonialsData = [
-  {
-    name: "Budi Santoso",
-    role: "Data Analyst",
-    rating: 5,
-    quote: "Materi sangat terstruktur. Awalnya saya sama sekali tidak mengerti SQL, sekarang saya bisa membuat dashboard data sendiri. Sangat direkomendasikan!"
-  },
-  {
-    name: "Siti Rahmawati",
-    role: "Mahasiswa Tingkat Akhir",
-    rating: 5,
-    quote: "Live class-nya sangat membantu. Mentornya sabar dan jelas dalam menjelaskan materi. Berasa punya tutor pribadi."
-  },
-  {
-    name: "Andi Wijaya",
-    role: "Freelance Web Developer",
-    rating: 4.5,
-    quote: "Materi video yang terstruktur itu yang paling saya suka. Kalau lupa sesuatu, tinggal login dan tonton lagi videonya. Sangat praktis."
-  },
-  {
-    name: "Rina Kusuma",
-    role: "Digital Marketer",
-    rating: 5,
-    quote: "Sistem LMS-nya gampang banget dipakai. Begitu bayar, langsung bisa akses semua video. Gak perlu nunggu admin manual."
-  }
-];
+export const testimonialsData: any[] = [];

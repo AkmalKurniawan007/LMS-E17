@@ -25,17 +25,27 @@ export default function LoginPage() {
   }, [state, router])
 
   return (
-    <form className="mt-8 space-y-6" action={formAction}>
-      {state?.error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-          <p>{state.error}</p>
-        </div>
-      )}
+    <div className="w-full">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+          Selamat Datang Kembali
+        </h2>
+        <p className="mt-2 text-sm text-slate-600">
+          Masuk ke akun Anda untuk melanjutkan pembelajaran.
+        </p>
+      </div>
 
-      <div className="space-y-4">
-        <div>
-          <label htmlFor="email-address" className="block text-sm font-medium text-slate-700 mb-1">
+      <form className="space-y-6" action={formAction}>
+        {state?.error && (
+          <div className="p-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 shrink-0 text-red-600" />
+            <p>{state.error}</p>
+          </div>
+        )}
+
+        <div className="space-y-5">
+          <div>
+            <label htmlFor="email-address" className="block text-sm font-semibold text-slate-700 mb-1.5">
             Alamat Email
           </label>
           <Input
@@ -45,22 +55,24 @@ export default function LoginPage() {
             autoComplete="email"
             required
             placeholder="nama@email.com"
+            className="h-11"
           />
         </div>
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
-            Kata Sandi
-          </label>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            placeholder="••••••••"
-          />
+          <div>
+            <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-1.5">
+              Kata Sandi
+            </label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              placeholder="••••••••"
+              className="h-11"
+            />
+          </div>
         </div>
-      </div>
 
       <div className="flex items-center justify-between">
         <div className="flex items-center">
@@ -82,16 +94,17 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div>
-        <Button 
-          type="submit" 
-          variant="orange" 
-          className="w-full h-11 text-base font-bold shadow-md"
-          disabled={isPending}
-        >
-          {isPending ? "Memproses..." : "Masuk"}
-        </Button>
-      </div>
-    </form>
+        <div>
+          <Button 
+            type="submit" 
+            variant="orange" 
+            className="w-full h-12 text-base font-bold shadow-md hover:shadow-lg transition-all"
+            disabled={isPending}
+          >
+            {isPending ? "Memproses..." : "Masuk ke Dashboard"}
+          </Button>
+        </div>
+      </form>
+    </div>
   )
 }

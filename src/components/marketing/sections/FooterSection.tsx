@@ -1,74 +1,123 @@
 "use client";
 
-import React from "react";
-import { programs, getWhatsAppUrl } from "../data/marketing-data";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
+import { getWhatsAppUrl } from "../data/marketing-data";
+import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
-export default function FooterSection({ dbContent = {} }: { dbContent?: any }) {
+function MobileFooterAccordion({ title, children }: { title: string, children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className="border-b border-white/10 md:hidden">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between py-4 text-left font-bold text-white focus:outline-none"
+      >
+        {title}
+        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isOpen ? "rotate-180 text-[var(--color-signal)]" : "text-[var(--color-muted)]"}`} />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="pb-4 pt-1">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export default function FooterSection({ dbPrograms = [] }: { dbPrograms?: any[] }) {
   const currentYear = new Date().getFullYear();
+  const t = useTranslations("Footer");
 
-  const tagline = dbContent.tagline || "Platform pembelajaran interaktif dengan video materi lengkap, live class, dan instruktur profesional di berbagai bidang.";
-  const email = dbContent.email || "hello@e17course.com";
-  const copyrightText = dbContent.copyright || "E17 Course. Hak cipta dilindungi.";
+  const tagline = t("tagline");
+  const email = "hello@e17course.com";
+  const copyrightText = t("copyright");
+  
+  const displayPrograms = dbPrograms?.length ? dbPrograms : [];
 
   return (
-    <footer className="bg-white border-t border-[#EFE6CC]">
-      <div className="max-w-[1200px] mx-auto px-6 py-16 lg:py-24">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 lg:gap-8">
+    <footer className="bg-[var(--color-ink)] border-t border-white/5 pt-16 pb-24 md:pb-12 lg:pt-24 lg:pb-12">
+      <div className="max-w-[1200px] mx-auto px-6 lg:px-12">
+        <div className="flex flex-col md:grid md:grid-cols-4 gap-8 lg:gap-12">
           
           {/* Col 1: Brand & Tagline */}
-          <div className="md:col-span-2">
-            <div className="mb-6">
-              <img
-                src="/assets/logo-wide.png"
-                alt="E17 Course Logo"
-                className="h-8 md:h-10 w-auto object-contain"
-              />
+          <div className="md:col-span-2 md:pr-12">
+            <div className="mb-6 flex items-center">
+              <img src="/assets/logo-wide.png" alt="E17 Course" className="h-8 md:h-10 object-contain" />
             </div>
-            <p className="text-[#6B6355] text-[15px] leading-relaxed max-w-sm">
+            <p className="text-[var(--color-muted)] text-[15px] leading-relaxed max-w-sm mb-6 md:mb-0">
               {tagline}
             </p>
           </div>
 
-          {/* Col 2: Program */}
-          <div>
-            <h4 className="text-[#1C1A14] font-bold mb-6 tracking-wide">
-              Program
+          {/* Col 2 & 3 Mobile Accordions */}
+          <MobileFooterAccordion title={t("program_title")}>
+            <ul className="space-y-3">
+              {displayPrograms.map((p: any) => (
+                <li key={p.id}>
+                  <Link href={`/program/${p.id}`} className="text-[var(--color-muted)] hover:text-white text-[15px] transition-colors inline-block">
+                    {p.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </MobileFooterAccordion>
+
+          <MobileFooterAccordion title={t("contact_title")}>
+            <ul className="space-y-3">
+              <li>
+                <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" className="text-[var(--color-muted)] hover:text-white text-[15px] transition-colors inline-block">
+                  WhatsApp Admin
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${email}`} className="text-[var(--color-muted)] hover:text-white text-[15px] transition-colors inline-block">
+                  {email}
+                </a>
+              </li>
+            </ul>
+          </MobileFooterAccordion>
+
+          {/* Col 2: Program (Desktop) */}
+          <div className="hidden md:block">
+            <h4 className="font-mono text-xs tracking-widest uppercase font-bold text-[var(--color-bronze)] mb-6">
+              {t("program_title")}
             </h4>
             <ul className="space-y-4">
-              {programs.map((p) => (
+              {displayPrograms.map((p: any) => (
                 <li key={p.id}>
-                  <a
-                    href={`/?program=${p.id}#pricing`}
-                    className="text-[#6B6355] hover:text-[#1C1A14] text-[15px] transition-colors focus:outline-none focus:underline"
-                  >
+                  <Link href={`/program/${p.id}`} className="text-white/60 hover:text-white text-[15px] transition-colors">
                     {p.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Col 3: Contact */}
-          <div>
-            <h4 className="text-[#1C1A14] font-bold mb-6 tracking-wide">
-              Kontak
+          {/* Col 3: Contact (Desktop) */}
+          <div className="hidden md:block">
+            <h4 className="font-mono text-xs tracking-widest uppercase font-bold text-[var(--color-bronze)] mb-6">
+              {t("contact_title")}
             </h4>
-            <ul className="space-y-4 text-[15px]">
+            <ul className="space-y-4">
               <li>
-                <a
-                  href={getWhatsAppUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#6B6355] hover:text-[#1C1A14] transition-colors focus:outline-none focus:underline flex items-center gap-2"
-                >
+                <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white text-[15px] transition-colors">
                   WhatsApp Admin
                 </a>
               </li>
               <li>
-                <a
-                  href={`mailto:${email}`}
-                  className="text-[#6B6355] hover:text-[#1C1A14] transition-colors focus:outline-none focus:underline flex items-center gap-2"
-                >
+                <a href={`mailto:${email}`} className="text-white/60 hover:text-white text-[15px] transition-colors">
                   {email}
                 </a>
               </li>
@@ -77,15 +126,15 @@ export default function FooterSection({ dbContent = {} }: { dbContent?: any }) {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-16 pt-8 border-t border-[#EFE6CC] flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-[#B8AF9C] text-[14px]">
+        <div className="mt-12 md:mt-20 pt-8 border-t border-white/10 flex flex-col-reverse md:flex-row justify-between items-center gap-6">
+          <p className="text-[var(--color-muted-light)] text-[13px] font-medium">
             &copy; {currentYear} {copyrightText}
           </p>
-          <div className="flex items-center gap-6 text-[14px]">
-            <a href="#" className="text-[#B8AF9C] hover:text-[#6B6355] transition-colors focus:outline-none focus:underline">
+          <div className="flex items-center gap-6 text-[13px] font-medium">
+            <a href="#" className="text-[var(--color-muted-light)] hover:text-white transition-colors">
               Syarat & Ketentuan
             </a>
-            <a href="#" className="text-[#B8AF9C] hover:text-[#6B6355] transition-colors focus:outline-none focus:underline">
+            <a href="#" className="text-[var(--color-muted-light)] hover:text-white transition-colors">
               Kebijakan Privasi
             </a>
           </div>

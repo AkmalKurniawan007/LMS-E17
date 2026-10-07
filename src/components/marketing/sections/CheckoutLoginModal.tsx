@@ -52,7 +52,6 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
               id: signUpData.user.id,
               email,
               full_name: name,
-              role: "siswa",
             });
         }
       }
@@ -77,7 +76,7 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
       const supabase = createClient();
       const redirectTo = program && tier
         ? `${window.location.origin}/checkout?program=${program.id}&tier=${tier.type}`
-        : `${window.location.origin}/siswa`;
+        : `${window.location.origin}/`;
       await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo },
