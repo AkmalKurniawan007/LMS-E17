@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Menu, X, User as UserIcon, PlayCircle, LogOut, Globe } from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
+import NativeLink from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -145,7 +146,7 @@ export default function MarketingHeader({
                 </button>
                 
                 {userRoleState && internalHasLmsAccess && (
-                  <Link
+                  <NativeLink
                     href={`/${userRoleState}`}
                     className={`hidden sm:flex items-center justify-center bg-transparent text-sm font-semibold px-4 py-2 rounded-full transition-colors border ${
                       isLightHeader
@@ -155,7 +156,7 @@ export default function MarketingHeader({
                   >
                     <UserIcon className="w-4 h-4 mr-2" />
                     Panel {userRoleState === "admin" ? "Admin" : userRoleState === "mentor" ? "Mentor" : "Siswa"}
-                  </Link>
+                  </NativeLink>
                 )}
                 <button
                   onClick={handleLogout}
@@ -251,14 +252,14 @@ export default function MarketingHeader({
                   </button>
 
                   {userRoleState && internalHasLmsAccess && (
-                    <Link
+                    <NativeLink
                       href={`/${userRoleState}`}
                       onClick={() => setMobileMenuOpen(false)}
                       className="w-full py-3.5 rounded-lg text-center bg-[var(--color-ink)] text-white font-semibold flex items-center justify-center gap-2"
                     >
                       <UserIcon className="w-5 h-5" />
                       Panel {userRoleState === "admin" ? "Admin" : userRoleState === "mentor" ? "Mentor" : "Siswa"}
-                    </Link>
+                    </NativeLink>
                   )}
                   <button
                     onClick={handleLogout}
