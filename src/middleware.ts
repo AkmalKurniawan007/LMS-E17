@@ -24,6 +24,7 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith('/verify') &&
     !pathname.startsWith('/mentor') &&
     !pathname.startsWith('/siswa') &&
+    !pathname.startsWith('/profile') &&
     !pathname.startsWith('/login') &&
     !pathname.startsWith('/forgot-password') &&
     !pathname.startsWith('/pembeli/kelas-saya') &&
