@@ -26,8 +26,7 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith('/siswa') &&
     !pathname.startsWith('/login') &&
     !pathname.startsWith('/forgot-password') &&
-    !pathname.startsWith('/pembeli/login') &&
-    !pathname.startsWith('/pembeli/register') &&
+    !pathname.startsWith('/pembeli/kelas-saya') &&
     !pathname.startsWith('/_next') &&
     !pathname.includes('.')
 
