@@ -318,21 +318,13 @@ export async function confirmCheckoutOrder(
       .single()
 
     if (orderData) {
-      const { data: mData } = await supabase
-        .from('marketing_programs')
-        .select('lms_program_id')
-        .eq('id', orderData.program_id)
-        .single()
-
-      if (mData?.lms_program_id) {
-        await grantVideoAccess({
-          userId: orderData.user_id,
-          programId: mData.lms_program_id,
-          tier: 'expert',
-          orderId: orderId,
-          notes: 'Auto-granted from bootcamp confirmation',
-        })
-      }
+      await grantVideoAccess({
+        userId: orderData.user_id,
+        programId: orderData.program_id,
+        tier: 'expert',
+        orderId: orderId,
+        notes: 'Auto-granted from bootcamp confirmation',
+      })
     }
 
     revalidatePath('/admin/marketing/orders')
