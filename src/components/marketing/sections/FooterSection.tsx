@@ -113,14 +113,14 @@ export default function FooterSection({ dbPrograms = [] }: { dbPrograms?: any[] 
             {/* Col 3: Navigation (2 cols) */}
             <div className="md:col-span-3 lg:col-span-2">
               <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-sm">
-                E17 COURSE
+                NAVIGASI BOOTCAMP
               </h4>
               <ul className="space-y-4">
                 <li><Link href="/" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Beranda</Link></li>
-                <li><Link href="/" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Program</Link></li>
-                <li><a href="#" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Publikasi</a></li>
-                <li><a href="#" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Artikel</a></li>
-                <li><a href="#" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Tentang Kami</a></li>
+                <li><Link href="/#programs" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Semua Program</Link></li>
+                <li><a href="/#metode" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Metode Belajar</a></li>
+                <li><a href="/#testimoni" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Testimoni Alumni</a></li>
+                <li><a href="/#faq" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">FAQ / Bantuan</a></li>
               </ul>
             </div>
 
