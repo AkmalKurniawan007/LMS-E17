@@ -5,6 +5,16 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { PlayCircle, Clock, CheckCircle } from "lucide-react";
 import MarketingHeader from "@/components/marketing/MarketingHeader";
+import { NextIntlClientProvider } from "next-intl";
+
+const dummyMessages = {
+  Navbar: {
+    program: "Program",
+    kurikulum: "Kurikulum",
+    verifikasi: "Verifikasi",
+    tentang_kami: "Tentang Kami"
+  }
+};
 import FooterSection from "@/components/marketing/sections/FooterSection";
 
 export default function KelasSayaPage() {
@@ -43,7 +53,9 @@ export default function KelasSayaPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-ink)] flex flex-col">
-      <MarketingHeader isLoggedIn={!!user} />
+      <NextIntlClientProvider locale="id" messages={dummyMessages}>
+        <MarketingHeader isLoggedIn={!!user} />
+      </NextIntlClientProvider>
 
       <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-12 lg:py-24">
         <div className="mb-12">
