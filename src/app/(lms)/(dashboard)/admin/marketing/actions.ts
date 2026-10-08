@@ -435,7 +435,7 @@ export type VideoAccess = {
   id: string
   user_id: string
   program_id: string
-  tier: 'junior' | 'expert'
+  tier: 'junior' | 'expert' | 'complete' | 'bootcamp'
   order_id: string | null
   granted_by: string | null
   granted_at: string
