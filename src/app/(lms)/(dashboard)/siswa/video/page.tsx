@@ -182,7 +182,8 @@ function ProgramSelector({
   accesses,
   selectedProgramId,
   onSelect,
-  dbPrograms
+  dbPrograms,
+  programMap
 }: {
   accesses: VideoAccess[]
   selectedProgramId: string
