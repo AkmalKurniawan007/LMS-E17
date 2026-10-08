@@ -39,9 +39,10 @@ export async function getChatRooms(): Promise<ChatRoom[]> {
   }
   
   const userId = authData.user.id
+  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
   // We need to fetch rooms where this user is a participant
-  const { data: participations, error: pError } = await supabase
+  const { data: participations, error: pError } = await supabaseAdmin
     .from('chat_participants')
     .select(`
       room_id,
@@ -67,7 +68,7 @@ export async function getChatRooms(): Promise<ChatRoom[]> {
     if (!roomInfo) continue
 
     // Fetch last message for this room
-    const { data: lastMsg } = await supabase
+    const { data: lastMsg } = await supabaseAdmin
       .from('messages')
       .select('content, created_at')
       .eq('room_id', roomInfo.id)
@@ -76,7 +77,7 @@ export async function getChatRooms(): Promise<ChatRoom[]> {
       .maybeSingle()
       
     // Fetch unread count (messages created after last_read_at)
-    const { count: unreadCount } = await supabase
+    const { count: unreadCount } = await supabaseAdmin
       .from('messages')
       .select('*', { count: 'exact', head: true })
       .eq('room_id', roomInfo.id)
@@ -86,7 +87,7 @@ export async function getChatRooms(): Promise<ChatRoom[]> {
     
     // If it's a direct message, fetch the other participant's details
     if (roomInfo.type === 'direct') {
-      const { data: otherParticipant } = await supabase
+      const { data: otherParticipant } = await supabaseAdmin
         .from('chat_participants')
         .select(`
           user_id,
@@ -141,8 +142,9 @@ export async function getRoomMessages(roomId: string): Promise<ChatMessage[]> {
   }
   
   const userId = authData.user.id
+  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-  const { data: messages, error } = await supabase
+  const { data: messages, error } = await supabaseAdmin
     .from('messages')
     .select(`
       id,
@@ -163,7 +165,7 @@ export async function getRoomMessages(roomId: string): Promise<ChatMessage[]> {
   }
   
   // Mark as read
-  await supabase
+  await supabaseAdmin
     .from('chat_participants')
     .update({ last_read_at: new Date().toISOString() })
     .eq('room_id', roomId)
@@ -189,8 +191,9 @@ export async function sendMessage(roomId: string, content: string): Promise<{suc
   }
   
   const userId = authData.user.id
+  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('messages')
     .insert({
       room_id: roomId,
@@ -204,7 +207,7 @@ export async function sendMessage(roomId: string, content: string): Promise<{suc
   }
   
   // Update last_read_at for sender so their own message doesn't count as unread
-  await supabase
+  await supabaseAdmin
     .from('chat_participants')
     .update({ last_read_at: new Date().toISOString() })
     .eq('room_id', roomId)
@@ -219,9 +222,10 @@ export async function getAvailableMentorsForStudent() {
   if (!authData.user) return []
 
   const userId = authData.user.id
+  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
   // 1. Get student's active enrollments
-  const { data: enrollments } = await supabase
+  const { data: enrollments } = await supabaseAdmin
     .from('enrollments')
     .select('batch_id')
     .eq('user_id', userId)
@@ -232,7 +236,6 @@ export async function getAvailableMentorsForStudent() {
   const batchIds = enrollments.map(e => e.batch_id)
 
   // 2. Get all mentors for these batches
-  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const { data: batchMentors } = await supabaseAdmin
     .from('batch_mentors')
     .select(`
@@ -265,8 +268,9 @@ export async function createDirectMessageRoom(otherUserId: string): Promise<{roo
   if (!authData.user) return { error: 'Unauthorized' }
 
   const userId = authData.user.id
+  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   
-  const { data: myRooms } = await supabase
+  const { data: myRooms } = await supabaseAdmin
     .from('chat_participants')
     .select('room_id, chat_rooms!inner(type)')
     .eq('user_id', userId)
@@ -275,7 +279,7 @@ export async function createDirectMessageRoom(otherUserId: string): Promise<{roo
     const directRoomIds = myRooms.filter((r: any) => r.chat_rooms?.type === 'direct').map(r => r.room_id)
     
     if (directRoomIds.length > 0) {
-      const { data: commonRoom } = await supabase
+      const { data: commonRoom } = await supabaseAdmin
         .from('chat_participants')
         .select('room_id')
         .in('room_id', directRoomIds)
@@ -291,14 +295,14 @@ export async function createDirectMessageRoom(otherUserId: string): Promise<{roo
 
   // Create new room
   const roomId = crypto.randomUUID()
-  const { error: createErr } = await supabase
+  const { error: createErr } = await supabaseAdmin
     .from('chat_rooms')
     .insert({ id: roomId, type: 'direct' })
 
   if (createErr) return { error: 'Gagal membuat ruang pesan' }
 
   // Insert participants
-  await supabase
+  await supabaseAdmin
     .from('chat_participants')
     .insert([
       { room_id: roomId, user_id: userId },
