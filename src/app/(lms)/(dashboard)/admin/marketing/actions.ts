@@ -310,6 +310,31 @@ export async function confirmCheckoutOrder(
       return { success: false, error: error.message }
     }
 
+    // Otomatis berikan akses video Expert ke user (karena Bootcamp include semua video)
+    const { data: orderData } = await supabase
+      .from('checkout_orders')
+      .select('user_id, program_id')
+      .eq('id', orderId)
+      .single()
+
+    if (orderData) {
+      const { data: mData } = await supabase
+        .from('marketing_programs')
+        .select('lms_program_id')
+        .eq('id', orderData.program_id)
+        .single()
+
+      if (mData?.lms_program_id) {
+        await grantVideoAccess({
+          userId: orderData.user_id,
+          programId: mData.lms_program_id,
+          tier: 'expert',
+          orderId: orderId,
+          notes: 'Auto-granted from bootcamp confirmation',
+        })
+      }
+    }
+
     revalidatePath('/admin/marketing/orders')
     return { success: true }
   } catch (err) {
