@@ -16,6 +16,7 @@ import {
   updateCurriculumItem,
   deleteCurriculumItem,
   createMarketingProgram,
+  getAllLmsPrograms,
   type MarketingProgram,
   type MarketingProgramTier,
   type MarketingCurriculumItem,
@@ -601,7 +602,7 @@ function CurriculumEditor({ items, programId, onRefresh }: { items: MarketingCur
 // ================================================================
 // PROGRAM CARD
 // ================================================================
-function ProgramCard({ program, onRefresh }: { program: MarketingProgram; onRefresh: () => void }) {
+function ProgramCard({ program, lmsPrograms, onRefresh }: { program: MarketingProgram; lmsPrograms: {id: string, name: string}[]; onRefresh: () => void }) {
   const [expanded, setExpanded] = React.useState(false)
   const [activeTab, setActiveTab] = React.useState<"info" | "tiers" | "curriculum">("info")
   const [deleting, setDeleting] = React.useState(false)
@@ -709,6 +710,29 @@ function ProgramCard({ program, onRefresh }: { program: MarketingProgram; onRefr
                       multiline
                       placeholder="Deskripsi program..."
                     />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Mapping Program LMS</label>
+                    <div className="relative">
+                      <select
+                        value={program.lms_program_id || ""}
+                        onChange={async (e) => {
+                          const val = e.target.value;
+                          await updateMarketingProgram(program.id, { lmsProgramId: val || null });
+                          onRefresh();
+                        }}
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      >
+                        <option value="">-- Belum Dipetakan (Pilih Program LMS) --</option>
+                        {lmsPrograms.map((lp) => (
+                          <option key={lp.id} value={lp.id}>{lp.name}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      Pilih program LMS mana yang akan dibuka aksesnya ketika user membeli paket bootcamp.
+                    </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -930,12 +954,17 @@ function AddProgramModal({ onClose, onCreated }: { onClose: () => void; onCreate
 // ================================================================
 export default function MarketingProgramsPage() {
   const [programs, setPrograms] = React.useState<MarketingProgram[]>([])
+  const [lmsPrograms, setLmsPrograms] = React.useState<{id: string, name: string}[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [showAddModal, setShowAddModal] = React.useState(false)
 
   const fetchPrograms = React.useCallback(async () => {
-    const data = await getAllMarketingPrograms()
+    const [data, lmsData] = await Promise.all([
+      getAllMarketingPrograms(),
+      getAllLmsPrograms(),
+    ])
     setPrograms(data)
+    setLmsPrograms(lmsData)
     setIsLoading(false)
   }, [])
 
@@ -991,7 +1020,7 @@ export default function MarketingProgramsPage() {
         ) : (
           <div className="space-y-4">
             {programs.map(program => (
-              <ProgramCard key={program.id} program={program} onRefresh={fetchPrograms} />
+              <ProgramCard key={program.id} program={program} lmsPrograms={lmsPrograms} onRefresh={fetchPrograms} />
             ))}
           </div>
         )}

@@ -21,6 +21,7 @@ export type MarketingProgram = {
   is_active: boolean
   sort_order: number
   updated_at: string
+  lms_program_id: string | null
   tiers?: MarketingProgramTier[]
   curriculum?: MarketingCurriculumItem[]
 }
@@ -110,6 +111,21 @@ export async function getActiveMarketingPrograms(): Promise<MarketingProgram[]> 
 // PROGRAM CRUD
 // ================================================================
 
+export async function getAllLmsPrograms() {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('programs')
+      .select('id, name')
+      .order('name')
+    if (error) throw error
+    return data || []
+  } catch (err) {
+    console.error('getAllLmsPrograms error:', err)
+    return []
+  }
+}
+
 export async function createMarketingProgram(data: {
   slug: string
   name: string
@@ -168,6 +184,7 @@ export async function updateMarketingProgram(
     thumbnailText: string
     isActive: boolean
     sortOrder: number
+    lmsProgramId: string | null
   }>
 ) {
   try {
@@ -185,6 +202,7 @@ export async function updateMarketingProgram(
     if (data.thumbnailText !== undefined) payload.thumbnail_text = data.thumbnailText
     if (data.isActive !== undefined) payload.is_active = data.isActive
     if (data.sortOrder !== undefined) payload.sort_order = data.sortOrder
+    if (data.lmsProgramId !== undefined) payload.lms_program_id = data.lmsProgramId
 
     const { error } = await supabase
       .from('marketing_programs')
