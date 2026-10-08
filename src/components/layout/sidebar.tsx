@@ -72,7 +72,7 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
         ]
       case "Siswa":
         return [
-          { name: "Kelas Saya", href: "/pembeli/kelas-saya", icon: LayoutDashboard },
+          { name: "Dashboard", href: "/siswa", icon: LayoutDashboard },
           { name: "Akses Video", href: "/siswa/video", icon: Video },
           { name: "Materi Belajar", href: "/siswa/courses", icon: BookOpen },
           { name: "Pesan & Diskusi", href: "/siswa/messages", icon: MessageSquare },
