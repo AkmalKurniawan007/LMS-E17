@@ -229,15 +229,7 @@ export default function ClassVideoPlayer({ role, purchasedTier }: { role?: strin
                 )}
               </div>
 
-              {/* Download Resource */}
-              <button className="w-full flex items-center justify-between bg-white/5 hover:bg-white/10 border border-white/10 text-white p-4 rounded-xl transition-all group">
-                <div className="flex items-center gap-3">
-                  <div className="bg-white/10 p-2 rounded-lg group-hover:bg-[var(--color-signal)] group-hover:text-[var(--color-ink)] transition-colors">
-                    <Download className="w-4 h-4" />
-                  </div>
-                  <span className="font-semibold text-sm">Unduh Resource</span>
-                </div>
-              </button>
+              {/* Removed Download Resource Button */}
             </div>
           </div>
         </div>
@@ -342,9 +334,8 @@ export default function ClassVideoPlayer({ role, purchasedTier }: { role?: strin
       {/* Dark Footer variant */}
       <div className="mt-auto border-t border-white/5 bg-[#0a0e1a]">
         <div className="max-w-[1280px] mx-auto px-6 py-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="bg-[var(--color-signal)] text-[var(--color-ink)] font-black text-lg px-2 py-0.5 rounded italic">E17</span>
-            <span className="text-white font-display italic font-black text-xl tracking-tight uppercase">Course</span>
+          <div className="flex items-center">
+            <img src="/assets/logo-wide.png" alt="E17 Course" className="h-6 md:h-8 object-contain" />
           </div>
           <p className="text-white/40 text-sm font-medium text-center">
             © {new Date().getFullYear()} E17 Course. Seluruh hak cipta dilindungi.
