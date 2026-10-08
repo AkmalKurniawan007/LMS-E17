@@ -33,7 +33,7 @@ export default function KelasSayaPage() {
       }
       setUser(user);
 
-      const { data, error } = await supabase
+      const { data: coData } = await supabase
         .from("checkout_orders")
         .select(`
           id, program_id, program_name, tier_type, tier_label, status, created_at
@@ -42,9 +42,70 @@ export default function KelasSayaPage() {
         .eq("status", "confirmed")
         .order("created_at", { ascending: false });
 
-      if (!error && data) {
-        setOrders(data);
+      const { data: vaData } = await supabase
+        .from("video_access")
+        .select(`program_id, tier, created_at, marketing_programs(name, id)`)
+        .eq("user_id", user.id)
+        .eq("is_active", true);
+
+      const { data: enData } = await supabase
+        .from("enrollments")
+        .select(`created_at, batches(program_id, programs(id, name, marketing_programs(id, name)))`)
+        .eq("user_id", user.id)
+        .eq("status", "aktif");
+
+      const map = new Map<string, any>();
+
+      if (coData) {
+        coData.forEach(o => {
+          map.set(o.program_id, {
+            id: o.id,
+            program_id: o.program_id,
+            program_name: o.program_name,
+            tier_type: o.tier_type,
+            tier_label: o.tier_label,
+            created_at: o.created_at,
+          });
+        });
       }
+
+      if (vaData) {
+        vaData.forEach(va => {
+          const p = Array.isArray(va.marketing_programs) ? va.marketing_programs[0] : va.marketing_programs;
+          if (p && !map.has(p.id)) {
+            map.set(p.id, {
+              id: 'va-' + p.id,
+              program_id: p.id,
+              program_name: p.name,
+              tier_type: va.tier,
+              tier_label: (va.tier === 'complete' || va.tier === 'bootcamp') ? 'Complete' : 'Expert',
+              created_at: va.created_at || new Date().toISOString(),
+            });
+          }
+        });
+      }
+
+      if (enData) {
+        enData.forEach(en => {
+          const batch = Array.isArray(en.batches) ? en.batches[0] : en.batches;
+          const prog = batch?.programs;
+          const mp = prog?.marketing_programs;
+          const actualMp = Array.isArray(mp) ? mp[0] : mp;
+          
+          if (actualMp && !map.has(actualMp.id)) {
+            map.set(actualMp.id, {
+              id: 'en-' + actualMp.id,
+              program_id: actualMp.id,
+              program_name: actualMp.name,
+              tier_type: 'bootcamp',
+              tier_label: 'Bootcamp',
+              created_at: en.created_at || new Date().toISOString(),
+            });
+          }
+        });
+      }
+
+      setOrders(Array.from(map.values()).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
       setLoading(false);
     };
 
@@ -113,7 +174,7 @@ export default function KelasSayaPage() {
 
                 <div className="mt-auto pt-4 border-t border-gray-100">
                   <Link
-                    href={`/programs/${order.program_id}`}
+                    href={`/kelas/${order.program_id}`}
                     className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors"
                   >
                     <PlayCircle className="w-5 h-5" />
