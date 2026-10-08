@@ -216,7 +216,7 @@ export async function sendMessage(roomId: string, content: string): Promise<{suc
   return { success: true }
 }
 
-export async function getAvailableMentorsForStudent() {
+export async function getAvailableUsersForStudent() {
   const supabase = await createClient()
   const { data: authData } = await supabase.auth.getUser()
   if (!authData.user) return []
@@ -235,30 +235,51 @@ export async function getAvailableMentorsForStudent() {
   
   const batchIds = enrollments.map(e => e.batch_id)
 
+  const usersMap = new Map()
+
   // 2. Get all mentors for these batches
   const { data: batchMentors } = await supabaseAdmin
     .from('batch_mentors')
     .select(`
       mentor_id,
-      users:mentor_id ( id, full_name, email, avatar_url )
+      users:mentor_id ( id, full_name, email, avatar_url, role )
     `)
     .in('batch_id', batchIds)
 
-  if (!batchMentors) return []
+  if (batchMentors) {
+    batchMentors.forEach(m => {
+      const user = Array.isArray(m.users) ? m.users[0] : m.users
+      if (user && user.id !== userId && !usersMap.has(user.id)) {
+        usersMap.set(user.id, user)
+      }
+    })
+  }
 
-  const mentorsMap = new Map()
-  batchMentors.forEach(m => {
-    const user = Array.isArray(m.users) ? m.users[0] : m.users
-    if (user && !mentorsMap.has(user.id)) {
-      mentorsMap.set(user.id, user)
-    }
-  })
+  // 3. Get all other students for these batches
+  const { data: batchStudents } = await supabaseAdmin
+    .from('enrollments')
+    .select(`
+      user_id,
+      users:user_id ( id, full_name, email, avatar_url, role )
+    `)
+    .in('batch_id', batchIds)
+    .eq('status', 'aktif')
 
-  return Array.from(mentorsMap.values()).map((u: any) => ({
+  if (batchStudents) {
+    batchStudents.forEach(e => {
+      const user = Array.isArray(e.users) ? e.users[0] : e.users
+      if (user && user.id !== userId && !usersMap.has(user.id)) {
+        usersMap.set(user.id, user)
+      }
+    })
+  }
+
+  return Array.from(usersMap.values()).map((u: any) => ({
     id: u.id,
     name: u.full_name,
     email: u.email,
-    avatar: u.avatar_url
+    avatar: u.avatar_url,
+    role: u.role
   }))
 }
 

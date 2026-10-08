@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Search, Send, CheckCircle2, User, Clock, Image as ImageIcon, Paperclip, MoreVertical, Users, MessageSquare, Plus, X } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
-import { getChatRooms, getRoomMessages, sendMessage, getAvailableMentorsForStudent, createDirectMessageRoom, type ChatRoom, type ChatMessage } from "./actions"
+import { getChatRooms, getRoomMessages, sendMessage, getAvailableUsersForStudent, createDirectMessageRoom, type ChatRoom, type ChatMessage } from "./actions"
 
 export default function StudentMessagesPage() {
   const supabase = createClient()
@@ -19,10 +19,10 @@ export default function StudentMessagesPage() {
 
   // Modal State
   const [showNewChatModal, setShowNewChatModal] = React.useState(false)
-  const [availableMentors, setAvailableMentors] = React.useState<{id: string, name: string, email: string}[]>([])
-  const [searchMentor, setSearchMentor] = React.useState("")
+  const [availableUsers, setAvailableUsers] = React.useState<{id: string, name: string, email: string, role?: string}[]>([])
+  const [searchUser, setSearchUser] = React.useState("")
   const [isCreatingRoom, setIsCreatingRoom] = React.useState(false)
-  const [isLoadingMentors, setIsLoadingMentors] = React.useState(false)
+  const [isLoadingUsers, setIsLoadingUsers] = React.useState(false)
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
 
@@ -121,13 +121,13 @@ export default function StudentMessagesPage() {
     setIsSending(false)
   }
 
-  // Load mentors for modal
+  // Load users for modal
   React.useEffect(() => {
-    if (showNewChatModal && availableMentors.length === 0) {
-      setIsLoadingMentors(true)
-      getAvailableMentorsForStudent().then(data => {
-        setAvailableMentors(data)
-        setIsLoadingMentors(false)
+    if (showNewChatModal && availableUsers.length === 0) {
+      setIsLoadingUsers(true)
+      getAvailableUsersForStudent().then(data => {
+        setAvailableUsers(data)
+        setIsLoadingUsers(false)
       })
     }
   }, [showNewChatModal])
@@ -159,7 +159,7 @@ export default function StudentMessagesPage() {
   }
 
   const filteredRooms = rooms.filter(r => r.type === activeTab)
-  const filteredMentors = availableMentors.filter(m => m.name.toLowerCase().includes(searchMentor.toLowerCase()))
+  const filteredUsers = availableUsers.filter(u => u.name.toLowerCase().includes(searchUser.toLowerCase()))
 
   return (
     <>
@@ -358,36 +358,41 @@ export default function StudentMessagesPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input 
                   type="text" 
-                  placeholder="Cari nama mentor..." 
-                  value={searchMentor}
-                  onChange={(e) => setSearchMentor(e.target.value)}
+                  placeholder="Cari nama anggota..." 
+                  value={searchUser}
+                  onChange={(e) => setSearchUser(e.target.value)}
                   className="pl-9 pr-4 py-2.5 w-full border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-e17-navy focus:ring-1 focus:ring-e17-navy bg-slate-50 focus:bg-white transition-colors"
                 />
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-2">
-              {isLoadingMentors ? (
-                <div className="p-6 text-center text-sm text-slate-500">Memuat data mentor...</div>
-              ) : availableMentors.length === 0 ? (
-                <div className="p-6 text-center text-sm text-slate-500">Tidak ada mentor yang aktif di kelas Anda.</div>
-              ) : filteredMentors.length === 0 ? (
-                <div className="p-6 text-center text-sm text-slate-500">Mentor tidak ditemukan.</div>
+              {isLoadingUsers ? (
+                <div className="p-6 text-center text-sm text-slate-500">Memuat data anggota...</div>
+              ) : availableUsers.length === 0 ? (
+                <div className="p-6 text-center text-sm text-slate-500">Tidak ada anggota lain di kelas Anda.</div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="p-6 text-center text-sm text-slate-500">Anggota tidak ditemukan.</div>
               ) : (
-                filteredMentors.map(mentor => (
+                filteredUsers.map(user => (
                   <button
-                    key={mentor.id}
-                    onClick={() => handleStartNewChat(mentor.id)}
+                    key={user.id}
+                    onClick={() => handleStartNewChat(user.id)}
                     disabled={isCreatingRoom}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition-colors text-left"
+                    className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-colors text-left"
                   >
-                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold uppercase shrink-0">
-                      {mentor.name.charAt(0)}
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold uppercase shrink-0 ${user.role === 'mentor' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-700'}`}>
+                        {user.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm text-slate-800">{user.name}</p>
+                        <p className="text-xs text-slate-500">{user.email}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-sm text-slate-800">{mentor.name}</p>
-                      <p className="text-xs text-slate-500">{mentor.email}</p>
-                    </div>
+                    {user.role === 'mentor' && (
+                      <span className="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 py-1 rounded-md">Mentor</span>
+                    )}
                   </button>
                 ))
               )}
