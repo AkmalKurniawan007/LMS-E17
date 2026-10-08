@@ -188,12 +188,14 @@ function ProgramSelector({
   selectedProgramId: string
   onSelect: (id: string) => void
   dbPrograms: any[]
+  programMap: Record<string, string>
 }) {
   if (accesses.length <= 1) return null
   return (
     <div className="flex gap-2 flex-wrap mb-6">
       {accesses.map((access) => {
-        const prog = dbPrograms.find((p) => p.id === access.program_id)
+        const targetSlug = programMap[access.program_id] || access.program_id
+        const prog = dbPrograms.find((p) => p.id === targetSlug || p.id === access.program_id)
         if (!prog) return null
         return (
           <button
@@ -222,15 +224,23 @@ export default function VideoPortalPage() {
   const [selectedProgramId, setSelectedProgramId] = React.useState<string | null>(null)
   const [activeVideoIndex, setActiveVideoIndex] = React.useState(0)
   const [dbPrograms, setDbPrograms] = React.useState<any[]>(programs)
+  const [programMap, setProgramMap] = React.useState<Record<string, string>>({})
 
   React.useEffect(() => {
     Promise.all([
       getMyVideoAccess(),
-      import("@/app/(lms)/(dashboard)/admin/marketing/actions").then(m => m.getAllMarketingContent())
-    ]).then(([accessData, contentData]) => {
+      import("@/app/(lms)/(dashboard)/admin/marketing/actions").then(m => m.getAllMarketingContent()),
+      createClient().from('marketing_programs').select('id, slug')
+    ]).then(([accessData, contentData, mkData]) => {
       setAccesses(accessData)
       if (accessData.length > 0) setSelectedProgramId(accessData[0].program_id)
       
+      const pMap: Record<string, string> = {}
+      if (mkData.data) {
+        mkData.data.forEach(p => { pMap[p.id] = p.slug })
+      }
+      setProgramMap(pMap)
+
       const progSection = contentData.find(s => s.section_key === 'programs')
       if (progSection && progSection.data && Array.isArray(progSection.data.items)) {
         setDbPrograms(progSection.data.items)
@@ -251,7 +261,8 @@ export default function VideoPortalPage() {
   if (accesses.length === 0) return <NoAccessView />
 
   const currentAccess = accesses.find((a) => a.program_id === selectedProgramId) ?? accesses[0]
-  const currentProgram = dbPrograms.find((p) => p.id === currentAccess.program_id)
+  const targetSlug = programMap[currentAccess.program_id] || currentAccess.program_id
+  const currentProgram = dbPrograms.find((p) => p.id === targetSlug || p.id === currentAccess.program_id)
 
   if (!currentProgram) return <NoAccessView />
 
@@ -275,6 +286,7 @@ export default function VideoPortalPage() {
         accesses={accesses}
         selectedProgramId={selectedProgramId ?? currentAccess.program_id}
         dbPrograms={dbPrograms}
+        programMap={programMap}
         onSelect={(id) => {
           setSelectedProgramId(id)
           setActiveVideoIndex(0)
