@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, MapPin, Phone, Clock, Mail, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
 import { getWhatsAppUrl } from "../data/marketing-data";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
@@ -40,105 +40,132 @@ export default function FooterSection({ dbPrograms = [] }: { dbPrograms?: any[] 
   const currentYear = new Date().getFullYear();
   const t = useTranslations("Footer");
 
-  const tagline = t("tagline");
   const email = "hello@e17course.com";
-  const copyrightText = t("copyright");
+  const copyrightText = "PT Edukasi Tujuh Belas. All rights reserved.";
   
   const displayPrograms = dbPrograms?.length ? dbPrograms : [];
 
   return (
-    <footer className="bg-[var(--color-ink)] border-t border-white/5 pt-16 pb-24 md:pb-12 lg:pt-24 lg:pb-12">
+    <footer className="bg-[var(--color-ink)] pt-16 pb-12 lg:pt-24 lg:pb-12">
       <div className="max-w-[1200px] mx-auto px-6 lg:px-12">
-        <div className="flex flex-col md:grid md:grid-cols-4 gap-8 lg:gap-12">
-          
-          {/* Col 1: Brand & Tagline */}
-          <div className="md:col-span-2 md:pr-12">
-            <div className="mb-6 flex items-center">
-              <img src="/assets/logo-wide.png" alt="E17 Course" className="h-8 md:h-10 object-contain" />
+        
+        {/* Main Footer Card */}
+        <div className="bg-white/[0.03] border border-white/10 rounded-3xl p-8 lg:p-12 mb-8">
+          <div className="flex flex-col md:grid md:grid-cols-12 gap-10 lg:gap-8">
+            
+            {/* Col 1: Brand & Socials (3 cols) */}
+            <div className="md:col-span-12 lg:col-span-3">
+              <div className="mb-8 flex items-center">
+                <img src="/assets/logo-wide.png" alt="E17 Course" className="h-9 md:h-10 object-contain" />
+              </div>
+              <h4 className="font-mono text-[11px] tracking-widest uppercase font-bold text-white mb-4">
+                SOSIAL MEDIA KAMI
+              </h4>
+              <div className="flex items-center gap-3">
+                <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
+                  <Facebook className="w-4 h-4" />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
+                  <Twitter className="w-4 h-4" />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
+                  <Instagram className="w-4 h-4" />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
+                  <Youtube className="w-4 h-4" />
+                </a>
+              </div>
             </div>
-            <p className="text-[var(--color-muted)] text-[15px] leading-relaxed max-w-sm mb-6 md:mb-0">
-              {tagline}
-            </p>
-          </div>
 
-          {/* Col 2 & 3 Mobile Accordions */}
-          <MobileFooterAccordion title={t("program_title")}>
-            <ul className="space-y-3">
-              {displayPrograms.map((p: any) => (
-                <li key={p.id}>
-                  <Link href={`/program/${p.id}`} className="text-[var(--color-muted)] hover:text-white text-[15px] transition-colors inline-block">
-                    {p.name}
-                  </Link>
+            {/* Col 2: PT Details (4 cols) */}
+            <div className="md:col-span-6 lg:col-span-4 lg:pl-8">
+              <h4 className="font-bold text-white mb-6 text-lg">
+                PT Edukasi Tujuh Belas
+              </h4>
+              <ul className="space-y-5">
+                <li className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-[var(--color-signal)] shrink-0 mt-0.5" />
+                  <span className="text-[var(--color-muted)] text-[14px] leading-relaxed">
+                    Jl. Basoka Raya No.8, Joglo, Kembangan, Kota Jakarta Barat, DKI Jakarta 11640
+                  </span>
                 </li>
-              ))}
-            </ul>
-          </MobileFooterAccordion>
-
-          <MobileFooterAccordion title={t("contact_title")}>
-            <ul className="space-y-3">
-              <li>
-                <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" className="text-[var(--color-muted)] hover:text-white text-[15px] transition-colors inline-block">
-                  WhatsApp Admin
-                </a>
-              </li>
-              <li>
-                <a href={`mailto:${email}`} className="text-[var(--color-muted)] hover:text-white text-[15px] transition-colors inline-block">
-                  {email}
-                </a>
-              </li>
-            </ul>
-          </MobileFooterAccordion>
-
-          {/* Col 2: Program (Desktop) */}
-          <div className="hidden md:block">
-            <h4 className="font-mono text-xs tracking-widest uppercase font-bold text-[var(--color-bronze)] mb-6">
-              {t("program_title")}
-            </h4>
-            <ul className="space-y-4">
-              {displayPrograms.map((p: any) => (
-                <li key={p.id}>
-                  <Link href={`/program/${p.id}`} className="text-white/60 hover:text-white text-[15px] transition-colors">
-                    {p.name}
-                  </Link>
+                <li className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-[var(--color-signal)] shrink-0" />
+                  <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">
+                    0813-9927-1717
+                  </a>
                 </li>
-              ))}
-            </ul>
-          </div>
+                <li className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-[var(--color-signal)] shrink-0" />
+                  <span className="text-[var(--color-muted)] text-[14px] bg-white/5 px-3 py-1 rounded-full">
+                    Buka · Tutup Jam 18:00 WIB
+                  </span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-[var(--color-signal)] shrink-0" />
+                  <a href={`mailto:${email}`} className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">
+                    {email}
+                  </a>
+                </li>
+              </ul>
+            </div>
 
-          {/* Col 3: Contact (Desktop) */}
-          <div className="hidden md:block">
-            <h4 className="font-mono text-xs tracking-widest uppercase font-bold text-[var(--color-bronze)] mb-6">
-              {t("contact_title")}
-            </h4>
-            <ul className="space-y-4">
-              <li>
-                <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white text-[15px] transition-colors">
-                  WhatsApp Admin
-                </a>
-              </li>
-              <li>
-                <a href={`mailto:${email}`} className="text-white/60 hover:text-white text-[15px] transition-colors">
-                  {email}
-                </a>
-              </li>
-            </ul>
+            {/* Col 3: Navigation (2 cols) */}
+            <div className="md:col-span-3 lg:col-span-2">
+              <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-sm">
+                E17 COURSE
+              </h4>
+              <ul className="space-y-4">
+                <li><Link href="/" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Beranda</Link></li>
+                <li><Link href="/" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Program</Link></li>
+                <li><a href="#" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Publikasi</a></li>
+                <li><a href="#" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Artikel</a></li>
+                <li><a href="#" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Tentang Kami</a></li>
+              </ul>
+            </div>
+
+            {/* Col 4: Programs (3 cols) */}
+            <div className="md:col-span-3 lg:col-span-3">
+              <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-sm">
+                PROGRAM UNGGULAN
+              </h4>
+              <ul className="space-y-4">
+                {displayPrograms.length > 0 ? (
+                  displayPrograms.map((p: any) => (
+                    <li key={p.id}>
+                      <Link href={`/program/${p.id}`} className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors block truncate pr-4">
+                        {p.name}
+                      </Link>
+                    </li>
+                  ))
+                ) : (
+                  <>
+                    <li><Link href="/" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Bootcamp</Link></li>
+                    <li><a href="#" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Sertifikasi</a></li>
+                    <li><a href="#" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Corporate Training</a></li>
+                  </>
+                )}
+              </ul>
+            </div>
+
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 md:mt-20 pt-8 border-t border-white/10 flex flex-col-reverse md:flex-row justify-between items-center gap-6">
+        <div className="px-2 flex flex-col-reverse md:flex-row justify-between items-center gap-6">
           <p className="text-[var(--color-muted-light)] text-[13px] font-medium">
             &copy; {currentYear} {copyrightText}
           </p>
           <div className="flex items-center gap-6 text-[13px] font-medium">
             <a href="#" className="text-[var(--color-muted-light)] hover:text-white transition-colors">
-              Syarat & Ketentuan
+              Kebijakan Privasi
             </a>
             <a href="#" className="text-[var(--color-muted-light)] hover:text-white transition-colors">
-              Kebijakan Privasi
+              Syarat & Ketentuan
             </a>
           </div>
         </div>
+
       </div>
     </footer>
   );
