@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 
 export type ChatRoom = {
@@ -231,7 +232,8 @@ export async function getAvailableMentorsForStudent() {
   const batchIds = enrollments.map(e => e.batch_id)
 
   // 2. Get all mentors for these batches
-  const { data: batchMentors } = await supabase
+  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  const { data: batchMentors } = await supabaseAdmin
     .from('batch_mentors')
     .select(`
       mentor_id,
