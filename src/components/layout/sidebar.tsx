@@ -190,10 +190,23 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="px-4 py-4 border-t border-white/10 shrink-0 bg-e17-navy-active">
-          <div className="flex items-center space-x-3 px-2">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-blue-200 font-medium truncate">© 2026 E17 Course</p>
+        <div className="px-4 py-6 border-t border-white/10 shrink-0 bg-e17-navy mt-auto">
+          <div className="flex flex-col gap-5">
+            <Link 
+              href="/"
+              className="flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-white/10 hover:bg-e17-primary hover:text-e17-navy text-blue-100 text-sm font-medium rounded-lg transition-all duration-200"
+            >
+              <Globe className="w-4 h-4" />
+              Ke Web Utama
+            </Link>
+            
+            <div className="flex flex-col items-center justify-center gap-2">
+              <img 
+                src="/assets/logo-wide.png" 
+                alt="E17 Course" 
+                className="h-6 w-auto object-contain opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all"
+              />
+              <p className="text-[10px] text-blue-200/50 font-medium">© 2026 E17 Course</p>
             </div>
           </div>
         </div>
