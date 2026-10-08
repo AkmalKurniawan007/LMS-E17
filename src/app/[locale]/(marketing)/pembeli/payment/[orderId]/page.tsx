@@ -136,6 +136,38 @@ export default function PaymentWaitingPage({ params }: { params: Promise<{ order
     );
   }
 
+  if (order.status === 'refunded') {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-12 md:py-20 min-h-screen">
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-lg text-center">
+          <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Wallet className="w-10 h-10 text-amber-600" />
+          </div>
+          <h1 className="text-2xl font-extrabold text-slate-900 mb-4">
+            Pesanan Direfund
+          </h1>
+          <p className="text-slate-600 mb-6">
+            Saldo pesanan Anda sedang dalam proses pengembalian (refund). 
+            Silakan hubungi Admin melalui WhatsApp untuk konfirmasi lebih lanjut terkait pengembalian dana ini.
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <a 
+              href="https://wa.me/6281234567890" 
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+            >
+              Hubungi Admin (WA)
+            </a>
+            <Link href="/" className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-6 rounded-xl transition-colors">
+              Kembali ke Beranda
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto px-6 py-12 md:py-20 min-h-screen">
       <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-lg">
