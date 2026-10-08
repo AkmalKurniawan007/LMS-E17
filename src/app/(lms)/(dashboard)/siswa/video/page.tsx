@@ -15,8 +15,8 @@ import { getMyVideoAccess, type VideoAccess } from "@/app/(lms)/(dashboard)/admi
 // ================================================================
 const TIER_LEVEL: Record<string, number> = { junior: 1, expert: 2 }
 
-function canWatchVideo(videoIndex: number, tier: "junior" | "expert"): boolean {
-  if (tier === "expert") return true
+function canWatchVideo(videoIndex: number, tier: string): boolean {
+  if (tier === "expert" || tier === "complete" || tier === "bootcamp") return true
   // Junior hanya bisa nonton setengah pertama kurikulum (video "basic")
   return videoIndex < 2
 }
@@ -231,22 +231,39 @@ export default function VideoPortalPage() {
     Promise.all([
       getMyVideoAccess(),
       import("@/app/(lms)/(dashboard)/admin/marketing/actions").then(m => m.getAllMarketingContent()),
-      createClient().from('marketing_programs').select('id, slug')
+      createClient().from('marketing_programs').select('*, curriculum:marketing_program_curriculum(*)')
     ]).then(([accessData, contentData, mkData]) => {
       setAccesses(accessData)
       if (accessData.length > 0) setSelectedProgramId(accessData[0].program_id)
       
-      const pMap: Record<string, string> = {}
-      if (mkData.data) {
-        mkData.data.forEach(p => { pMap[p.id] = p.slug })
-      }
-      setProgramMap(pMap)
-
+      let allPrograms: any[] = []
+      
       const progSection = contentData.find(s => s.section_key === 'programs')
       if (progSection && progSection.data && Array.isArray(progSection.data.items)) {
-        setDbPrograms(progSection.data.items)
+        allPrograms = [...progSection.data.items]
+      }
+
+      const pMap: Record<string, string> = {}
+      if (mkData.data) {
+        const dbProgs = mkData.data.map(p => ({
+          ...p,
+          shortName: p.short_name,
+          curriculum: (p.curriculum || [])
+            .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
+            .map((c: any) => ({
+              id: c.id,
+              title: c.title,
+              description: c.description,
+              duration: c.duration,
+              videoUrl: c.video_url,
+            }))
+        }))
+        allPrograms = [...allPrograms, ...dbProgs]
+        mkData.data.forEach(p => { pMap[p.id] = p.slug })
       }
       
+      setDbPrograms(allPrograms)
+      setProgramMap(pMap)
       setIsLoading(false)
     })
   }, [])
@@ -301,13 +318,13 @@ export default function VideoPortalPage() {
           <div className="flex items-center gap-3 mt-2">
             <span
               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
-                userTier === "expert"
+                ["expert", "complete", "bootcamp"].includes(userTier)
                   ? "bg-violet-50 text-violet-700 border-violet-200"
                   : "bg-sky-50 text-sky-700 border-sky-200"
               }`}
             >
-              {userTier === "expert" ? <Crown className="w-3.5 h-3.5" /> : <Video className="w-3.5 h-3.5" />}
-              Paket {userTier === "expert" ? "Expert" : "Junior"}
+              {["expert", "complete", "bootcamp"].includes(userTier) ? <Crown className="w-3.5 h-3.5" /> : <Video className="w-3.5 h-3.5" />}
+              Paket {userTier === "complete" || userTier === "bootcamp" ? "Bootcamp Lengkap" : userTier === "expert" ? "Expert" : "Junior"}
             </span>
             <span className="flex items-center gap-1 text-xs text-slate-500">
               <BookOpen className="w-3.5 h-3.5" />
