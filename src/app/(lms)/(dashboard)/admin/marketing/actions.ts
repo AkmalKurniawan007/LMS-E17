@@ -401,20 +401,26 @@ export async function getOrderStats() {
     let guestViews = 0;
     let loggedInViews = 0;
     try {
-      // Get guest views (user_id is null)
-      const { count: guestCount } = await supabase
+      // Get guest views (user_id is null) - unique by session_id
+      const { data: guestData } = await supabase
         .from('marketing_page_views')
-        .select('*', { count: 'exact', head: true })
-        .is('user_id', null);
+        .select('session_id')
+        .is('user_id', null)
+        .limit(50000); // allow up to 50k rows for distinct calculation
       
-      // Get logged in views (user_id is not null)
-      const { count: loggedInCount } = await supabase
+      // Get logged in views (user_id is not null) - unique by user_id
+      const { data: loggedInData } = await supabase
         .from('marketing_page_views')
-        .select('*', { count: 'exact', head: true })
-        .not('user_id', 'is', null);
+        .select('user_id')
+        .not('user_id', 'is', null)
+        .limit(50000);
 
-      guestViews = guestCount ?? 0;
-      loggedInViews = loggedInCount ?? 0;
+      // Hitung pengunjung unik (Unique Visitors)
+      const uniqueGuestSessions = new Set((guestData || []).map(row => row.session_id));
+      const uniqueLoggedInUsers = new Set((loggedInData || []).map(row => row.user_id));
+
+      guestViews = uniqueGuestSessions.size;
+      loggedInViews = uniqueLoggedInUsers.size;
       pageViews = guestViews + loggedInViews;
     } catch (e) {
       console.log('marketing_page_views table not yet available');
