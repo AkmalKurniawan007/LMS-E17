@@ -105,7 +105,7 @@ export default function KelasSayaPage() {
       if (enData) {
         enData.forEach(en => {
           const batch = Array.isArray(en.batches) ? en.batches[0] : en.batches;
-          const prog = batch?.programs;
+          const prog = Array.isArray(batch?.programs) ? batch?.programs[0] : batch?.programs;
           const mp = prog?.marketing_programs;
           const actualMp = Array.isArray(mp) ? mp[0] : mp;
           
