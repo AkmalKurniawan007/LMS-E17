@@ -61,12 +61,32 @@ function VideoPlayer({ video, canWatch }: { video: CurriculumVideo; canWatch: bo
     )
   }
 
+  const getEmbedUrl = (url: string) => {
+    if (!url) return '';
+    try {
+      if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        let videoId = '';
+        if (url.includes('youtu.be')) {
+          videoId = url.split('/').pop()?.split('?')[0] || '';
+        } else {
+          videoId = new URL(url).searchParams.get('v') || '';
+        }
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+      }
+    } catch (e) {
+      console.error('Invalid video URL', e);
+    }
+    return url;
+  };
+
+  const embedUrl = getEmbedUrl(video.videoUrl);
+
   return (
     <div className="aspect-video rounded-2xl overflow-hidden bg-black">
       <iframe
-        src={video.videoUrl}
+        src={embedUrl}
         className="w-full h-full"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
         title={video.title}
       />

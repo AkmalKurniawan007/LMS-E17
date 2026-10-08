@@ -25,7 +25,7 @@ export default function ClassVideoPlayer({ role, purchasedTier }: { role?: strin
       const { data: programData, error: progError } = await supabase
         .from('marketing_programs')
         .select('*')
-        .eq('id', programId)
+        .or(`id.eq.${programId},lms_program_id.eq.${programId}`)
         .single();
         
       if (!progError && programData) {

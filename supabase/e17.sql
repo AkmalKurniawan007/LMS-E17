@@ -577,8 +577,15 @@ CREATE TABLE public.video_access (
   notes text,
   expires_at timestamp with time zone,
   CONSTRAINT video_access_pkey PRIMARY KEY (id),
-  CONSTRAINT video_access_user_program_key UNIQUE (user_id, program_id),
   CONSTRAINT va_user_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT va_order_fkey FOREIGN KEY (order_id) REFERENCES public.checkout_orders(id),
   CONSTRAINT va_granter_fkey FOREIGN KEY (granted_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.marketing_page_views (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  path text NOT NULL,
+  user_id uuid,
+  session_id text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT marketing_page_views_pkey PRIMARY KEY (id)
 );
