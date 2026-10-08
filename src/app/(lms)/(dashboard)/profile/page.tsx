@@ -278,7 +278,7 @@ export default function ProfileSettingsPage() {
                     value={profile.phone} 
                     onChange={e => setProfile({...profile, phone: e.target.value})} 
                     className="h-11 border-slate-300 focus:border-e17-navy focus:ring-e17-navy"
-                    placeholder="Contoh: 082224447241"
+                    placeholder="Contoh: 081234567890"
                   />
                 </div>
 
