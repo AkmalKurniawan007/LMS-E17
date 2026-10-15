@@ -60,6 +60,7 @@ const BenefitCard = ({
         <>
           <div
             aria-hidden
+            suppressHydrationWarning
             className="absolute -right-10 -bottom-10 w-[240px] h-[160px] opacity-[0.15] pointer-events-none"
             style={{ background: "repeating-linear-gradient(45deg, var(--color-signal), var(--color-signal) 8px, transparent 8px, transparent 20px)" }}
           />

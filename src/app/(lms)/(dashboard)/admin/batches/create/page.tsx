@@ -68,8 +68,8 @@ function CreateBatchForm() {
         start_date: formData.start_date,
         end_date: formData.end_date || null,
         timezone: formData.timezone,
-        quiz_weight: formData.quiz_weight,
-        task_weight: formData.task_weight
+        quiz_weight: Number(formData.quiz_weight) || 0,
+        task_weight: Number(formData.task_weight) || 0
       })
       .select('id')
       .single()
@@ -202,10 +202,12 @@ function CreateBatchForm() {
                 <Input 
                   type="number" 
                   min={0} max={100}
-                  value={formData.quiz_weight} 
+                  placeholder="0"
+                  value={formData.quiz_weight ?? ''} 
+                  onFocus={e => e.target.select()}
                   onChange={e => {
-                    const qv = parseInt(e.target.value) || 0
-                    setFormData({...formData, quiz_weight: qv, task_weight: 100 - qv})
+                    const qv = e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)
+                    setFormData({...formData, quiz_weight: qv, task_weight: typeof qv === 'number' ? Math.max(0, 100 - qv) : ('' as any)})
                   }} 
                 />
               </div>
@@ -214,10 +216,12 @@ function CreateBatchForm() {
                 <Input 
                   type="number" 
                   min={0} max={100}
-                  value={formData.task_weight} 
+                  placeholder="0"
+                  value={formData.task_weight ?? ''} 
+                  onFocus={e => e.target.select()}
                   onChange={e => {
-                    const tv = parseInt(e.target.value) || 0
-                    setFormData({...formData, task_weight: tv, quiz_weight: 100 - tv})
+                    const tv = e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)
+                    setFormData({...formData, task_weight: tv, quiz_weight: typeof tv === 'number' ? Math.max(0, 100 - tv) : ('' as any)})
                   }} 
                 />
               </div>

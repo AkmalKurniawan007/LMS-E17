@@ -13,12 +13,9 @@ import { getMyVideoAccess, type VideoAccess } from "@/app/(lms)/(dashboard)/admi
 // ================================================================
 // HELPERS
 // ================================================================
-const TIER_LEVEL: Record<string, number> = { junior: 1, expert: 2 }
-
 function canWatchVideo(videoIndex: number, tier: string): boolean {
-  if (tier === "expert" || tier === "complete" || tier === "bootcamp") return true
-  // Junior hanya bisa nonton setengah pertama kurikulum (video "basic")
-  return videoIndex < 2
+  // Semua paket (Self Paced, Mentoring Plus, Pro Bootcamp) memiliki akses ke seluruh video pembelajaran
+  return true
 }
 
 // ================================================================
@@ -33,17 +30,16 @@ function VideoPlayer({ video, canWatch }: { video: CurriculumVideo; canWatch: bo
           <div className="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center">
             <Lock className="w-6 h-6 text-slate-300" />
           </div>
-          <p className="text-white font-bold text-lg">Materi Expert</p>
+          <p className="text-white font-bold text-lg">Materi Terkunci</p>
           <p className="text-slate-400 text-sm max-w-xs">
-            Video ini tersedia untuk paket <strong className="text-white">Expert</strong> dan <strong className="text-white">Bootcamp</strong>.
-            Upgrade paket Anda untuk mengakses materi ini.
+            Silakan pilih paket belajar untuk mengakses seluruh video pembelajaran.
           </p>
           <Link
             href="/#pricing"
             className="mt-2 inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors"
           >
             <Crown className="w-4 h-4" />
-            Upgrade Paket
+            Pilih Paket
           </Link>
         </div>
       </div>
@@ -182,7 +178,7 @@ function NoAccessView() {
       </div>
       <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Belum Ada Akses Video</h2>
       <p className="text-slate-500 max-w-md mb-6">
-        Anda belum memiliki akses ke video materi. Beli paket Junior atau Expert dari halaman utama.
+        Anda belum memiliki akses ke video materi. Pilih salah satu paket belajar dari halaman utama.
       </p>
       <Link
         href="/#pricing"
@@ -344,7 +340,7 @@ export default function VideoPortalPage() {
               }`}
             >
               {["expert", "complete", "bootcamp"].includes(userTier) ? <Crown className="w-3.5 h-3.5" /> : <Video className="w-3.5 h-3.5" />}
-              Paket {userTier === "complete" || userTier === "bootcamp" ? "Bootcamp Lengkap" : userTier === "expert" ? "Expert" : "Junior"}
+              Paket {userTier === "complete" || userTier === "bootcamp" ? "Pro Bootcamp (BNSP)" : userTier === "expert" ? "Mentoring Plus" : "Self Paced"}
             </span>
             <span className="flex items-center gap-1 text-xs text-slate-500">
               <BookOpen className="w-3.5 h-3.5" />
@@ -353,13 +349,13 @@ export default function VideoPortalPage() {
           </div>
         </div>
 
-        {userTier === "junior" && (
+        {userTier !== "complete" && userTier !== "bootcamp" && (
           <Link
             href="/#pricing"
             className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors"
           >
             <Crown className="w-4 h-4" />
-            Upgrade ke Expert
+            Upgrade ke Mentoring Plus / Pro Bootcamp
           </Link>
         )}
       </div>
@@ -394,9 +390,7 @@ export default function VideoPortalPage() {
             <div className="px-5 py-4 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-sm">Daftar Materi</h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                {userTier === "junior"
-                  ? `${Math.min(2, curriculum.length)} dari ${curriculum.length} video tersedia`
-                  : `${curriculum.length} video tersedia`}
+                {`${curriculum.length} video tersedia`}
               </p>
             </div>
             <div className="p-3 space-y-1 max-h-[480px] overflow-y-auto">

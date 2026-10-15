@@ -5,6 +5,9 @@ import { Sidebar, type UserRole } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
 import { usePathname } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
+import { Tier, getHighestTier } from "@/lib/access-tier"
+
+import { checkAndSyncStudentRole } from "@/app/(lms)/actions"
 
 export default function LmsLayout({
   children,
@@ -22,6 +25,7 @@ export default function LmsLayout({
   if (pathname?.startsWith("/mentor")) initialRole = "Mentor"
 
   const [userRole, setUserRole] = React.useState<UserRole>(initialRole)
+  const [userTier, setUserTier] = React.useState<Tier>('junior')
   const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
@@ -30,25 +34,90 @@ export default function LmsLayout({
       if (user) {
         const { data, error } = await supabase.from('users').select('*').eq('id', user.id).single()
         
-        // Proteksi: Jika query berhasil tapi user tidak memiliki role LMS (baru daftar di marketing)
-        if (!error && !data?.role) {
-          window.location.href = '/'
+        let currentRole = data?.role
+        let userEnrollments: any[] | null = null
+
+        // Helper untuk fetch enrollments aktif dengan relasi checkout_orders
+        const fetchActiveEnrollments = async () => {
+          const { data: enList } = await supabase
+            .from('enrollments')
+            .select(`
+              id,
+              status,
+              enrollment_source,
+              checkout_order_id,
+              checkout_orders (
+                tier_type
+              )
+            `)
+            .eq('user_id', user.id)
+            .eq('status', 'aktif')
+
+          return enList || []
+        }
+
+        // Jika user belum memiliki role di tabel users, cek apakah memiliki batch aktif
+        if (!currentRole) {
+          const activeEnrollment = await fetchActiveEnrollments()
+
+          if (activeEnrollment && activeEnrollment.length > 0) {
+            currentRole = 'siswa'
+            userEnrollments = activeEnrollment
+            // Sinkronkan ke database users.role = 'siswa' di background
+            checkAndSyncStudentRole().catch(console.error)
+          }
+        }
+
+        // Proteksi: Jika user sama sekali tidak memiliki role dan tidak punya kelas aktif
+        if (!currentRole) {
+          window.location.href = '/pembeli/kelas-saya'
           return
         }
 
-        // Update role from database
-        if (data?.role === 'admin') setUserRole('Super Admin')
-        else if (data?.role === 'mentor') setUserRole('Mentor')
-        else setUserRole('Siswa')
+        // Update role
+        if (currentRole === 'admin' || currentRole === 'superadmin' || currentRole === 'super_admin') {
+          setUserRole('Super Admin')
+        } else if (currentRole === 'mentor') {
+          setUserRole('Mentor')
+        } else {
+          setUserRole('Siswa')
+          
+          let activeEnrollment = userEnrollments
+          if (!activeEnrollment) {
+            activeEnrollment = await fetchActiveEnrollments()
+          }
 
-        // Proteksi: Wajib lengkapi profil (terutama dari Google login) sebelum akses kelas/LMS
-        const isProfileIncomplete = !data?.phone || !data?.domicile || !data?.birth_date || !data?.institution
-        if (isProfileIncomplete && pathname !== '/profile') {
-          // Kasih peringatan menggunakan alert bawaan browser agar user paham kenapa dialihkan
-          alert("PERHATIAN: Anda wajib melengkapi data profil (Whatsapp, Domisili, dll) terlebih dahulu sebelum dapat mengakses fitur LMS.")
-          // Force redirect ke profil
-          window.location.href = '/profile'
-          return
+          if (!activeEnrollment || activeEnrollment.length === 0) {
+            // Cek apakah user punya akses video aktif (junior / video only)
+            const { data: va } = await supabase
+              .from('video_access')
+              .select('id, tier')
+              .eq('user_id', user.id)
+              .eq('is_active', true)
+              .limit(1)
+
+            if (va && va.length > 0) {
+              setUserTier((va[0].tier as Tier) || 'junior')
+            } else {
+              window.location.href = '/pembeli/kelas-saya'
+              return
+            }
+          } else {
+            // Siswa terdaftar pada Batch LMS aktif:
+            // 1. Jika via checkout_orders: Paket 2 = 'expert', Paket 3 = 'complete'
+            // 2. Jika diinput manual oleh Admin (manual_admin / bulk_import): otomatis 'bootcamp'
+            const resolvedTiers: Tier[] = activeEnrollment.map((en: any) => {
+              const co = Array.isArray(en.checkout_orders) ? en.checkout_orders[0] : en.checkout_orders
+              if (co?.tier_type) {
+                return co.tier_type as Tier
+              }
+              // Siswa inputan Admin otomatis menjadi 'bootcamp'
+              return 'bootcamp' as Tier
+            })
+
+            const effectiveTier = getHighestTier(resolvedTiers)
+            setUserTier(effectiveTier)
+          }
         }
 
         if (data?.full_name) {
@@ -89,6 +158,7 @@ export default function LmsLayout({
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar
         role={userRole}
+        tier={userTier}
         isMobileOpen={isMobileMenuOpen}
         onMobileClose={() => setIsMobileMenuOpen(false)}
       />

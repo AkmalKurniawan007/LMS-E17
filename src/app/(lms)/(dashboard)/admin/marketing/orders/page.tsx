@@ -15,7 +15,6 @@ import {
   confirmCheckoutOrder,
   type CheckoutOrder,
 } from "../actions"
-import { programs } from "@/components/marketing/data/marketing-data"
 
 const formatPrice = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n)
@@ -29,9 +28,10 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: React.Rea
 }
 
 const TIER_BADGE: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  junior:    { label: "Junior (Video)",    color: "bg-sky-50 text-sky-700 border-sky-200",       icon: <Video className="w-3 h-3" /> },
-  expert:    { label: "Expert (Video)",    color: "bg-violet-50 text-violet-700 border-violet-200", icon: <Video className="w-3 h-3" /> },
-  bootcamp:  { label: "Bootcamp Lengkap", color: "bg-orange-50 text-orange-700 border-orange-200", icon: <Users className="w-3 h-3" /> },
+  junior:    { label: "Self Paced",          color: "bg-sky-50 text-sky-700 border-sky-200",       icon: <Video className="w-3 h-3" /> },
+  expert:    { label: "Mentoring Plus",      color: "bg-violet-50 text-violet-700 border-violet-200", icon: <Video className="w-3 h-3" /> },
+  complete:  { label: "Pro Bootcamp (BNSP)", color: "bg-amber-50 text-amber-700 border-amber-200",  icon: <Users className="w-3 h-3" /> },
+  bootcamp:  { label: "Pro Bootcamp (BNSP)", color: "bg-amber-50 text-amber-700 border-amber-200",  icon: <Users className="w-3 h-3" /> },
 }
 
 // ================================================================
@@ -60,8 +60,9 @@ function OrderModal({
   const [loadingBatches, setLoadingBatches] = React.useState(false)
   const [grantError, setGrantError] = React.useState<string | null>(null)
 
-  const isVideoTier = order.tier_type === "junior" || order.tier_type === "expert"
-  const isBootcamp  = order.tier_type === "bootcamp" || order.tier_type === "complete"
+  const isVideoTier = order.tier_type === "junior"
+  const isMentoringOrBootcamp = order.tier_type === "expert" || order.tier_type === "bootcamp" || order.tier_type === "complete"
+  const isBootcamp  = isMentoringOrBootcamp
   const tierMeta    = TIER_BADGE[order.tier_type] ?? TIER_BADGE.bootcamp
   const isAlreadyGranted = (order as any).access_granted === true
 
@@ -81,7 +82,7 @@ function OrderModal({
   }, [order.payment_proof_url])
 
   React.useEffect(() => {
-    if (isBootcamp) {
+    if (isMentoringOrBootcamp) {
       setLoadingBatches(true)
       getProgramBatches(order.program_id).then(res => {
         if (res.success) {
@@ -94,25 +95,55 @@ function OrderModal({
         setLoadingBatches(false)
       })
     }
-  }, [isBootcamp, order.program_id])
+  }, [isMentoringOrBootcamp, order.program_id])
+
+  // Masa aktif akses video
+  const getDefaultExpiryDate = (months: number) => {
+    const d = new Date()
+    d.setMonth(d.getMonth() + months)
+    return d.toISOString().split("T")[0]
+  }
+
+  const initialVa = Array.isArray(order.video_access) && order.video_access.length > 0 ? order.video_access[0] : null
+  const initialExpiry = initialVa ? (initialVa.expires_at ? initialVa.expires_at.split('T')[0] : '') : getDefaultExpiryDate(2)
+  const initialMonths = initialVa ? (initialVa.expires_at ? -1 : 0) : 2
+
+  const [expiryDate, setExpiryDate] = React.useState<string>(initialExpiry)
+  const [selectedMonths, setSelectedMonths] = React.useState<number>(initialMonths)
 
   const handleSaveStatus = async () => {
     setIsSaving(true)
+    setGrantError(null)
     
-    if (status === 'confirmed' && isBootcamp) {
-      if (!selectedBatch) {
-        setGrantError("Pilih batch terlebih dahulu")
+    let res: { success: boolean; error?: string } = { success: false }
+
+    if (status === 'confirmed' || status === 'paid') {
+      if (isMentoringOrBootcamp && !selectedBatch) {
+        setGrantError("Silakan pilih Batch LMS untuk paket Mentoring/Bootcamp.")
         setIsSaving(false)
         return
       }
-      const res = await confirmCheckoutOrder(order.id, selectedBatch, adminNotes)
-      if (!res.success) {
-        setGrantError(res.error || "Gagal mengkonfirmasi order")
-        setIsSaving(false)
-        return
-      }
+      res = await confirmCheckoutOrder(
+        order.id,
+        isMentoringOrBootcamp ? selectedBatch : null,
+        adminNotes,
+        expiryDate || null,
+        status as 'confirmed' | 'paid'
+      )
     } else {
-      await updateOrderStatus(order.id, status, adminNotes, status === 'rejected' ? rejectedReason : undefined)
+      res = await updateOrderStatus(
+        order.id,
+        status,
+        adminNotes,
+        status === 'rejected' ? rejectedReason : undefined,
+        null
+      )
+    }
+
+    if (!res.success) {
+      setGrantError(res.error || "Gagal mengubah status order")
+      setIsSaving(false)
+      return
     }
 
     await onRefresh()
@@ -166,7 +197,7 @@ function OrderModal({
                 <div className="space-y-2">
                   <img src={proofUrl} alt="Bukti Pembayaran" className="w-full rounded-lg border border-slate-200" />
                   <p className="text-xs text-slate-500">
-                    Diunggah: {order.payment_proof_uploaded_at ? new Date(order.payment_proof_uploaded_at).toLocaleString('id-ID') : '-'}
+                    Diunggah: {(order as any).updated_at ? new Date((order as any).updated_at).toLocaleString('id-ID') : '-'}
                   </p>
                 </div>
               ) : (
@@ -177,12 +208,12 @@ function OrderModal({
 
 
 
-          {/* BOOTCAMP INFO & BATCH SELECTION */}
-          {isBootcamp && status === 'confirmed' && (
+          {/* LIVE MENTORING / BOOTCAMP BATCH SELECTION */}
+          {isBootcamp && (status === 'confirmed' || status === 'paid') && (
             <div className="rounded-xl p-4 border-2 border-orange-200 bg-orange-50">
               <div className="flex items-center gap-2 mb-3">
                 <Users className="w-4 h-4 text-orange-600" />
-                <p className="text-sm font-bold text-slate-900">Konfirmasi Bootcamp</p>
+                <p className="text-sm font-bold text-slate-900">Alokasi Batch Kelas (Live Mentoring)</p>
               </div>
               
               {loadingBatches ? (
@@ -240,6 +271,78 @@ function OrderModal({
             </div>
           </div>
 
+          {/* Masa Aktif Akses Video (Hanya jika Dikonfirmasi / Lunas) */}
+          {(status === 'confirmed' || status === 'paid') && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-blue-600" />
+                  Masa Aktif Akses Video
+                </label>
+                {expiryDate ? (
+                  <span className="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
+                    Hingga: {new Date(expiryDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                ) : (
+                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                    Selamanya (Lifetime)
+                  </span>
+                )}
+              </div>
+
+              {/* Preset Buttons */}
+              <div className="flex flex-wrap gap-1.5">
+                {[1, 2, 3, 6, 12].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => {
+                      setSelectedMonths(m);
+                      setExpiryDate(getDefaultExpiryDate(m));
+                    }}
+                    className={`text-xs px-2.5 py-1.5 rounded-lg font-semibold transition-all border ${
+                      selectedMonths === m && expiryDate === getDefaultExpiryDate(m)
+                        ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
+                    }`}
+                  >
+                    {m} Bulan {m === 2 ? "(Default)" : ""}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedMonths(0);
+                    setExpiryDate("");
+                  }}
+                  className={`text-xs px-2.5 py-1.5 rounded-lg font-semibold transition-all border ${
+                    expiryDate === ""
+                      ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  Selamanya
+                </button>
+              </div>
+
+              {/* Date Input */}
+              <div>
+                <label className="block text-[11px] font-medium text-slate-500 mb-1">
+                  Atur Tanggal Kedaluwarsa Tertentu:
+                </label>
+                <input
+                  type="date"
+                  value={expiryDate}
+                  onChange={(e) => {
+                    setExpiryDate(e.target.value);
+                    setSelectedMonths(-1);
+                  }}
+                  className="w-full text-xs font-medium border border-slate-200 rounded-lg p-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Rejected Reason */}
           {status === 'rejected' && (
             <div>
@@ -270,7 +373,7 @@ function OrderModal({
             />
           </div>
 
-          {grantError && status === 'confirmed' && isBootcamp && (
+          {grantError && (
             <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               {grantError}
             </p>
@@ -283,7 +386,7 @@ function OrderModal({
           <Button
             size="sm"
             onClick={handleSaveStatus}
-            disabled={isSaving || (status === 'confirmed' && isBootcamp && (!lmsProgramId || batches.length === 0))}
+            disabled={isSaving}
             className="bg-slate-900 hover:bg-slate-800 text-white"
           >
             {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -356,8 +459,7 @@ export default function AdminOrdersPage() {
       <div>
         <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Order Pendaftaran</h1>
         <p className="text-slate-500 text-sm mt-1">
-          Kelola order masuk. Untuk tier <strong>Junior/Expert</strong>: konfirmasi lalu klik "Berikan Akses Video".
-          Untuk <strong>Bootcamp</strong>: konfirmasi lalu enroll ke batch di menu Manajemen Batch.
+          Kelola order masuk. Konfirmasi pembayaran dan atur masa aktif akses video pembeli secara otomatis.
         </p>
       </div>
 
@@ -411,9 +513,9 @@ export default function AdminOrdersPage() {
             className="w-full sm:w-44 px-3 pr-8 py-2.5 text-sm border border-slate-200 rounded-lg bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-slate-900/20"
           >
             <option value="">Semua Tier</option>
-            <option value="junior">Junior (Video)</option>
-            <option value="expert">Expert (Video)</option>
-            <option value="bootcamp">Bootcamp</option>
+            <option value="junior">Self Paced</option>
+            <option value="expert">Mentoring Plus</option>
+            <option value="bootcamp">Pro Bootcamp</option>
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
         </div>
@@ -450,7 +552,7 @@ export default function AdminOrdersPage() {
                   const statusMeta = STATUS_MAP[order.status] ?? STATUS_MAP.pending
                   const tierMeta = TIER_BADGE[order.tier_type] ?? TIER_BADGE.bootcamp
                   const isVideoTier = order.tier_type === "junior" || order.tier_type === "expert"
-                  const isGranted = (order as any).access_granted === true
+                  const isGranted = order.status === "confirmed" || order.status === "paid" || (order as any).access_granted === true
 
                   return (
                     <tr key={order.id} className="hover:bg-slate-50 transition-colors">
@@ -477,9 +579,20 @@ export default function AdminOrdersPage() {
                       <td className="px-5 py-4">
                         {isVideoTier ? (
                           isGranted ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Aktif
-                            </span>
+                            <div className="flex flex-col items-start gap-0.5">
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                                <CheckCircle2 className="w-3.5 h-3.5" /> Aktif
+                              </span>
+                              {order.video_access?.[0]?.expires_at ? (
+                                <span className="text-[11px] text-slate-500 font-medium">
+                                  s.d {new Date(order.video_access[0].expires_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                                </span>
+                              ) : order.video_access?.[0]?.expires_at === null ? (
+                                <span className="text-[11px] text-emerald-600 font-medium">
+                                  Selamanya
+                                </span>
+                              ) : null}
+                            </div>
                           ) : (
                             <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600">
                               <Clock className="w-3.5 h-3.5" /> Belum

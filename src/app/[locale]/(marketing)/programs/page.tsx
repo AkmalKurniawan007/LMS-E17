@@ -37,7 +37,7 @@ export default async function ProgramsPage({ params }: { params: Promise<{ local
     <div className="min-h-screen bg-[var(--color-paper)] text-[var(--color-ink)] font-sans relative overflow-hidden">
       {/* Motif Backgrounds */}
       <div aria-hidden className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--color-signal)]/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-      <div aria-hidden className="absolute top-40 left-10 w-[300px] h-[200px] opacity-[0.03] pointer-events-none" style={{ background: 'repeating-linear-gradient(45deg, var(--color-ink), var(--color-ink) 2px, transparent 2px, transparent 12px)' }} />
+      <div aria-hidden suppressHydrationWarning className="absolute top-40 left-10 w-[300px] h-[200px] opacity-[0.03] pointer-events-none" style={{ background: 'repeating-linear-gradient(45deg, var(--color-ink), var(--color-ink) 2px, transparent 2px, transparent 12px)' }} />
 
       {/* Header */}
       <MarketingHeader isLoggedIn={isLoggedIn} purchasedProgramId={purchasedProgramId} userRole={role} hasLmsAccess={hasLmsAccess} />

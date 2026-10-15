@@ -10,7 +10,7 @@ interface CheckoutLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   program?: { id: string; name: string };
-  tier?: { type: string; label: string; price: number };
+  tier?: { type?: string; tier_type?: string; label?: string; price?: number };
 }
 
 export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: CheckoutLoginModalProps) {
@@ -58,7 +58,8 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
 
       onClose();
       if (program && tier) {
-        router.push(`/checkout?program=${program.id}&tier=${tier.type}`);
+        const selectedTierType = tier.tier_type || tier.type;
+        router.push(`/checkout?program=${program.id}&tier=${selectedTierType}`);
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Terjadi kesalahan. Coba lagi.";
@@ -74,8 +75,9 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
     try {
       const { createClient } = await import("@/utils/supabase/client");
       const supabase = createClient();
+      const selectedTierType = tier ? (tier.tier_type || tier.type) : undefined;
       const redirectTo = program && tier
-        ? `${window.location.origin}/checkout?program=${program.id}&tier=${tier.type}`
+        ? `${window.location.origin}/checkout?program=${program.id}&tier=${selectedTierType}`
         : `${window.location.origin}/`;
       await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -139,7 +141,7 @@ export default function CheckoutLoginModal({ isOpen, onClose, program, tier }: C
                   <div className="pt-4 border-t border-slate-100 flex items-end justify-between">
                     <span className="text-slate-500 text-sm">Total</span>
                     <span className="font-extrabold text-slate-900 text-xl">
-                      {formatPrice(tier.price)}
+                      {formatPrice(tier.price || 0)}
                     </span>
                   </div>
                 </div>

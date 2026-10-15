@@ -11,6 +11,8 @@ import { createClient } from "@/utils/supabase/client"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import { id } from "date-fns/locale"
+import { TIER_LABELS, Tier } from "@/lib/access-tier"
+import { updateStudentTier } from "../tier-actions"
 
 export default function AdminBatchDetailPage({
   params,
@@ -48,6 +50,13 @@ export default function AdminBatchDetailPage({
     end_date: "",
     mentor_id: ""
   })
+
+  // State untuk Filter Tier & Ubah Tier (T6)
+  const [tierFilter, setTierFilter] = React.useState<string>("all")
+  const [isTierModalOpen, setIsTierModalOpen] = React.useState(false)
+  const [studentToChangeTier, setStudentToChangeTier] = React.useState<any>(null)
+  const [selectedTier, setSelectedTier] = React.useState<'expert' | 'complete' | 'bootcamp'>('bootcamp')
+  const [isUpdatingTier, setIsUpdatingTier] = React.useState(false)
 
   React.useEffect(() => {
     fetchData()
@@ -90,11 +99,11 @@ export default function AdminBatchDetailPage({
       })
     }
 
-    // Fetch students
+    // Fetch students (T6: include tier)
     const { data: enrolls } = await supabase
       .from('enrollments')
       .select(`
-        id, created_at, status,
+        id, created_at, status, tier,
         users ( id, full_name, email )
       `)
       .eq('batch_id', batchId)
@@ -108,6 +117,7 @@ export default function AdminBatchDetailPage({
         email: enr.users?.email || "-",
         phone: "-",
         status: enr.status,
+        tier: (enr.tier as Tier) || 'bootcamp',
         joinedAt: new Date(enr.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
       })))
     }
@@ -208,7 +218,36 @@ export default function AdminBatchDetailPage({
       return
     }
 
-    // 2. Insert into sessions
+    // 2. Fetch associated videos from marketing curriculum or program template
+    let videoMap = new Map<number, string>()
+    try {
+      progSess.forEach((ps: any) => {
+        if (ps.video_url) videoMap.set(ps.order_number, ps.video_url)
+      })
+      const { data: mp } = await supabase
+        .from('marketing_programs')
+        .select('id')
+        .eq('lms_program_id', batchData?.program_id || null)
+        .maybeSingle()
+
+      if (mp) {
+        const { data: mCurrs } = await supabase
+          .from('marketing_program_curriculum')
+          .select('sort_order, video_url')
+          .eq('program_id', mp.id)
+          .not('video_url', 'is', null)
+
+        mCurrs?.forEach((c: any) => {
+          if (c.video_url && !videoMap.has(c.sort_order)) {
+            videoMap.set(c.sort_order, c.video_url)
+          }
+        })
+      }
+    } catch (vidErr) {
+      console.warn("Video mapping lookup warning:", vidErr)
+    }
+
+    // 3. Insert into sessions
     const newSessions = progSess.map(ps => ({
       batch_id: batchId,
       order_number: ps.order_number,
@@ -217,10 +256,30 @@ export default function AdminBatchDetailPage({
       format: ps.format
     }))
 
-    const { error } = await supabase.from('sessions').insert(newSessions)
+    const { data: insertedSessions, error } = await supabase.from('sessions').insert(newSessions).select('id, order_number, title')
     if (error) {
       alert("Gagal generate sesi: " + error.message)
     } else {
+      // 4. Auto-populate materials from curriculum videos if available
+      if (insertedSessions && insertedSessions.length > 0 && videoMap.size > 0) {
+        try {
+          const autoMaterials = insertedSessions
+            .filter(s => videoMap.has(s.order_number))
+            .map(s => ({
+              session_id: s.id,
+              title: `Video Pembelajaran: ${s.title}`,
+              type: 'video',
+              content_url: videoMap.get(s.order_number)!,
+              order_number: 1
+            }))
+
+          if (autoMaterials.length > 0) {
+            await supabase.from('materials').insert(autoMaterials)
+          }
+        } catch (matErr) {
+          console.warn("Auto-insert materials warning:", matErr)
+        }
+      }
       fetchData()
     }
     setIsSaving(false)
@@ -252,7 +311,36 @@ export default function AdminBatchDetailPage({
       return
     }
 
-    // 3. Insert into sessions
+    // 3. Fetch associated videos
+    let videoMap = new Map<number, string>()
+    try {
+      progSess.forEach((ps: any) => {
+        if (ps.video_url) videoMap.set(ps.order_number, ps.video_url)
+      })
+      const { data: mp } = await supabase
+        .from('marketing_programs')
+        .select('id')
+        .eq('lms_program_id', batchData?.program_id || null)
+        .maybeSingle()
+
+      if (mp) {
+        const { data: mCurrs } = await supabase
+          .from('marketing_program_curriculum')
+          .select('sort_order, video_url')
+          .eq('program_id', mp.id)
+          .not('video_url', 'is', null)
+
+        mCurrs?.forEach((c: any) => {
+          if (c.video_url && !videoMap.has(c.sort_order)) {
+            videoMap.set(c.sort_order, c.video_url)
+          }
+        })
+      }
+    } catch (vidErr) {
+      console.warn("Video mapping lookup warning:", vidErr)
+    }
+
+    // 4. Insert into sessions
     const newSessions = progSess.map(ps => ({
       batch_id: batchId,
       order_number: ps.order_number,
@@ -261,11 +349,31 @@ export default function AdminBatchDetailPage({
       format: ps.format
     }))
 
-    const { error } = await supabase.from('sessions').insert(newSessions)
+    const { data: insertedSessions, error } = await supabase.from('sessions').insert(newSessions).select('id, order_number, title')
     if (error) {
       alert("Gagal generate sesi baru: " + error.message)
     } else {
-      alert("Sesi berhasil di-reset dan disinkronkan dengan Program.")
+      // 5. Auto-populate materials
+      if (insertedSessions && insertedSessions.length > 0 && videoMap.size > 0) {
+        try {
+          const autoMaterials = insertedSessions
+            .filter(s => videoMap.has(s.order_number))
+            .map(s => ({
+              session_id: s.id,
+              title: `Video Pembelajaran: ${s.title}`,
+              type: 'video',
+              content_url: videoMap.get(s.order_number)!,
+              order_number: 1
+            }))
+
+          if (autoMaterials.length > 0) {
+            await supabase.from('materials').insert(autoMaterials)
+          }
+        } catch (matErr) {
+          console.warn("Auto-insert materials warning:", matErr)
+        }
+      }
+      alert("Sesi berhasil di-reset dan disinkronkan dengan Program beserta video materi.")
       fetchData()
     }
     setIsSaving(false)
@@ -324,6 +432,40 @@ export default function AdminBatchDetailPage({
     }
     setIsSaving(false)
   }
+
+  const handleOpenTierModal = (student: any) => {
+    setStudentToChangeTier(student)
+    const current = student.tier === 'expert' || student.tier === 'complete' || student.tier === 'bootcamp'
+      ? student.tier
+      : 'bootcamp'
+    setSelectedTier(current)
+    setIsTierModalOpen(true)
+  }
+
+  const handleConfirmTierChange = async () => {
+    if (!studentToChangeTier) return
+    setIsUpdatingTier(true)
+    try {
+      const res = await updateStudentTier(studentToChangeTier.id, selectedTier)
+      if (!res.success) {
+        alert(res.error || 'Gagal mengubah tier siswa')
+      } else {
+        alert(`Tier siswa ${studentToChangeTier.name} berhasil diubah ke ${TIER_LABELS[selectedTier] || selectedTier}.`)
+        setIsTierModalOpen(false)
+        setStudentToChangeTier(null)
+        await fetchData()
+      }
+    } catch (err: any) {
+      alert('Terjadi kesalahan: ' + err.message)
+    } finally {
+      setIsUpdatingTier(false)
+    }
+  }
+
+  const filteredStudents = React.useMemo(() => {
+    if (tierFilter === "all") return students
+    return students.filter(s => s.tier === tierFilter)
+  }, [students, tierFilter])
 
   if (isLoading) {
     return (
@@ -421,13 +563,30 @@ export default function AdminBatchDetailPage({
              <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-bold text-e17-dark">Daftar Siswa</h2>
-                <p className="text-sm text-slate-500">Kelola siswa yang terdaftar pada batch ini.</p>
+                <p className="text-sm text-slate-500">Kelola siswa dan tier paket belajar pada batch ini.</p>
               </div>
-              <div className="flex gap-2 shrink-0">
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
+                {/* T6: Filter dropdown tier */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-slate-600">Filter Tier:</span>
+                  <select
+                    value={tierFilter}
+                    onChange={(e) => setTierFilter(e.target.value)}
+                    className="h-9 text-xs rounded-lg border border-slate-200 bg-white px-3 py-1 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-e17-navy"
+                  >
+                    <option value="all">Semua ({students.length})</option>
+                    <option value="expert">Mentoring Plus ({students.filter(s => s.tier === 'expert').length})</option>
+                    <option value="complete">Pro Bootcamp ({students.filter(s => s.tier === 'complete').length})</option>
+                    <option value="bootcamp">Bootcamp ({students.filter(s => s.tier === 'bootcamp').length})</option>
+                  </select>
+                </div>
+
                 <Link href="/admin/students/import">
-                  <Button variant="outline" className="border-slate-200 bg-white text-slate-700"><FileUp className="h-4 w-4 mr-2" /> Import CSV</Button>
+                  <Button variant="outline" className="border-slate-200 bg-white text-slate-700 h-9 text-xs">
+                    <FileUp className="h-4 w-4 mr-2" /> Import CSV
+                  </Button>
                 </Link>
-                <Button variant="orange" className="font-bold shadow-sm" onClick={handleOpenAddManual}>
+                <Button variant="orange" className="font-bold shadow-sm h-9 text-xs" onClick={handleOpenAddManual}>
                   <Plus className="h-4 w-4 mr-2" /> Tambah Manual
                 </Button>
               </div>
@@ -438,20 +597,23 @@ export default function AdminBatchDetailPage({
                   <tr>
                     <th className="px-6 py-4 font-semibold">Nama Lengkap</th>
                     <th className="px-6 py-4 font-semibold">Email</th>
+                    <th className="px-6 py-4 font-semibold">Tier Paket</th>
                     <th className="px-6 py-4 font-semibold">No. HP</th>
                     <th className="px-6 py-4 font-semibold">Tgl Daftar</th>
                     <th className="px-6 py-4 font-semibold text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
-                  {students.length === 0 ? (
+                  {filteredStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                        Belum ada siswa yang terdaftar di batch ini.
+                      <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                        {students.length === 0 
+                          ? "Belum ada siswa yang terdaftar di batch ini." 
+                          : "Tidak ada siswa yang sesuai dengan filter tier yang dipilih."}
                       </td>
                     </tr>
                   ) : (
-                    students.map((student) => (
+                    filteredStudents.map((student) => (
                       <tr key={student.id} className="hover:bg-slate-50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-bold text-e17-dark">{student.name}</div>
@@ -460,18 +622,42 @@ export default function AdminBatchDetailPage({
                           )}
                         </td>
                         <td className="px-6 py-4 text-slate-500">{student.email}</td>
+                        {/* T6: Badge Tier */}
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            student.tier === 'expert' 
+                              ? 'bg-amber-50 text-amber-800 border border-amber-200' 
+                              : student.tier === 'complete' 
+                              ? 'bg-blue-50 text-blue-800 border border-blue-200' 
+                              : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                          }`}>
+                            {TIER_LABELS[student.tier as Tier] || student.tier}
+                          </span>
+                        </td>
                         <td className="px-6 py-4 text-slate-500">{student.phone}</td>
                         <td className="px-6 py-4 text-slate-500">{student.joinedAt}</td>
+                        {/* T6: Tombol Ubah Tier & Keluarkan */}
                         <td className="px-6 py-4 text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                            onClick={() => handleRemoveStudent(student.id, student.name)}
-                            disabled={student.status === 'mengundurkan diri'}
-                          >
-                            Keluarkan
-                          </Button>
+                          <div className="flex items-center justify-end gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-slate-100"
+                              onClick={() => handleOpenTierModal(student)}
+                              disabled={student.status === 'mengundurkan diri'}
+                            >
+                              Ubah Tier
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 text-xs text-red-500 hover:bg-red-50 hover:text-red-600"
+                              onClick={() => handleRemoveStudent(student.id, student.name)}
+                              disabled={student.status === 'mengundurkan diri'}
+                            >
+                              Keluarkan
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -480,6 +666,7 @@ export default function AdminBatchDetailPage({
               </table>
             </div>
 
+            {/* Modal Tambah Manual */}
             {isAddManualOpen && (
               <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
@@ -542,6 +729,104 @@ export default function AdminBatchDetailPage({
                     <Button className="bg-e17-navy hover:bg-slate-800 text-white" onClick={handleAddManualSubmit} disabled={isSaving || selectedStudentIds.length === 0}>
                       {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                       Tambahkan
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* T6: Modal Dialog Konfirmasi Ubah Tier */}
+            {isTierModalOpen && studentToChangeTier && (
+              <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+                  <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <div>
+                      <h3 className="font-bold text-lg text-e17-dark">Ubah Tier Siswa</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">{studentToChangeTier.name} ({studentToChangeTier.email})</p>
+                    </div>
+                    <button 
+                      onClick={() => { setIsTierModalOpen(false); setStudentToChangeTier(null); }} 
+                      className="text-slate-400 hover:text-slate-600 font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="p-6 space-y-5">
+                    {/* Visual Perubahan Tier Lama -> Baru */}
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
+                      <div className="text-center flex-1">
+                        <span className="text-[11px] font-semibold text-slate-400 block mb-1">Tier Saat Ini</span>
+                        <span className="inline-block px-2.5 py-1 rounded-md text-xs font-bold bg-slate-200 text-slate-800">
+                          {TIER_LABELS[studentToChangeTier.tier as Tier] || studentToChangeTier.tier}
+                        </span>
+                      </div>
+                      <div className="px-2 text-slate-400 font-black">→</div>
+                      <div className="text-center flex-1">
+                        <span className="text-[11px] font-semibold text-slate-400 block mb-1">Tier Baru</span>
+                        <span className="inline-block px-2.5 py-1 rounded-md text-xs font-bold bg-e17-navy text-white">
+                          {TIER_LABELS[selectedTier]}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Radio Options */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Pilih Tier Tujuan
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'expert' as const, label: TIER_LABELS.expert, desc: 'Akses materi video & live class' },
+                          { value: 'complete' as const, label: TIER_LABELS.complete, desc: 'Akses video, live class, dan sertifikasi BNSP' },
+                          { value: 'bootcamp' as const, label: TIER_LABELS.bootcamp, desc: 'Akses penuh seluruh fasilitas bootcamp' },
+                        ].map((opt) => (
+                          <label
+                            key={opt.value}
+                            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                              selectedTier === opt.value
+                                ? 'border-e17-navy bg-slate-50 ring-1 ring-e17-navy'
+                                : 'border-slate-200 hover:border-slate-300'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="targetTier"
+                              value={opt.value}
+                              checked={selectedTier === opt.value}
+                              onChange={() => setSelectedTier(opt.value)}
+                              className="mt-0.5 h-4 w-4 text-e17-navy focus:ring-e17-navy border-slate-300"
+                            />
+                            <div className="flex-1">
+                              <span className="block text-sm font-bold text-slate-800">{opt.label}</span>
+                              <span className="block text-xs text-slate-500">{opt.desc}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Disclaimer Audit */}
+                    <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-lg text-xs text-amber-900 leading-relaxed">
+                      <strong>Catatan:</strong> Perubahan ini akan dicatat ke dalam audit logs. Riwayat nilai, absensi, dan progres kuis/tugas siswa tidak akan diubah atau dihapus.
+                    </div>
+                  </div>
+
+                  <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => { setIsTierModalOpen(false); setStudentToChangeTier(null); }}
+                      disabled={isUpdatingTier}
+                    >
+                      Batal
+                    </Button>
+                    <Button 
+                      className="bg-e17-navy hover:bg-slate-800 text-white font-bold" 
+                      onClick={handleConfirmTierChange} 
+                      disabled={isUpdatingTier || selectedTier === studentToChangeTier.tier}
+                    >
+                      {isUpdatingTier && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Simpan Perubahan
                     </Button>
                   </div>
                 </div>

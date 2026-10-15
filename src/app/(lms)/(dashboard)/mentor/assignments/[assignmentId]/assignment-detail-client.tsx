@@ -266,6 +266,7 @@ export default function AssignmentDetailClient({ submission: initialSubmission }
                     max="100"
                     placeholder="Contoh: 85"
                     value={gradeInput}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => setGradeInput(e.target.value)}
                     disabled={!isEditing || isSubmitting}
                     className="w-full border-2 border-slate-200 rounded-lg px-4 py-3 text-2xl font-black text-center focus:outline-none focus:border-e17-navy focus:ring-4 focus:ring-e17-navy/10 transition-all disabled:bg-slate-50 disabled:text-slate-500"

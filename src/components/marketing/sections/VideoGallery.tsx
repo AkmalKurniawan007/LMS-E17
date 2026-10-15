@@ -11,12 +11,16 @@ export default function VideoGallery({
   dynamicPrograms, 
   isLoggedIn, 
   purchasedProgramId,
-  purchasedTier
+  purchasedTier,
+  purchasedProgramIds,
+  userRole
 }: { 
   dynamicPrograms?: any[], 
   isLoggedIn?: boolean, 
   purchasedProgramId?: string,
-  purchasedTier?: string
+  purchasedTier?: string,
+  purchasedProgramIds?: string[],
+  userRole?: string | null
 }) {
   const shouldReduceMotion = useReducedMotion();
   const programsToUse = dynamicPrograms || [];
@@ -68,7 +72,7 @@ export default function VideoGallery({
   return (
     <section id="curriculum" className="w-full relative py-24 lg:py-32 overflow-hidden bg-[var(--color-paper)]">
       {/* Diagonal stripe accent */}
-      <div aria-hidden className="absolute top-0 right-0 w-[320px] h-[180px] opacity-[0.10] pointer-events-none" style={{ background: 'repeating-linear-gradient(45deg, var(--color-bronze), var(--color-bronze) 6px, transparent 6px, transparent 18px)' }} />
+      <div aria-hidden suppressHydrationWarning className="absolute top-0 right-0 w-[320px] h-[180px] opacity-[0.10] pointer-events-none" style={{ background: 'repeating-linear-gradient(45deg, var(--color-bronze), var(--color-bronze) 6px, transparent 6px, transparent 18px)' }} />
       
       <div className="max-w-[1200px] mx-auto px-6 lg:px-12 relative z-10">
         <div className="text-center max-w-2xl mx-auto mb-12">
@@ -141,6 +145,8 @@ export default function VideoGallery({
                     isLoggedIn={isLoggedIn}
                     purchasedProgramId={purchasedProgramId}
                     purchasedTier={purchasedTier}
+                    purchasedProgramIds={purchasedProgramIds}
+                    userRole={userRole}
                     onActivate={() => setActiveIndex(idx)}
                   />
                 </div>
@@ -154,6 +160,8 @@ export default function VideoGallery({
                 isLoggedIn={isLoggedIn}
                 purchasedProgramId={purchasedProgramId}
                 purchasedTier={purchasedTier}
+                purchasedProgramIds={purchasedProgramIds}
+                userRole={userRole}
                 onActivate={() => {}}
               />
             </div>
@@ -173,6 +181,8 @@ function ProgramTrackCard({
   isLoggedIn,
   purchasedProgramId,
   purchasedTier,
+  purchasedProgramIds,
+  userRole,
   onActivate
 }: { 
   program: any, 
@@ -182,6 +192,8 @@ function ProgramTrackCard({
   isLoggedIn?: boolean,
   purchasedProgramId?: string,
   purchasedTier?: string,
+  purchasedProgramIds?: string[],
+  userRole?: string | null,
   onActivate: () => void
 }) {
   const supabase = createClient();
@@ -236,11 +248,28 @@ function ProgramTrackCard({
   }
 
   const isGuest = !isLoggedIn;
-  const isPurchased = purchasedProgramId === program.id;
-  const isTierAllowed = purchasedTier ? (activeMaterial?.access_tiers || ["junior", "expert", "bootcamp"]).includes(purchasedTier) : false;
-  const hasFullAccess = !!activeMaterial?.content_url || (isPurchased && isTierAllowed);
+  const isAdminOrMentor = userRole === 'admin' || userRole === 'mentor' || userRole === 'super_admin';
+  const purchasedIds = (purchasedProgramIds && purchasedProgramIds.length > 0)
+    ? purchasedProgramIds
+    : (purchasedProgramId ? [purchasedProgramId] : []);
+
+  const isPurchased = isAdminOrMentor || purchasedIds.some(id => 
+    id === program.id ||
+    id === program.slug ||
+    id === program.marketingProgramId ||
+    id === program.lmsProgramId
+  );
+  const hasFullAccess = isPurchased;
   const hasPreview = !!activeMaterial?.preview_url;
-  const videoUrlToPlay = hasFullAccess ? (activeMaterial?.content_url || activeMaterial?.video_url || activeMaterial?.preview_url) : (hasPreview ? activeMaterial?.preview_url : null);
+  
+  let videoUrlToPlay = null;
+  if (!isGuest) {
+    if (hasFullAccess) {
+      videoUrlToPlay = activeMaterial?.content_url || activeMaterial?.video_url || activeMaterial?.preview_url;
+    } else if (hasPreview) {
+      videoUrlToPlay = activeMaterial?.preview_url;
+    }
+  }
 
   const getEmbedUrl = (url?: string) => {
     if (!url) return null;
@@ -275,21 +304,6 @@ function ProgramTrackCard({
     return hours > 0 ? `${hours} jam ${mins} menit` : `${mins} menit`;
   };
 
-  const getAccessBadge = (accessTiers: string[]) => {
-    if (!accessTiers || accessTiers.length === 0) return null;
-    const hasJunior = accessTiers.includes("junior");
-    const hasExpert = accessTiers.includes("expert");
-    const hasBootcamp = accessTiers.includes("bootcamp");
-  
-    if (!hasJunior && hasExpert && hasBootcamp) {
-      return <span className="px-1.5 py-0.5 rounded font-mono text-[10px] font-bold bg-[var(--color-bg-soft)] text-[var(--color-bronze)] shrink-0 whitespace-nowrap border border-[var(--color-cream-line)]">Mulai dari Expert</span>;
-    }
-    if (!hasJunior && !hasExpert && hasBootcamp) {
-      return <span className="px-1.5 py-0.5 rounded font-mono text-[10px] font-bold bg-[var(--color-ink)] text-[var(--color-signal)] shrink-0 whitespace-nowrap">Khusus Bootcamp</span>;
-    }
-    return null; 
-  };
-
   const totalSessions = program.curriculum?.length || materials.length || 0;
   const totalDuration = calculateTotalDuration();
   
@@ -318,7 +332,7 @@ function ProgramTrackCard({
     >
       {/* Yellow top bar + stripes + crest watermark */}
       <div aria-hidden className="absolute top-0 left-0 right-0 h-1.5 bg-[var(--color-signal)]" />
-      <div aria-hidden className="absolute -top-6 -right-6 w-[260px] h-[140px] opacity-[0.12] pointer-events-none" style={{ background: 'repeating-linear-gradient(45deg, var(--color-signal), var(--color-signal) 8px, transparent 8px, transparent 20px)' }} />
+      <div aria-hidden suppressHydrationWarning className="absolute -top-6 -right-6 w-[260px] h-[140px] opacity-[0.12] pointer-events-none" style={{ background: 'repeating-linear-gradient(45deg, var(--color-signal), var(--color-signal) 8px, transparent 8px, transparent 20px)' }} />
       <svg aria-hidden className="absolute -left-10 -bottom-10 w-64 h-64 text-[var(--color-bronze)]/10 pointer-events-none" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" /></svg>
       {/* 1. Header Row */}
       <div className="relative z-10 flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-4 lg:gap-8 lg:mb-[32px] items-start">
@@ -362,17 +376,17 @@ function ProgramTrackCard({
             <div className="text-center text-white/50">
               <PlayCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
             </div>
-          ) : (isGuest && !hasPreview) ? (
+          ) : isGuest ? (
             <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-[var(--color-ink-2)]">
-              <PlayCircle className="w-16 h-16 text-white/10 mb-4" />
-              <div className="flex items-center gap-2 mb-5 max-w-full">
-                <Lock className="w-4 h-4 text-white shrink-0" aria-label="Konten terkunci" />
-                <span className="text-white text-[14px] font-medium leading-snug text-left">
-                  Materi {activeMaterial?.title} terkunci.
-                </span>
+              <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Lock className="w-10 h-10 text-[var(--color-locked)]" aria-label="Konten terkunci" />
               </div>
+              <h3 className="text-white text-[24px] font-black mb-3">Materi Terkunci</h3>
+              <p className="text-white/60 text-[15px] max-w-md mx-auto font-medium mb-6">
+                Masuk untuk lihat cuplikan.
+              </p>
               <Link href="/pembeli/login" className="bg-[var(--color-signal)] text-[var(--color-ink)] px-6 rounded-full text-[15px] font-bold hover:brightness-110 transition-all flex items-center justify-center min-h-[44px]">
-                Masuk untuk Akses
+                Masuk
               </Link>
             </div>
           ) : (
@@ -395,9 +409,7 @@ function ProgramTrackCard({
                 <div className="text-center">
                   <PlayCircle className="w-12 h-12 text-white/40 mx-auto mb-3" />
                   <p className="text-white/40 text-[14px]">
-                    {!isTierAllowed && purchasedTier 
-                      ? "Video ini tidak tersedia untuk paket Anda." 
-                      : "Video belum tersedia."}
+                    Video belum tersedia.
                   </p>
                 </div>
               )}
@@ -434,7 +446,6 @@ function ProgramTrackCard({
                           <span className={`text-[14px] leading-snug line-clamp-2 text-[var(--color-ink)] ${isSelected ? "font-bold" : "font-medium"}`}>
                             {mat.title}
                           </span>
-                          {getAccessBadge(mat.access_tiers)}
                         </div>
                         {hasFullAccess && mat.is_completed && (
                           <CheckCircle className="w-4 h-4 text-[var(--color-mint)] shrink-0 mt-0.5" />

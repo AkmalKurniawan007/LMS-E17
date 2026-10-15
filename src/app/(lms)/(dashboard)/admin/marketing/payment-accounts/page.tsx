@@ -40,7 +40,7 @@ function AccountForm({
   const [accountNumber, setAccountNumber] = React.useState(account?.account_number ?? '')
   const [accountHolder, setAccountHolder] = React.useState(account?.account_holder ?? '')
   const [instructions, setInstructions] = React.useState(account?.instructions ?? '')
-  const [sortOrder, setSortOrder] = React.useState(account?.sort_order ?? 0)
+  const [sortOrder, setSortOrder] = React.useState<number | string>(account?.sort_order ?? 0)
   const [isSaving, setIsSaving] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -59,7 +59,7 @@ function AccountForm({
           accountNumber,
           accountHolder,
           instructions,
-          sortOrder,
+          sortOrder: Number(sortOrder) || 0,
         })
       : await createPaymentAccount({
           methodType,
@@ -67,7 +67,7 @@ function AccountForm({
           accountNumber,
           accountHolder,
           instructions,
-          sortOrder,
+          sortOrder: Number(sortOrder) || 0,
         })
 
     if (result.success) {
@@ -174,8 +174,10 @@ function AccountForm({
             </label>
             <input
               type="number"
+              placeholder="0"
               value={sortOrder}
-              onChange={(e) => setSortOrder(Number(e.target.value))}
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => setSortOrder(e.target.value)}
               className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
             />
           </div>

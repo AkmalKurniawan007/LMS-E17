@@ -28,6 +28,7 @@ export default function StorySection({ dbContent = {} }: { dbContent?: any }) {
       {/* Diagonal stripe accent top-left */}
       <div
         aria-hidden
+        suppressHydrationWarning
         className="absolute -top-10 -left-10 w-[260px] h-[160px] opacity-[0.12] pointer-events-none"
         style={{ background: "repeating-linear-gradient(-45deg, var(--color-bronze), var(--color-bronze) 6px, transparent 6px, transparent 18px)" }}
       />

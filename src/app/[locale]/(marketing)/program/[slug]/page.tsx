@@ -4,7 +4,7 @@ import MarketingHeader from "@/components/marketing/MarketingHeader";
 import FooterSection from "@/components/marketing/sections/FooterSection";
 import ProgramContentView from "@/components/marketing/sections/ProgramContentView";
 import { type MarketingCurriculumItem } from "@/app/(lms)/(dashboard)/admin/marketing/program-actions";
-import { getMarketingSession } from "@/utils/marketing-auth";
+import { getMarketingSession, checkProgramAccess } from "@/utils/marketing-auth";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function ProgramDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   const supabase = await createClient();
-  const { isLoggedIn, purchasedProgramId, role, hasLmsAccess } = await getMarketingSession();
+  const { isLoggedIn, userId, purchasedProgramId, role, hasLmsAccess } = await getMarketingSession();
   
   // 1. Fetch Program Data
   const { data: program, error: programError } = await supabase
@@ -46,7 +46,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   // 2. Fetch Tiers
   const { data: tiers } = await supabase
     .from('marketing_program_tiers')
-    .select('tier_type, label, price, features, sort_order')
+    .select('tier_type, label, price, original_price, features, sort_order, is_popular')
     .eq('program_id', program.id)
     .order('sort_order', { ascending: true });
 
@@ -78,6 +78,11 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
     ? program.full_description.split('\n\n').filter((p: string) => p.trim().length > 0)
     : [];
 
+  // 4. Periksa kepemilikan akses spesifik untuk program ini
+  const hasPurchased = isLoggedIn && userId 
+    ? await checkProgramAccess(userId, program, role)
+    : false;
+
   return (
     <div className="min-h-screen bg-[var(--color-paper)] text-[var(--color-ink)] font-sans relative">
       <MarketingHeader isLoggedIn={isLoggedIn} purchasedProgramId={purchasedProgramId} userRole={role} hasLmsAccess={hasLmsAccess} />
@@ -88,6 +93,8 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
         outline={outline}
         totalDurationFormatted={totalDurationFormatted}
         descriptionParagraphs={descriptionParagraphs}
+        isLoggedIn={isLoggedIn}
+        hasPurchased={hasPurchased}
       />
       
       <FooterSection />

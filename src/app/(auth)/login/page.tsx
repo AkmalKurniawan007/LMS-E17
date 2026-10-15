@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { useActionState, useEffect, useState, useTransition, Suspense } from "react"
-import { useRouter } from "next/navigation"
-import { AlertCircle } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { AlertCircle, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { login } from "./actions"
@@ -19,6 +19,8 @@ const initialState = {
 function LoginForm() {
   const [state, formAction, isPending] = useActionState(login, initialState)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isIdleExpired = searchParams.get('reason') === 'idle'
   const [googleError, setGoogleError] = useState("")
   const [isGooglePending, startGoogleTransition] = useTransition()
 
@@ -80,6 +82,16 @@ function LoginForm() {
           Masuk ke akun Anda untuk melanjutkan pembelajaran.
         </p>
       </div>
+
+      {isIdleExpired && (
+        <div className="mb-6 p-4 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+          <Clock className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+          <div>
+            <p className="font-bold">Sesi Anda Telah Berakhir</p>
+            <p className="mt-0.5 text-xs text-amber-700">Tidak ada aktivitas selama 12 jam. Silakan masuk kembali untuk melanjutkan.</p>
+          </div>
+        </div>
+      )}
 
       <div className="w-full flex justify-center mb-6">
         <GoogleLogin

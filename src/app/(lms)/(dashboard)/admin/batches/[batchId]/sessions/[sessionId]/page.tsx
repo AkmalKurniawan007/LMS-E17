@@ -112,6 +112,36 @@ export default function AdminSessionDetailPage({
     setIsUpdatingStatus(false)
   }
 
+  const handleToggleTaskBnsp = async (taskId: string, currentStatus: boolean) => {
+    const nextStatus = !currentStatus
+    const { error } = await supabase
+      .from('tasks')
+      .update({ is_bnsp: nextStatus })
+      .eq('id', taskId)
+
+    if (error) {
+      toast.error("Gagal mengubah status BNSP: " + error.message)
+    } else {
+      toast.success(nextStatus ? "Tugas ditandai sebagai konten BNSP" : "Tanda BNSP pada tugas dihapus")
+      fetchSessionData()
+    }
+  }
+
+  const handleToggleQuizBnsp = async (quizId: string, currentStatus: boolean) => {
+    const nextStatus = !currentStatus
+    const { error } = await supabase
+      .from('quizzes')
+      .update({ is_bnsp: nextStatus })
+      .eq('id', quizId)
+
+    if (error) {
+      toast.error("Gagal mengubah status BNSP: " + error.message)
+    } else {
+      toast.success(nextStatus ? "Kuis ditandai sebagai konten BNSP" : "Tanda BNSP pada kuis dihapus")
+      fetchSessionData()
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-32">
@@ -422,17 +452,31 @@ export default function AdminSessionDetailPage({
                     <h3 className="text-sm font-bold text-slate-700 mb-3 border-b border-slate-200 pb-2">Penugasan (Task)</h3>
                     <div className="space-y-3">
                       {session.tasks.map((task: any) => (
-                        <div key={task.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                        <div key={task.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border border-slate-200 rounded-lg shadow-sm gap-3">
                           <div className="flex items-center gap-3">
                             <div className="p-3 rounded-lg bg-amber-50 text-amber-600">
                               <CheckSquare className="w-5 h-5"/>
                             </div>
                             <div>
-                              <p className="font-bold text-slate-800">{task.title}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-slate-800">{task.title}</p>
+                                {task.is_bnsp && (
+                                  <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded uppercase">BNSP</span>
+                                )}
+                              </div>
                               <p className="text-xs text-amber-600 font-bold mt-0.5">Deadline: {new Date(task.deadline).toLocaleString('id-ID')}</p>
                             </div>
                           </div>
-                          <div className="mt-3 sm:mt-0 flex gap-2">
+                          <div className="mt-3 sm:mt-0 flex flex-wrap items-center gap-3">
+                            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-md border border-slate-200 hover:bg-slate-100 transition-colors">
+                              <input 
+                                type="checkbox"
+                                checked={Boolean(task.is_bnsp)}
+                                onChange={() => handleToggleTaskBnsp(task.id, Boolean(task.is_bnsp))}
+                                className="h-3.5 w-3.5 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
+                              />
+                              <span>Tandai sebagai konten BNSP (hanya Paket 3 dan Bootcamp)</span>
+                            </label>
                             {task.description && (
                               <a href={task.description} target="_blank" rel="noreferrer" className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-md hover:bg-slate-50 text-slate-600">Lihat Soal PDF</a>
                             )}
@@ -449,15 +493,31 @@ export default function AdminSessionDetailPage({
                     <h3 className="text-sm font-bold text-slate-700 mb-3 border-b border-slate-200 pb-2">Kuis (Quiz)</h3>
                     <div className="space-y-3">
                       {session.quizzes.map((quiz: any) => (
-                        <div key={quiz.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                        <div key={quiz.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border border-slate-200 rounded-lg shadow-sm gap-3">
                           <div className="flex items-center gap-3">
                             <div className="p-3 rounded-lg bg-emerald-50 text-emerald-600">
                               <CheckSquare className="w-5 h-5"/>
                             </div>
                             <div>
-                              <p className="font-bold text-slate-800">{quiz.title}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-slate-800">{quiz.title}</p>
+                                {quiz.is_bnsp && (
+                                  <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded uppercase">BNSP</span>
+                                )}
+                              </div>
                               <p className="text-xs text-slate-500 mt-0.5">KUM: {quiz.passing_grade} | Max Percobaan: {quiz.max_retries}x</p>
                             </div>
+                          </div>
+                          <div className="mt-3 sm:mt-0 flex items-center gap-3">
+                            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-md border border-slate-200 hover:bg-slate-100 transition-colors">
+                              <input 
+                                type="checkbox"
+                                checked={Boolean(quiz.is_bnsp)}
+                                onChange={() => handleToggleQuizBnsp(quiz.id, Boolean(quiz.is_bnsp))}
+                                className="h-3.5 w-3.5 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
+                              />
+                              <span>Tandai sebagai konten BNSP (hanya Paket 3 dan Bootcamp)</span>
+                            </label>
                           </div>
                         </div>
                       ))}

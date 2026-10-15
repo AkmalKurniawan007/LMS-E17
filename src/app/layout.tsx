@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Archivo, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import PageTracker from "@/components/marketing/PageTracker";
+import IdleSessionWatcher from "@/components/session/IdleSessionWatcher";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col font-sans">
         <PageTracker />
+        <IdleSessionWatcher />
         {children}
         <Toaster position="top-right" richColors />
       </body>

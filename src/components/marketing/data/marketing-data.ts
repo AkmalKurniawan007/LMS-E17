@@ -46,14 +46,59 @@ export interface ProgramData {
 
 export const programs: ProgramData[] = [
   {
+    id: "outsystems-developer",
+    name: "OutSystems Developer",
+    shortName: "OutSystems",
+    description: "Kuasai low-code enterprise terdepan dari arsitektur data hingga sertifikasi resmi.",
+    sessions: 4,
+    modules: 12,
+    price: 1990000,
+    originalPrice: 2990000,
+    rating: 4.9,
+    students: 120,
+    videoUrl: "",
+    thumbnailText: "OutSystems",
+    features: ["Akses Semua Video", "Live Mentoring", "Bimbingan Mentor", "Sertifikasi BNSP"],
+    popular: true,
+    curriculum: [
+      { id: "v1", title: "Pengenalan OutSystems & Reactive Web", description: "Arsitektur dasar low-code dan ekosistem OutSystems.", duration: "25:00", videoUrl: "" },
+      { id: "v2", title: "Data Modeling & Entities", description: "Membuat database entities, relasi data, dan agregasi data.", duration: "32:00", videoUrl: "" },
+      { id: "v3", title: "Logic & Client Actions", description: "Penerapan business logic, validasi formulir, dan event handling.", duration: "40:00", videoUrl: "" }
+    ],
+    tiers: [
+      {
+        type: 'junior',
+        label: 'Self Paced',
+        price: 299000,
+        originalPrice: 499000,
+        features: ["Akses semua video pembelajaran", "Akses materi selama 2 bulan"],
+      },
+      {
+        type: 'expert',
+        label: 'Mentoring Plus',
+        price: 899000,
+        originalPrice: 1299000,
+        features: ["Akses semua video pembelajaran", "4x sesi Live Mentoring interaktif", "Bimbingan tugas langsung dari mentor", "Sertifikat Digital Resmi E17"],
+      },
+      {
+        type: 'complete',
+        label: 'Pro Bootcamp (BNSP)',
+        price: 1990000,
+        originalPrice: 2990000,
+        features: ["Akses semua video pembelajaran", "4x sesi Live Mentoring interaktif", "Bimbingan tugas langsung dari mentor", "Grup diskusi & tanya jawab intensif", "Ujian & Sertifikasi Resmi BNSP"],
+        popular: true,
+      }
+    ]
+  },
+  {
     id: "ui-ux",
     name: "UI/UX Research & Design",
     shortName: "UI/UX Design",
     description: "Dari User Research, Wireframing, hingga High-Fidelity Prototype menggunakan Figma.",
     sessions: 16,
     modules: 28,
-    price: 2800000,
-    originalPrice: 4000000,
+    price: 1990000,
+    originalPrice: 2990000,
     rating: 4.8,
     students: 380,
     videoUrl: "",
@@ -68,26 +113,24 @@ export const programs: ProgramData[] = [
     tiers: [
       {
         type: 'junior',
-        label: 'Junior (Video Only)',
-        price: 800000,
-        originalPrice: 1500000,
-        features: ["Akses Video Materi Basic", "28 Modul Materi", "Sertifikat Digital"],
-        excludes: ["Materi Expert", "Tanpa Mentor", "Tanpa Career", "Tanpa Akses LMS"],
+        label: 'Self Paced',
+        price: 299000,
+        originalPrice: 499000,
+        features: ["Akses semua video pembelajaran", "Akses materi selama 2 bulan"],
       },
       {
         type: 'expert',
-        label: 'Expert (Video Only)',
-        price: 1200000,
-        originalPrice: 2000000,
-        features: ["Akses Materi Basic & Expert", "Semua Modul Materi", "Sertifikat Digital"],
-        excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
+        label: 'Mentoring Plus',
+        price: 899000,
+        originalPrice: 1299000,
+        features: ["Akses semua video pembelajaran", "4x sesi Live Mentoring interaktif", "Bimbingan tugas langsung dari mentor", "Sertifikat Digital Resmi E17"],
       },
       {
         type: 'complete',
-        label: 'Bootcamp Lengkap',
-        price: 2800000,
-        originalPrice: 4000000,
-        features: ["Semua di Paket Expert +", "16 Sesi Live Mentoring", "Design Portfolio Review", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
+        label: 'Pro Bootcamp (BNSP)',
+        price: 1990000,
+        originalPrice: 2990000,
+        features: ["Akses semua video pembelajaran", "4x sesi Live Mentoring interaktif", "Bimbingan tugas langsung dari mentor", "Grup diskusi & tanya jawab intensif", "Ujian & Sertifikasi Resmi BNSP"],
         popular: true,
       }
     ]
@@ -99,8 +142,8 @@ export const programs: ProgramData[] = [
     description: "Bangun aplikasi web modern dari nol hingga deploy dengan stack MERN/Next.js.",
     sessions: 24,
     modules: 40,
-    price: 3500000,
-    originalPrice: 5000000,
+    price: 1990000,
+    originalPrice: 2990000,
     rating: 4.9,
     students: 450,
     videoUrl: "",
@@ -117,26 +160,24 @@ export const programs: ProgramData[] = [
     tiers: [
       {
         type: 'junior',
-        label: 'Junior (Video Only)',
-        price: 1000000,
-        originalPrice: 1800000,
-        features: ["Akses Video Materi Basic", "40 Modul Materi", "Sertifikat Digital"],
-        excludes: ["Materi Expert", "Tanpa Mentor", "Tanpa Career", "Tanpa Akses LMS"],
+        label: 'Self Paced',
+        price: 299000,
+        originalPrice: 499000,
+        features: ["Akses semua video pembelajaran", "Akses materi selama 2 bulan"],
       },
       {
         type: 'expert',
-        label: 'Expert (Video Only)',
-        price: 1500000,
-        originalPrice: 2500000,
-        features: ["Akses Materi Basic & Expert", "Semua Modul Materi", "Sertifikat Digital"],
-        excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
+        label: 'Mentoring Plus',
+        price: 899000,
+        originalPrice: 1299000,
+        features: ["Akses semua video pembelajaran", "4x sesi Live Mentoring interaktif", "Bimbingan tugas langsung dari mentor", "Sertifikat Digital Resmi E17"],
       },
       {
         type: 'complete',
-        label: 'Bootcamp Lengkap',
-        price: 3500000,
-        originalPrice: 5000000,
-        features: ["Semua di Paket Expert +", "24 Sesi Live Mentoring", "Code Review Personal", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
+        label: 'Pro Bootcamp (BNSP)',
+        price: 1990000,
+        originalPrice: 2990000,
+        features: ["Akses semua video pembelajaran", "4x sesi Live Mentoring interaktif", "Bimbingan tugas langsung dari mentor", "Grup diskusi & tanya jawab intensif", "Ujian & Sertifikasi Resmi BNSP"],
         popular: true,
       }
     ]
@@ -148,8 +189,8 @@ export const programs: ProgramData[] = [
     description: "Pelajari analisis data dari dasar hingga visualisasi menggunakan tools industri terkemuka.",
     sessions: 20,
     modules: 35,
-    price: 4000000,
-    originalPrice: 6000000,
+    price: 1990000,
+    originalPrice: 2990000,
     rating: 4.7,
     students: 210,
     videoUrl: "",
@@ -158,26 +199,24 @@ export const programs: ProgramData[] = [
     tiers: [
       {
         type: 'junior',
-        label: 'Junior (Video Only)',
-        price: 1200000,
-        originalPrice: 2200000,
-        features: ["Akses Video Materi Basic", "35 Modul Materi", "Sertifikat Digital"],
-        excludes: ["Materi Expert", "Tanpa Mentor", "Tanpa Career", "Tanpa Akses LMS"],
+        label: 'Self Paced',
+        price: 299000,
+        originalPrice: 499000,
+        features: ["Akses semua video pembelajaran", "Akses materi selama 2 bulan"],
       },
       {
         type: 'expert',
-        label: 'Expert (Video Only)',
-        price: 1800000,
-        originalPrice: 3000000,
-        features: ["Akses Materi Basic & Expert", "Semua Modul Materi", "Sertifikat Digital"],
-        excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
+        label: 'Mentoring Plus',
+        price: 899000,
+        originalPrice: 1299000,
+        features: ["Akses semua video pembelajaran", "4x sesi Live Mentoring interaktif", "Bimbingan tugas langsung dari mentor", "Sertifikat Digital Resmi E17"],
       },
       {
         type: 'complete',
-        label: 'Bootcamp Lengkap',
-        price: 4000000,
-        originalPrice: 6000000,
-        features: ["Semua di Paket Expert +", "20 Sesi Live Mentoring", "Capstone Project Review", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
+        label: 'Pro Bootcamp (BNSP)',
+        price: 1990000,
+        originalPrice: 2990000,
+        features: ["Akses semua video pembelajaran", "4x sesi Live Mentoring interaktif", "Bimbingan tugas langsung dari mentor", "Grup diskusi & tanya jawab intensif", "Ujian & Sertifikasi Resmi BNSP"],
         popular: true,
       }
     ]
@@ -189,8 +228,8 @@ export const programs: ProgramData[] = [
     description: "SEO, SEM, Social Media Ads, dan Analytics untuk strategi pemasaran digital.",
     sessions: 16,
     modules: 25,
-    price: 2500000,
-    originalPrice: 3500000,
+    price: 1990000,
+    originalPrice: 2990000,
     rating: 4.8,
     students: 520,
     videoUrl: "",
@@ -199,26 +238,24 @@ export const programs: ProgramData[] = [
     tiers: [
       {
         type: 'junior',
-        label: 'Junior (Video Only)',
-        price: 600000,
-        originalPrice: 1200000,
-        features: ["Akses Video Materi Basic", "25 Modul Materi", "Sertifikat Digital"],
-        excludes: ["Materi Expert", "Tanpa Mentor", "Tanpa Career", "Tanpa Akses LMS"],
+        label: 'Self Paced',
+        price: 299000,
+        originalPrice: 499000,
+        features: ["Akses semua video pembelajaran", "Akses materi selama 2 bulan"],
       },
       {
         type: 'expert',
-        label: 'Expert (Video Only)',
-        price: 1000000,
-        originalPrice: 1800000,
-        features: ["Akses Materi Basic & Expert", "Semua Modul Materi", "Sertifikat Digital"],
-        excludes: ["Tanpa Mentor", "Tanpa Career Support", "Tanpa Akses LMS"],
+        label: 'Mentoring Plus',
+        price: 899000,
+        originalPrice: 1299000,
+        features: ["Akses semua video pembelajaran", "4x sesi Live Mentoring interaktif", "Bimbingan tugas langsung dari mentor", "Sertifikat Digital Resmi E17"],
       },
       {
         type: 'complete',
-        label: 'Bootcamp Lengkap',
-        price: 2500000,
-        originalPrice: 3500000,
-        features: ["Semua di Paket Expert +", "16 Sesi Live Mentoring", "Live Campaign Review", "Career Support & Job Fair", "Akses Penuh LMS E17", "Sertifikat Kelulusan"],
+        label: 'Pro Bootcamp (BNSP)',
+        price: 1990000,
+        originalPrice: 2990000,
+        features: ["Akses semua video pembelajaran", "4x sesi Live Mentoring interaktif", "Bimbingan tugas langsung dari mentor", "Grup diskusi & tanya jawab intensif", "Ujian & Sertifikasi Resmi BNSP"],
         popular: true,
       }
     ]
@@ -304,7 +341,7 @@ export const faqData: FAQData[] = [
 // ============================================
 // WHATSAPP CONFIG
 // ============================================
-export const whatsappNumber = "6281234567890"; // [REAL DATA] Replace with real number
+export const whatsappNumber = "6281399271717"; // [REAL DATA] 0813-9927-1717
 export const getWhatsAppUrl = (programName?: string) => {
   const message = programName
     ? `Halo, saya tertarik dengan bootcamp *${programName}* di E17 Course. Mohon info lebih lanjut.`

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/client"
 import * as React from "react"
 import { CalendarWidget, type CalendarEvent } from "@/components/ui/calendar-widget"
+import { TierStatusCard } from "@/components/siswa/TierStatusCard"
 
 export default function SiswaDashboardClient({ 
   initialData 
@@ -33,7 +34,16 @@ export default function SiswaDashboardClient({
     // Punya akses video (junior/expert)
     if (videoAccesses.length > 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-24 text-center max-w-lg mx-auto">
+        <div className="flex flex-col items-center justify-center py-12 text-center max-w-lg mx-auto w-full px-4">
+          {initialData.tier && (
+            <div className="w-full text-left mb-6">
+              <TierStatusCard 
+                tier={initialData.tier} 
+                enrollmentStatus={initialData.enrollmentStatus || "Aktif"} 
+                summary={initialData.tierSummary}
+              />
+            </div>
+          )}
           <div className="w-20 h-20 bg-sky-50 border-2 border-sky-200 rounded-full flex items-center justify-center mb-6">
             <Video className="w-10 h-10 text-sky-500" />
           </div>
@@ -43,7 +53,7 @@ export default function SiswaDashboardClient({
             Klik tombol di bawah untuk mulai belajar.
           </p>
           <p className="text-xs text-slate-400 mb-8">
-            Untuk akses penuh LMS (sesi live, tugas, mentor), upgrade ke paket Bootcamp Lengkap.
+            Untuk bimbingan live interaktif dan sertifikasi resmi BNSP, upgrade ke paket Pro Bootcamp (BNSP).
           </p>
           <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
             <Link
@@ -255,6 +265,15 @@ export default function SiswaDashboardClient({
 
         {/* Kolom Kanan: Tugas & Statistik (Lebih Sempit) */}
         <div className="w-full lg:w-2/5 xl:w-1/3 space-y-6">
+
+          {/* Kartu Status Paket Siswa */}
+          {initialData.tier && (
+            <TierStatusCard 
+              tier={initialData.tier} 
+              enrollmentStatus={initialData.enrollmentStatus || "Aktif"} 
+              summary={initialData.tierSummary}
+            />
+          )}
 
           {/* Calendar Widget */}
           <div className="card-clean p-4">

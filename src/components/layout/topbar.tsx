@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation"
 import { Menu, Bell, User, Search, Check, Clock, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/client"
+import { clearSessionActivity } from "@/app/actions/session-actions"
+import { SESSION_STORAGE_KEY } from "@/lib/session-idle"
 import type { UserRole } from "./sidebar"
 
 interface TopbarProps {
@@ -70,6 +72,10 @@ export function Topbar({ role, userName, avatarUrl, onMobileMenuToggle }: Topbar
   }
 
   const handleLogout = async () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(SESSION_STORAGE_KEY)
+    }
+    await clearSessionActivity()
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()

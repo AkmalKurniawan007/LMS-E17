@@ -40,12 +40,7 @@ export default function ClassVideoPlayer({ role, purchasedTier }: { role?: strin
         if (!currError && currData) {
           setCurriculum(currData);
           if (currData.length > 0) {
-            const availableVideos = currData.filter((item: any) => 
-              role === 'admin' || role === 'mentor' || (purchasedTier && item.access_tiers?.includes(purchasedTier))
-            );
-            if (availableVideos.length > 0) {
-              setActiveVideoId(availableVideos[0].id);
-            }
+            setActiveVideoId(currData[0].id);
           }
         }
 
@@ -270,25 +265,7 @@ export default function ClassVideoPlayer({ role, purchasedTier }: { role?: strin
             </div>
           ) : curriculum.map((item, idx) => {
             const isActive = item.id === activeVideoId;
-            const hasAccess = role === 'admin' || role === 'mentor' || (purchasedTier && item.access_tiers?.includes(purchasedTier));
-            
-            if (!hasAccess) {
-              return (
-                <div key={item.id} className="group relative bg-white/5 rounded-2xl border border-white/5 p-5 flex flex-col h-[180px] opacity-50 cursor-not-allowed overflow-hidden">
-                  <div className="absolute inset-0 bg-[var(--color-ink)]/40 z-10 flex flex-col items-center justify-center">
-                    <Lock className="w-8 h-8 text-white/50 mb-2" />
-                    <span className="text-xs font-bold text-white/70 uppercase tracking-widest bg-black/40 px-3 py-1 rounded-full">Terkunci</span>
-                  </div>
-                  <div className="flex justify-between items-start mb-auto">
-                    <span className="text-4xl font-black text-white/10">{idx + 1}</span>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white/40 line-clamp-2 mb-1">{item.title}</h4>
-                    <span className="text-[11px] text-white/30 font-medium">{item.duration}</span>
-                  </div>
-                </div>
-              );
-            }
+
 
             return (
               <button 

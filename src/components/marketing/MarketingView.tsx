@@ -3,34 +3,32 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
 import HeroSection from "./sections/HeroSection";
-import TrustBar from "./sections/TrustBar";
 import StorySection from "./sections/StorySection";
 import BenefitsSection from "./sections/BenefitsSection";
 import VideoGallery from "./sections/VideoGallery";
+import ProjectShowcaseSection from "./sections/ProjectShowcaseSection";
 import HowItWorksSection from "./sections/HowItWorksSection";
-import TestimonialsSection from "./sections/TestimonialsSection";
 import FAQSection from "./sections/FAQSection";
 import FinalCTA from "./sections/FinalCTA";
 import FooterSection from "./sections/FooterSection";
 import WhatsAppFAB from "./sections/WhatsAppFAB";
 import ScrollProgressBar from "./sections/ScrollProgressBar";
-import { User as UserIcon } from "lucide-react";
 import MarketingHeader from "./MarketingHeader";
 
-
-
 export default function MarketingView({ 
-  dbPrograms,
+  dbPrograms, 
   isLoggedIn = false,
   purchasedProgramId,
   purchasedTier,
+  purchasedProgramIds,
   userRole,
   hasLmsAccess = false
 }: { 
-  dbPrograms?: any[],
-  isLoggedIn?: boolean,
+  dbPrograms?: any[], 
+  isLoggedIn?: boolean, 
   purchasedProgramId?: string,
   purchasedTier?: string,
+  purchasedProgramIds?: string[],
   userRole?: string | null,
   hasLmsAccess?: boolean
 }) {
@@ -40,7 +38,6 @@ export default function MarketingView({
       <ScrollProgressBar />
       <MarketingHeader isLoggedIn={isLoggedIn} purchasedProgramId={purchasedProgramId} userRole={userRole} hasLmsAccess={hasLmsAccess} />
       <HeroSection dbPrograms={dbPrograms} />
-      {/* <TrustBar /> */}
       <StorySection />
       <BenefitsSection />
       <VideoGallery 
@@ -48,9 +45,14 @@ export default function MarketingView({
         isLoggedIn={isLoggedIn}
         purchasedProgramId={purchasedProgramId}
         purchasedTier={purchasedTier}
+        purchasedProgramIds={purchasedProgramIds}
+        userRole={userRole}
+      />
+      <ProjectShowcaseSection 
+        dynamicPrograms={dbPrograms}
+        isLoggedIn={isLoggedIn}
       />
       <HowItWorksSection />
-      <TestimonialsSection />
       <FAQSection />
       <FinalCTA />
       <FooterSection dbPrograms={dbPrograms} />

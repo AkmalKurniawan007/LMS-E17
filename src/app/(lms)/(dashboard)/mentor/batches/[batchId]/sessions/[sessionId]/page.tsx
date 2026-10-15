@@ -29,8 +29,8 @@ export default function MentorSessionDetailPage({
 
   const [uploadType, setUploadType] = React.useState<"material" | "task" | "quiz">("material")
   const [newMaterial, setNewMaterial] = React.useState({ title: "", type: "pdf", url: "" })
-  const [newTask, setNewTask] = React.useState({ title: "", description: "", deadline: "", is_final_project: false })
-  const [newQuiz, setNewQuiz] = React.useState({ title: "", passingGrade: 70, maxRetries: 3, deadline: "" })
+  const [newTask, setNewTask] = React.useState({ title: "", description: "", deadline: "", is_final_project: false, is_bnsp: false })
+  const [newQuiz, setNewQuiz] = React.useState({ title: "", passingGrade: 70, maxRetries: 3, deadline: "", is_bnsp: false })
   const [managingQuizId, setManagingQuizId] = React.useState<string | null>(null)
 
   // Edit states
@@ -162,14 +162,15 @@ export default function MentorSessionDetailPage({
         description: newTask.description,
         deadline: new Date(newTask.deadline).toISOString(),
         order_number: 1,
-        is_final_project: newTask.is_final_project
+        is_final_project: newTask.is_final_project,
+        is_bnsp: newTask.is_bnsp || false
       })
 
     if (error) {
       toast.error("Gagal menambahkan tugas: " + error.message)
     } else {
       toast.success("Tugas berhasil ditambahkan")
-      setNewTask({ title: "", description: "", deadline: "", is_final_project: false })
+      setNewTask({ title: "", description: "", deadline: "", is_final_project: false, is_bnsp: false })
       setIsAddingMaterial(false)
       fetchSessionData()
     }
@@ -184,7 +185,8 @@ export default function MentorSessionDetailPage({
       title: newQuiz.title,
       passing_grade: newQuiz.passingGrade,
       max_retries: newQuiz.maxRetries,
-      order_number: 1
+      order_number: 1,
+      is_bnsp: newQuiz.is_bnsp || false
     }
 
     if (newQuiz.deadline) {
@@ -199,7 +201,7 @@ export default function MentorSessionDetailPage({
       toast.error("Gagal menambahkan kuis: " + error.message)
     } else {
       toast.success("Kuis berhasil ditambahkan")
-      setNewQuiz({ title: "", passingGrade: 70, maxRetries: 3, deadline: "" })
+      setNewQuiz({ title: "", passingGrade: 70, maxRetries: 3, deadline: "", is_bnsp: false })
       setIsAddingMaterial(false)
       fetchSessionData()
     }
@@ -215,7 +217,8 @@ export default function MentorSessionDetailPage({
         title: editingTask.title,
         description: editingTask.description,
         deadline: new Date(editingTask.deadline).toISOString(),
-        is_final_project: editingTask.is_final_project
+        is_final_project: editingTask.is_final_project,
+        is_bnsp: editingTask.is_bnsp || false
       })
       .eq('id', editingTask.id)
 
@@ -236,6 +239,7 @@ export default function MentorSessionDetailPage({
       title: editingQuiz.title,
       passing_grade: editingQuiz.passingGrade,
       max_retries: editingQuiz.maxRetries,
+      is_bnsp: editingQuiz.is_bnsp || false
     }
 
     if (editingQuiz.deadline) {
@@ -545,17 +549,31 @@ export default function MentorSessionDetailPage({
                         <label className="block text-xs font-bold text-slate-700 mb-1">Batas Waktu (Deadline)</label>
                         <input required min={minDateTime} max={maxDateTime} value={newTask.deadline} onChange={e => setNewTask({...newTask, deadline: e.target.value})} type="datetime-local" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
                       </div>
-                      <div className="col-span-1 md:col-span-2 flex items-center space-x-2">
-                        <input 
-                          type="checkbox" 
-                          id="is_final_project"
-                          checked={newTask.is_final_project}
-                          onChange={e => setNewTask({...newTask, is_final_project: e.target.checked})}
-                          className="h-4 w-4 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
-                        />
-                        <label htmlFor="is_final_project" className="text-sm font-medium text-slate-700 cursor-pointer">
-                          Tandai sebagai Proyek Akhir
-                        </label>
+                      <div className="col-span-1 md:col-span-2 space-y-2 pt-1">
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="checkbox" 
+                            id="is_final_project"
+                            checked={newTask.is_final_project}
+                            onChange={e => setNewTask({...newTask, is_final_project: e.target.checked})}
+                            className="h-4 w-4 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
+                          />
+                          <label htmlFor="is_final_project" className="text-sm font-medium text-slate-700 cursor-pointer">
+                            Tandai sebagai Proyek Akhir
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="checkbox" 
+                            id="task_is_bnsp"
+                            checked={newTask.is_bnsp}
+                            onChange={e => setNewTask({...newTask, is_bnsp: e.target.checked})}
+                            className="h-4 w-4 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
+                          />
+                          <label htmlFor="task_is_bnsp" className="text-sm font-medium text-slate-700 cursor-pointer">
+                            Tandai sebagai konten BNSP (hanya Paket 3 dan Bootcamp)
+                          </label>
+                        </div>
                       </div>
                     </div>
                     <Button type="submit" className="bg-e17-navy text-white hover:bg-blue-900 w-full md:w-auto">Simpan Tugas</Button>
@@ -571,17 +589,30 @@ export default function MentorSessionDetailPage({
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1">Nilai Kelulusan (KUM)</label>
-                        <input required value={newQuiz.passingGrade || ''} onChange={e => setNewQuiz({...newQuiz, passingGrade: parseInt(e.target.value) || 0})} type="number" min="0" max="100" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
+                        <input required placeholder="70" value={newQuiz.passingGrade || ''} onFocus={e => e.target.select()} onChange={e => setNewQuiz({...newQuiz, passingGrade: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})} type="number" min="0" max="100" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1">Maksimal Percobaan</label>
-                        <input required value={newQuiz.maxRetries || ''} onChange={e => setNewQuiz({...newQuiz, maxRetries: parseInt(e.target.value) || 0})} type="number" min="1" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
+                        <input required placeholder="1" value={newQuiz.maxRetries || ''} onFocus={e => e.target.select()} onChange={e => setNewQuiz({...newQuiz, maxRetries: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})} type="number" min="1" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
                       </div>
                     </div>
                     
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1">Batas Waktu (Deadline) - Opsional</label>
                         <input min={minDateTime} max={maxDateTime} value={newQuiz.deadline} onChange={e => setNewQuiz({...newQuiz, deadline: e.target.value})} type="datetime-local" className="w-full max-w-sm px-3 py-2 border border-slate-200 rounded-md text-sm" />
+                    </div>
+
+                    <div className="flex items-center space-x-2 py-1">
+                      <input 
+                        type="checkbox" 
+                        id="quiz_is_bnsp"
+                        checked={newQuiz.is_bnsp}
+                        onChange={e => setNewQuiz({...newQuiz, is_bnsp: e.target.checked})}
+                        className="h-4 w-4 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
+                      />
+                      <label htmlFor="quiz_is_bnsp" className="text-sm font-medium text-slate-700 cursor-pointer">
+                        Tandai sebagai konten BNSP (hanya Paket 3 dan Bootcamp)
+                      </label>
                     </div>
                     
                     <div className="bg-blue-50 border border-blue-200 text-blue-800 p-3 rounded-lg text-sm mb-4 flex items-start gap-3">
@@ -650,6 +681,9 @@ export default function MentorSessionDetailPage({
                                 {task.is_final_project && (
                                   <span className="px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-700 rounded uppercase">Proyek Akhir</span>
                                 )}
+                                {task.is_bnsp && (
+                                  <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded uppercase">BNSP</span>
+                                )}
                               </div>
                               <p className="text-xs text-amber-600 font-bold mt-0.5">Deadline: {new Date(task.deadline).toLocaleString('id-ID')}</p>
                             </div>
@@ -662,7 +696,7 @@ export default function MentorSessionDetailPage({
                               const dt = new Date(task.deadline);
                               dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
                               const localDeadline = dt.toISOString().slice(0, 16);
-                              setEditingTask({ ...task, deadline: localDeadline, is_final_project: task.is_final_project || false });
+                              setEditingTask({ ...task, deadline: localDeadline, is_final_project: task.is_final_project || false, is_bnsp: task.is_bnsp || false });
                             }} className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-md hover:bg-slate-50 text-slate-600">
                               Edit
                             </button>
@@ -689,7 +723,12 @@ export default function MentorSessionDetailPage({
                                 <CheckSquare className="w-5 h-5"/>
                               </div>
                               <div>
-                                <p className="font-bold text-slate-800">{quiz.title}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-bold text-slate-800">{quiz.title}</p>
+                                  {quiz.is_bnsp && (
+                                    <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded uppercase">BNSP</span>
+                                  )}
+                                </div>
                                 <p className="text-xs text-slate-500 mt-0.5">KUM: {quiz.passing_grade} | Max Percobaan: {quiz.max_retries}x</p>
                                 {quiz.deadline && <p className="text-xs text-rose-600 font-bold mt-0.5">Deadline: {new Date(quiz.deadline).toLocaleString('id-ID')}</p>}
                               </div>
@@ -710,7 +749,8 @@ export default function MentorSessionDetailPage({
                                   title: quiz.title, 
                                   passingGrade: quiz.passing_grade, 
                                   maxRetries: quiz.max_retries, 
-                                  deadline: localDeadline 
+                                  deadline: localDeadline,
+                                  is_bnsp: quiz.is_bnsp || false
                                 });
                               }} className="px-3 py-1.5 text-xs font-bold border border-slate-200 rounded-md hover:bg-slate-50 text-slate-600">
                                 Edit
@@ -842,17 +882,31 @@ export default function MentorSessionDetailPage({
                       className="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm" 
                     />
                   </div>
-                 <div className="flex items-center space-x-2 py-2">
-                    <input 
-                      type="checkbox" 
-                      id="edit_is_final_project"
-                      checked={editingTask.is_final_project}
-                      onChange={e => setEditingTask({...editingTask, is_final_project: e.target.checked})}
-                      className="h-4 w-4 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
-                    />
-                    <label htmlFor="edit_is_final_project" className="text-sm font-medium text-slate-700 cursor-pointer">
-                      Tandai sebagai Proyek Akhir
-                    </label>
+                  <div className="space-y-2 py-2">
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        id="edit_is_final_project"
+                        checked={editingTask.is_final_project}
+                        onChange={e => setEditingTask({...editingTask, is_final_project: e.target.checked})}
+                        className="h-4 w-4 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
+                      />
+                      <label htmlFor="edit_is_final_project" className="text-sm font-medium text-slate-700 cursor-pointer">
+                        Tandai sebagai Proyek Akhir
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        id="edit_task_is_bnsp"
+                        checked={editingTask.is_bnsp || false}
+                        onChange={e => setEditingTask({...editingTask, is_bnsp: e.target.checked})}
+                        className="h-4 w-4 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
+                      />
+                      <label htmlFor="edit_task_is_bnsp" className="text-sm font-medium text-slate-700 cursor-pointer">
+                        Tandai sebagai konten BNSP (hanya Paket 3 dan Bootcamp)
+                      </label>
+                    </div>
                   </div>
                  <div className="flex justify-end gap-2 pt-4">
                    <Button type="button" variant="ghost" onClick={() => setEditingTask(null)}>Batal</Button>
@@ -883,11 +937,11 @@ export default function MentorSessionDetailPage({
                  <div className="grid grid-cols-2 gap-4">
                    <div>
                      <label className="block text-xs font-bold text-slate-700 mb-1">Nilai Kelulusan (KUM)</label>
-                     <input required value={editingQuiz.passingGrade || ''} onChange={e => setEditingQuiz({...editingQuiz, passingGrade: parseInt(e.target.value) || 0})} type="number" min="0" max="100" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
+                     <input required placeholder="70" value={editingQuiz.passingGrade || ''} onFocus={e => e.target.select()} onChange={e => setEditingQuiz({...editingQuiz, passingGrade: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})} type="number" min="0" max="100" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
                    </div>
                    <div>
                      <label className="block text-xs font-bold text-slate-700 mb-1">Max Percobaan</label>
-                     <input required value={editingQuiz.maxRetries || ''} onChange={e => setEditingQuiz({...editingQuiz, maxRetries: parseInt(e.target.value) || 0})} type="number" min="1" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
+                     <input required placeholder="1" value={editingQuiz.maxRetries || ''} onFocus={e => e.target.select()} onChange={e => setEditingQuiz({...editingQuiz, maxRetries: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})} type="number" min="1" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
                    </div>
                  </div>
                   <div>
@@ -900,6 +954,18 @@ export default function MentorSessionDetailPage({
                       onChange={e => setEditingQuiz({...editingQuiz, deadline: e.target.value})} 
                       className="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm" 
                     />
+                  </div>
+                  <div className="flex items-center space-x-2 py-1">
+                    <input 
+                      type="checkbox" 
+                      id="edit_quiz_is_bnsp"
+                      checked={editingQuiz.is_bnsp || false}
+                      onChange={e => setEditingQuiz({...editingQuiz, is_bnsp: e.target.checked})}
+                      className="h-4 w-4 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
+                    />
+                    <label htmlFor="edit_quiz_is_bnsp" className="text-sm font-medium text-slate-700 cursor-pointer">
+                      Tandai sebagai konten BNSP (hanya Paket 3 dan Bootcamp)
+                    </label>
                   </div>
                  <div className="flex justify-end gap-2 pt-4">
                    <Button type="button" variant="ghost" onClick={() => setEditingQuiz(null)}>Batal</Button>

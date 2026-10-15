@@ -91,22 +91,71 @@ export async function submitMarketingLead(data: {
 export async function getMarketingLeads(filters?: { status?: string; program?: string }) {
   const supabase = await createClient();
 
-  let query = supabase
-    .from("marketing_leads_crm")
-    .select("*")
+  try {
+    let query = supabase
+      .from("marketing_leads_crm")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (filters?.status) {
+      query = query.eq("status", filters.status);
+    }
+    if (filters?.program) {
+      query = query.eq("program_interest", filters.program);
+    }
+
+    const { data, error } = await query;
+    if (!error && data) {
+      return data as MarketingLeadCrm[];
+    }
+  } catch (e) {
+    console.warn("View marketing_leads_crm not accessible, using fallback query:", e);
+  }
+
+  // Fallback tangguh jika view database belum dieksekusi di Supabase
+  let leadsQuery = supabase
+    .from("marketing_leads")
+    .select(`
+      *,
+      converted_user:users!marketing_leads_converted_user_fkey(full_name)
+    `)
     .order("created_at", { ascending: false });
 
   if (filters?.status) {
-    query = query.eq("status", filters.status);
+    leadsQuery = leadsQuery.eq("status", filters.status);
   }
   if (filters?.program) {
-    query = query.eq("program_interest", filters.program);
+    leadsQuery = leadsQuery.eq("program_interest", filters.program);
   }
 
-  const { data, error } = await query;
-  if (error) throw new Error(error.message);
+  const { data: rawLeads, error: leadsErr } = await leadsQuery;
+  if (leadsErr) {
+    console.error("Error fetching leads:", leadsErr);
+    return [];
+  }
 
-  return data as MarketingLeadCrm[];
+  const { data: orders } = await supabase
+    .from("checkout_orders")
+    .select("id, lead_id, user_id, tier_type, amount, status, created_at")
+    .order("created_at", { ascending: false });
+
+  const mapped: MarketingLeadCrm[] = (rawLeads || []).map((lead: any) => {
+    const latestOrder = (orders || []).find(
+      (o: any) => (o.lead_id && o.lead_id === lead.id) || (lead.converted_user_id && o.user_id === lead.converted_user_id)
+    );
+
+    return {
+      ...lead,
+      latest_order_id: latestOrder?.id || null,
+      latest_order_tier: latestOrder?.tier_type || null,
+      latest_order_amount: latestOrder?.amount ? Number(latestOrder.amount) : null,
+      latest_order_status: latestOrder?.status || null,
+      order_created_at: latestOrder?.created_at || null,
+      converted_user_name: lead.converted_user?.full_name || null,
+    };
+  });
+
+  return mapped;
 }
 
 export async function updateLeadStatus(leadId: string, status: string) {

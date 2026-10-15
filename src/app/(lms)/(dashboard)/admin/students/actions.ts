@@ -34,16 +34,37 @@ export async function addManualStudent(formData: FormData) {
     if (authError) throw new Error(authError.message)
     const userId = authData.user.id
 
-    // 2. Create enrollment with 'aktif' status
+    // 2. Ambil data program_id dari batch
+    const { data: batchData } = await supabaseAdmin
+      .from('batches')
+      .select('program_id')
+      .eq('id', batchId)
+      .single()
+
+    // 3. Create enrollment with 'aktif' status & 'manual_admin' source
     const { error: enrollError } = await supabaseAdmin
       .from('enrollments')
       .insert({
         user_id: userId,
         batch_id: batchId,
-        status: 'aktif'
+        status: 'aktif',
+        enrollment_source: 'manual_admin'
       })
 
     if (enrollError) throw new Error(`Gagal mendaftarkan siswa ke batch: ${enrollError.message}`)
+
+    // 4. Berikan akses video materi program batch (tier expert / level video penuh)
+    if (batchData?.program_id) {
+      await supabaseAdmin
+        .from('video_access')
+        .upsert({
+          user_id: userId,
+          program_id: batchData.program_id,
+          tier: 'expert',
+          is_active: true,
+          notes: 'Akses penuh materi video pendaftaran manual admin (Bootcamp)'
+        }, { onConflict: 'user_id,program_id' })
+    }
 
     return { success: true }
   } catch (error: any) {

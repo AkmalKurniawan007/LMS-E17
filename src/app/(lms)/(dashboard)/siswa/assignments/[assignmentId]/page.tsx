@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { createClient } from "@/utils/supabase/client"
 import { toast } from "sonner"
 import { logAction } from "@/utils/logger-actions"
+import { submitBnspTask } from "../bnsp-actions"
 
 export default function AssignmentSubmissionPage() {
   const params = useParams()
@@ -100,16 +101,20 @@ export default function AssignmentSubmissionPage() {
         fileUrlToSave = publicUrl
       }
 
-      const { error: dbError } = await supabase
-        .from('task_submissions')
-        .insert({
-          task_id: assignmentId,
-          user_id: userId,
-          file_url: fileUrlToSave,
-          submission_type: publicUrl ? 'file_upload' : 'text'
-        })
+      if (taskData.is_bnsp) {
+        await submitBnspTask(assignmentId, fileUrlToSave, publicUrl ? 'file_upload' : 'text')
+      } else {
+        const { error: dbError } = await supabase
+          .from('task_submissions')
+          .insert({
+            task_id: assignmentId,
+            user_id: userId,
+            file_url: fileUrlToSave,
+            submission_type: publicUrl ? 'file_upload' : 'text'
+          })
 
-      if (dbError) throw dbError
+        if (dbError) throw dbError
+      }
 
       await logAction('siswa', 'Pengumpulan Tugas', `Mengumpulkan tugas harian (Task ID: ${assignmentId})`, { user_id: userId, target_id: assignmentId })
       toast.success("Tugas berhasil dikumpulkan!")
@@ -311,7 +316,7 @@ export default function AssignmentSubmissionPage() {
             <div className="space-y-4">
               <div className="flex items-center text-sm text-gray-500 mb-2">
                 <ClockIcon className="mr-2 h-4 w-4" />
-                Dikumpulkan pada: <span className="font-medium text-gray-900 ml-1">{new Date(submissionData.created_at).toLocaleString('id-ID')}</span>
+                Dikumpulkan pada: <span className="font-medium text-gray-900 ml-1">{new Date(submissionData.submitted_at || submissionData.created_at).toLocaleString('id-ID')}</span>
               </div>
               
               <div className="flex flex-col gap-3">

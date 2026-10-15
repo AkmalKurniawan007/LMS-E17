@@ -47,7 +47,20 @@ export default function AdminSettingsPage() {
 
   const handleSave = async () => {
     setIsSaving(true)
-    const result = await updateSettings(settings)
+    const sanitized = {
+      ...settings,
+      gracePeriodHours: Number(settings.gracePeriodHours) || 0,
+      minAttendance: Number(settings.minAttendance) || 0,
+      passingGrade: Number(settings.passingGrade) || 0,
+      maxQuizRetries: Number(settings.maxQuizRetries) || 0,
+      weightAttendance: Number(settings.weightAttendance) || 0,
+      weightTaskAndQuiz: Number(settings.weightTaskAndQuiz) || 0,
+      weightProject: Number(settings.weightProject) || 0,
+      sessionTimeoutMinutes: Number(settings.sessionTimeoutMinutes) || 0,
+      maxActiveDevices: Number(settings.maxActiveDevices) || 0,
+      smtpPort: Number(settings.smtpPort) || 0,
+    }
+    const result = await updateSettings(sanitized)
     setIsSaving(false)
     if (result.success) {
       const { logAction } = await import('@/utils/logger-actions')
@@ -161,8 +174,10 @@ export default function AdminSettingsPage() {
                         <div className="relative">
                           <input 
                             type="number" 
-                            value={settings.gracePeriodHours}
-                            onChange={(e) => setSettings({...settings, gracePeriodHours: parseInt(e.target.value) || 0})}
+                            placeholder="0"
+                            value={settings.gracePeriodHours ?? ''}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => setSettings({...settings, gracePeriodHours: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})}
                             className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-e17-navy pr-12" 
                           />
                           <span className="absolute right-3 top-2.5 text-sm text-slate-500">Jam</span>
@@ -175,8 +190,10 @@ export default function AdminSettingsPage() {
                         <label className="block text-sm font-medium text-slate-700 mb-1">Syarat Minimal Kehadiran (%)</label>
                         <input 
                           type="number" 
-                          value={settings.minAttendance}
-                          onChange={(e) => setSettings({...settings, minAttendance: parseInt(e.target.value) || 0})}
+                          placeholder="0"
+                          value={settings.minAttendance ?? ''}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => setSettings({...settings, minAttendance: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})}
                           className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-e17-navy" 
                         />
                       </div>
@@ -184,8 +201,10 @@ export default function AdminSettingsPage() {
                         <label className="block text-sm font-medium text-slate-700 mb-1">KKM / Nilai Kelulusan Minimal</label>
                         <input 
                           type="number" 
-                          value={settings.passingGrade}
-                          onChange={(e) => setSettings({...settings, passingGrade: parseInt(e.target.value) || 0})}
+                          placeholder="0"
+                          value={settings.passingGrade ?? ''}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => setSettings({...settings, passingGrade: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})}
                           className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-e17-navy" 
                         />
                       </div>
@@ -194,8 +213,10 @@ export default function AdminSettingsPage() {
                         <div className="relative">
                           <input 
                             type="number" 
-                            value={settings.maxQuizRetries}
-                            onChange={(e) => setSettings({...settings, maxQuizRetries: parseInt(e.target.value) || 0})}
+                            placeholder="0"
+                            value={settings.maxQuizRetries ?? ''}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => setSettings({...settings, maxQuizRetries: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})}
                             className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-e17-navy pr-12" 
                           />
                           <span className="absolute right-3 top-2.5 text-sm text-slate-500">Kali</span>
@@ -214,8 +235,10 @@ export default function AdminSettingsPage() {
                           <div className="relative">
                             <input 
                               type="number" 
-                              value={settings.weightAttendance}
-                              onChange={(e) => setSettings({...settings, weightAttendance: parseInt(e.target.value) || 0})}
+                              placeholder="0"
+                              value={settings.weightAttendance ?? ''}
+                              onFocus={(e) => e.target.select()}
+                              onChange={(e) => setSettings({...settings, weightAttendance: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})}
                               className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-e17-navy pr-8" 
                             />
                             <span className="absolute right-3 top-2 text-sm text-slate-500">%</span>
@@ -226,8 +249,10 @@ export default function AdminSettingsPage() {
                           <div className="relative">
                             <input 
                               type="number" 
-                              value={settings.weightTaskAndQuiz}
-                              onChange={(e) => setSettings({...settings, weightTaskAndQuiz: parseInt(e.target.value) || 0})}
+                              placeholder="0"
+                              value={settings.weightTaskAndQuiz ?? ''}
+                              onFocus={(e) => e.target.select()}
+                              onChange={(e) => setSettings({...settings, weightTaskAndQuiz: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})}
                               className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-e17-navy pr-8" 
                             />
                             <span className="absolute right-3 top-2 text-sm text-slate-500">%</span>
@@ -238,8 +263,10 @@ export default function AdminSettingsPage() {
                           <div className="relative">
                             <input 
                               type="number" 
-                              value={settings.weightProject}
-                              onChange={(e) => setSettings({...settings, weightProject: parseInt(e.target.value) || 0})}
+                              placeholder="0"
+                              value={settings.weightProject ?? ''}
+                              onFocus={(e) => e.target.select()}
+                              onChange={(e) => setSettings({...settings, weightProject: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})}
                               className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-e17-navy pr-8" 
                             />
                             <span className="absolute right-3 top-2 text-sm text-slate-500">%</span>
@@ -302,8 +329,10 @@ export default function AdminSettingsPage() {
                         <div className="relative">
                           <input 
                             type="number" 
-                            value={settings.sessionTimeoutMinutes}
-                            onChange={(e) => setSettings({...settings, sessionTimeoutMinutes: parseInt(e.target.value) || 0})}
+                            placeholder="0"
+                            value={settings.sessionTimeoutMinutes ?? ''}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => setSettings({...settings, sessionTimeoutMinutes: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})}
                             className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-e17-navy pr-16" 
                           />
                           <span className="absolute right-3 top-2.5 text-sm text-slate-500">Menit</span>
@@ -314,8 +343,10 @@ export default function AdminSettingsPage() {
                         <label className="block text-sm font-medium text-slate-700 mb-1">Maksimal Perangkat Aktif</label>
                         <input 
                           type="number" 
-                          value={settings.maxActiveDevices}
-                          onChange={(e) => setSettings({...settings, maxActiveDevices: parseInt(e.target.value) || 0})}
+                          placeholder="0"
+                          value={settings.maxActiveDevices ?? ''}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => setSettings({...settings, maxActiveDevices: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})}
                           className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-e17-navy" 
                         />
                         <p className="text-xs text-slate-500 mt-1">Batas perangkat yang bisa login bersamaan per akun.</p>
@@ -352,8 +383,10 @@ export default function AdminSettingsPage() {
                         <label className="block text-sm font-medium text-slate-700 mb-1">SMTP Port</label>
                         <input 
                           type="number" 
-                          value={settings.smtpPort}
-                          onChange={(e) => setSettings({...settings, smtpPort: parseInt(e.target.value) || 0})}
+                          placeholder="587"
+                          value={settings.smtpPort ?? ''}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => setSettings({...settings, smtpPort: e.target.value === '' ? ('' as any) : (parseInt(e.target.value) || 0)})}
                           className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-e17-navy" 
                         />
                       </div>

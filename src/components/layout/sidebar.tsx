@@ -3,19 +3,21 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, BookOpen, Users, Folder, Settings, FileText, CheckSquare, Award, Scan, Trophy, PieChart, ShieldAlert, Megaphone, Ticket, MessageSquare, Globe, ShoppingCart, Wallet, Key, Video } from "lucide-react"
+import { LayoutDashboard, BookOpen, Users, Folder, Settings, FileText, CheckSquare, Award, Scan, Trophy, PieChart, ShieldAlert, Megaphone, Ticket, MessageSquare, Globe, ShoppingCart, Wallet, Video, Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Tier, getCapabilityAccess } from "@/lib/access-tier"
 
 export type UserRole = "Super Admin" | "Mentor" | "Siswa"
 
 interface SidebarProps {
   role: UserRole
+  tier?: Tier
   className?: string
   isMobileOpen?: boolean
   onMobileClose?: () => void
 }
 
-export function Sidebar({ role, className, isMobileOpen, onMobileClose }: SidebarProps) {
+export function Sidebar({ role, tier, className, isMobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [adminMode, setAdminMode] = React.useState<"lms" | "marketing">("lms")
@@ -40,6 +42,7 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
           { name: "Manajemen Siswa", href: "/admin/students", icon: Users },
           { name: "Manajemen Pengguna", href: "/admin/users", icon: Users },
           { name: "Nilai & Peringkat", href: "/admin/grades", icon: Trophy },
+          { name: "Penilaian BNSP", href: "/admin/bnsp", icon: Award },
           { name: "Laporan & Data", href: "/admin/reports", icon: PieChart },
           { name: "Sertifikat", href: "/admin/certificates", icon: Award },
           { name: "Portofolio Siswa", href: "/admin/portfolios", icon: Folder },
@@ -54,7 +57,6 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
           { name: "Pengguna Web", href: "/admin/marketing/leads", icon: Users },
           { name: "Program & Video", href: "/admin/marketing/programs", icon: BookOpen },
           { name: "Order Pendaftaran", href: "/admin/marketing/orders", icon: ShoppingCart },
-          { name: "Akses Manual Video", href: "/admin/marketing/manual-access", icon: Key },
           { name: "Rekening Pembayaran", href: "/admin/marketing/payment-accounts", icon: Wallet },
         ]
         
@@ -68,24 +70,38 @@ export function Sidebar({ role, className, isMobileOpen, onMobileClose }: Sideba
           { name: "Penilaian Kuis", href: "/mentor/quizzes", icon: FileText },
           { name: "Proyek Akhir", href: "/mentor/projects", icon: Trophy },
           { name: "Validasi Portofolio", href: "/mentor/portfolio-review", icon: Award },
+          { name: "Penilaian BNSP", href: "/mentor/bnsp", icon: Award },
           { name: "Tiket Bantuan", href: "/mentor/helpdesk", icon: Ticket },
         ]
-      case "Siswa":
-        return [
+      case "Siswa": {
+        const studentItems = [
           { name: "Dashboard", href: "/siswa", icon: LayoutDashboard },
           { name: "Akses Video", href: "/siswa/video", icon: Video },
           { name: "Materi Belajar", href: "/siswa/courses", icon: BookOpen },
+        ]
+
+        const bnspAccess = getCapabilityAccess(tier || 'junior', 'bnsp_exam')
+        if (bnspAccess === 'granted') {
+          studentItems.push({ name: "Sertifikasi BNSP", href: "/siswa/bnsp", icon: Award })
+        } else if (bnspAccess === 'locked') {
+          studentItems.push({ name: "Sertifikasi BNSP", href: "/siswa/courses?locked=bnsp", icon: Lock })
+        }
+
+        studentItems.push(
           { name: "Pesan & Diskusi", href: "/siswa/messages", icon: MessageSquare },
           { name: "Tugas Harian", href: "/siswa/assignments", icon: CheckSquare },
           { name: "Proyek Akhir", href: "/siswa/projects", icon: Trophy },
           { name: "Portofolio", href: "/siswa/portfolio", icon: FileText },
           { name: "Sertifikat", href: "/siswa/certificates", icon: Award },
           { name: "Tiket Bantuan", href: "/siswa/helpdesk", icon: Ticket },
-        ]
+        )
+
+        return studentItems
+      }
       default:
         return []
     }
-  }, [role, adminMode])
+  }, [role, adminMode, tier])
 
   return (
     <>

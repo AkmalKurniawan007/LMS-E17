@@ -9,6 +9,8 @@ import { createClient } from "@/utils/supabase/client"
 import { toast } from "sonner"
 import { logAction } from "@/utils/logger-actions"
 
+import { getBnspQuizQuestions, submitBnspQuiz } from "../bnsp-actions"
+
 export default function SiswaQuizEnginePage({
   params,
 }: {
@@ -52,23 +54,40 @@ export default function SiswaQuizEnginePage({
       return
     }
 
-    const { data: questionsData, error: qError } = await supabase
-      .from('quiz_questions')
-      .select('*')
-      .eq('quiz_id', quizId)
-      .order('order_number', { ascending: true })
+    if (quizData.is_bnsp) {
+      try {
+        const bnspRes = await getBnspQuizQuestions(quizId)
+        if (bnspRes.success) {
+          setQuiz({
+            ...quizData,
+            sessionTitle: quizData.sessions?.title || 'Sesi',
+            questions: bnspRes.questions,
+          })
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Gagal memuat soal BNSP")
+        setIsLoading(false)
+        return
+      }
+    } else {
+      const { data: questionsData, error: qError } = await supabase
+        .from('quiz_questions')
+        .select('*')
+        .eq('quiz_id', quizId)
+        .order('order_number', { ascending: true })
 
-    if (!qError && questionsData) {
-      setQuiz({
-        ...quizData,
-        sessionTitle: quizData.sessions?.title || 'Sesi',
-        questions: questionsData.map((q: any) => ({
-          id: q.id,
-          text: q.question_text,
-          options: q.options || [],
-          correctAnswer: q.correct_answer
-        }))
-      })
+      if (!qError && questionsData) {
+        setQuiz({
+          ...quizData,
+          sessionTitle: quizData.sessions?.title || 'Sesi',
+          questions: questionsData.map((q: any) => ({
+            id: q.id,
+            text: q.question_text,
+            options: q.options || [],
+            correctAnswer: q.correct_answer
+          }))
+        })
+      }
     }
 
     // Check attempts
@@ -133,20 +152,38 @@ export default function SiswaQuizEnginePage({
       setCurrentQuestion(prev => prev + 1)
       setSelectedOption(null) // Reset selection for next question
     } else {
-      // Calculate score
-      let correctCount = 0
-      quiz.questions.forEach((q: any, i: number) => {
-         if (answers[i] === String(q.correctAnswer)) {
-           correctCount++
-         }
-      })
-      const calculatedScore = quiz.questions.length > 0 ? Math.round((correctCount / quiz.questions.length) * 100) : 0
-      setScore(calculatedScore)
-      setIsSubmitted(true)
+      if (quiz.is_bnsp) {
+        setIsSaving(true)
+        try {
+          const res = await submitBnspQuiz(quiz.id, answers)
+          if (res.success) {
+            setScore(res.score)
+            setIsSubmitted(true)
+            setIsSaved(true)
+            setAttemptCount(res.attemptNumber)
+            toast.success("Ujian BNSP berhasil dikumpulkan!")
+          }
+        } catch (err: any) {
+          toast.error("Gagal mengirim kuis BNSP: " + (err.message || 'Error'))
+        } finally {
+          setIsSaving(false)
+        }
+      } else {
+        // Calculate score jalur non-BNSP reguler
+        let correctCount = 0
+        quiz.questions.forEach((q: any, i: number) => {
+           if (answers[i] === String(q.correctAnswer)) {
+             correctCount++
+           }
+        })
+        const calculatedScore = quiz.questions.length > 0 ? Math.round((correctCount / quiz.questions.length) * 100) : 0
+        setScore(calculatedScore)
+        setIsSubmitted(true)
 
-      // Auto save if score is 100 or max retries reached
-      if (calculatedScore === 100 || attemptCount + 1 >= quiz.max_retries) {
-         await saveScore(calculatedScore, attemptCount)
+        // Auto save if score is 100 or max retries reached
+        if (calculatedScore === 100 || attemptCount + 1 >= quiz.max_retries) {
+           await saveScore(calculatedScore, attemptCount)
+        }
       }
     }
   }

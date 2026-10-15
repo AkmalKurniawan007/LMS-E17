@@ -2,18 +2,27 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { BookOpen, Clock, Lock, PlayCircle, CheckCircle, Video, MapPin, Download, ArrowRight, Loader2, UserCheck, FileText, CheckCircle2 } from "lucide-react"
+import { useSearchParams } from "next/navigation"
+import { BookOpen, Clock, Lock, PlayCircle, CheckCircle, Video, MapPin, Download, ArrowRight, ArrowUpRight, Loader2, UserCheck, FileText, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/client"
 import { toast } from "sonner"
+import { Tier, getCapabilityAccess } from "@/lib/access-tier"
+import { BnspLockedBanner, UPGRADE_URL } from "@/components/bnsp/BnspLockedBanner"
 
-export default function SiswaCoursesPage() {
+function CoursesContent() {
   const supabase = createClient()
+  const searchParams = useSearchParams()
+  const lockedParam = searchParams.get('locked')
+
+  const [userTier, setUserTier] = React.useState<Tier>('bootcamp')
   const [sessions, setSessions] = React.useState<any[]>([])
   const [courseData, setCourseData] = React.useState<any>({ name: "Memuat...", batch: "...", mentor: "...", progress: 0, completed: 0, total: 0, startDate: null })
   const [attendances, setAttendances] = React.useState<Record<string, boolean>>({}) // mapping sessionId to hasAttended
   const [isLoading, setIsLoading] = React.useState(true)
   const [isAbsenLoading, setIsAbsenLoading] = React.useState<string | null>(null)
+
+  const bnspAccess = getCapabilityAccess(userTier, 'bnsp_exam')
 
   React.useEffect(() => {
     fetchData()
@@ -28,10 +37,10 @@ export default function SiswaCoursesPage() {
       return
     }
 
-    // 1. Fetch Enrollment to get batch_id
+    // 1. Fetch Enrollment to get batch_id and tier
     const { data: enrollmentData } = await supabase
       .from('enrollments')
-      .select('batch_id')
+      .select('batch_id, tier')
       .eq('user_id', userData.user.id)
       .single()
 
@@ -39,6 +48,10 @@ export default function SiswaCoursesPage() {
       setCourseData({ name: "Anda Belum Terdaftar", batch: "-", mentor: "-", progress: 0, completed: 0, total: 0, startDate: null })
       setIsLoading(false)
       return
+    }
+
+    if (enrollmentData.tier) {
+      setUserTier(enrollmentData.tier as Tier)
     }
 
     const batchId = enrollmentData.batch_id
@@ -54,9 +67,9 @@ export default function SiswaCoursesPage() {
       .eq('id', batchId)
       .single()
 
-    // 3. Fetch Sessions & Materials, Quizzes, and Tasks
+    // 3. Fetch Sessions & Materials, Quizzes, and Tasks with is_bnsp flag
     const { data: sessData } = await supabase.from('sessions')
-      .select('*, materials(*), quizzes(id, title), tasks(id, title)')
+      .select('*, materials(*), quizzes(id, title, is_bnsp), tasks(id, title, is_bnsp)')
       .eq('batch_id', batchId)
       .order('order_number', { ascending: true })
 
@@ -121,6 +134,13 @@ export default function SiswaCoursesPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-8">
+      {/* Banner info saat dialihkan karena hak BNSP terkunci */}
+      {lockedParam === 'bnsp' && (
+        <div className="animate-in fade-in slide-in-from-top-3">
+          <BnspLockedBanner />
+        </div>
+      )}
+
       {/* Header Gabungan */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between border-b border-slate-200 pb-5 gap-4">
         <div>
@@ -279,11 +299,34 @@ export default function SiswaCoursesPage() {
                   )}
 
                   {/* Kerjakan Tugas */}
-                  {session.tasks && session.tasks.map((task: any) => (
-                    canAccessMaterials ? (
+                  {session.tasks && session.tasks.map((task: any) => {
+                    const isBnsp = Boolean(task.is_bnsp)
+                    if (isBnsp && bnspAccess === 'hidden') return null
+
+                    if (isBnsp && bnspAccess === 'locked') {
+                      return (
+                        <div key={`task-${task.id}`} className="w-full mt-2 p-3 rounded-xl border border-amber-200 bg-amber-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          <div className="flex items-center gap-2 text-amber-900">
+                            <Lock className="h-4 w-4 text-amber-600 shrink-0" />
+                            <span className="text-xs font-bold">{task.title || "Tugas Portofolio BNSP"} (Terkunci)</span>
+                          </div>
+                          <a
+                            href={UPGRADE_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors shrink-0"
+                          >
+                            Upgrade ke Paket 3
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                          </a>
+                        </div>
+                      )
+                    }
+
+                    return canAccessMaterials ? (
                       <Link key={`task-${task.id}`} href={`/siswa/assignments/${task.id}`} className="w-full sm:w-auto">
                         <Button variant="outline" className="w-full border-blue-200 bg-blue-50 text-blue-700 font-bold hover:bg-blue-100 shadow-sm">
-                          <FileText className="h-4 w-4 mr-2" /> Kerjakan Tugas
+                          <FileText className="h-4 w-4 mr-2" /> Kerjakan Tugas {isBnsp ? "(BNSP)" : ""}
                         </Button>
                       </Link>
                     ) : (
@@ -291,14 +334,37 @@ export default function SiswaCoursesPage() {
                         <FileText className="h-4 w-4 mr-2" /> Tugas Terkunci
                       </Button>
                     )
-                  ))}
+                  })}
 
                   {/* Kerjakan Kuis */}
-                  {session.quizzes && session.quizzes.map((quiz: any) => (
-                    canAccessMaterials ? (
+                  {session.quizzes && session.quizzes.map((quiz: any) => {
+                    const isBnsp = Boolean(quiz.is_bnsp)
+                    if (isBnsp && bnspAccess === 'hidden') return null
+
+                    if (isBnsp && bnspAccess === 'locked') {
+                      return (
+                        <div key={`quiz-${quiz.id}`} className="w-full mt-2 p-3 rounded-xl border border-amber-200 bg-amber-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          <div className="flex items-center gap-2 text-amber-900">
+                            <Lock className="h-4 w-4 text-amber-600 shrink-0" />
+                            <span className="text-xs font-bold">{quiz.title || "Kuis Teori BNSP"} (Terkunci)</span>
+                          </div>
+                          <a
+                            href={UPGRADE_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors shrink-0"
+                          >
+                            Upgrade ke Paket 3
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                          </a>
+                        </div>
+                      )
+                    }
+
+                    return canAccessMaterials ? (
                       <Link key={`quiz-${quiz.id}`} href={`/siswa/quiz/${quiz.id}`} className="w-full sm:w-auto">
                         <Button variant="outline" className="w-full border-purple-200 bg-purple-50 text-purple-700 font-bold hover:bg-purple-100 shadow-sm">
-                          <CheckCircle2 className="h-4 w-4 mr-2" /> Kerjakan Kuis
+                          <CheckCircle2 className="h-4 w-4 mr-2" /> Kerjakan Kuis {isBnsp ? "(BNSP)" : ""}
                         </Button>
                       </Link>
                     ) : (
@@ -306,7 +372,7 @@ export default function SiswaCoursesPage() {
                         <CheckCircle2 className="h-4 w-4 mr-2" /> Kuis Terkunci
                       </Button>
                     )
-                  ))}
+                  })}
                 </div>
               </div>
             </div>
@@ -315,5 +381,13 @@ export default function SiswaCoursesPage() {
         })}
       </div>
     </div>
+  )
+}
+
+export default function SiswaCoursesPage() {
+  return (
+    <React.Suspense fallback={<div className="flex justify-center items-center py-32"><Loader2 className="h-8 w-8 animate-spin text-e17-navy" /></div>}>
+      <CoursesContent />
+    </React.Suspense>
   )
 }

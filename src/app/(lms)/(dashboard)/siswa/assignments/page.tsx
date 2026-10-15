@@ -5,9 +5,12 @@ import { UploadCloud, Clock, CheckCircle, FileText, AlertCircle, Loader2, CheckS
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/client"
 import { toast } from "sonner"
+import { submitBnspTask } from "./bnsp-actions"
+import { Tier, getCapabilityAccess, getHighestTier } from "@/lib/access-tier"
 
 export default function SiswaAssignmentsPage() {
   const supabase = createClient()
+  const [userTier, setUserTier] = React.useState<Tier>('bootcamp')
   const [assignments, setAssignments] = React.useState<any[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [uploadingTaskId, setUploadingTaskId] = React.useState<string | null>(null)
@@ -28,16 +31,19 @@ export default function SiswaAssignmentsPage() {
 
     const userId = userData.user.id
 
-    // 1. Fetch Enrollments to get batch_ids
+    // 1. Fetch Enrollments to get batch_ids and tier
     const { data: enrollmentsData } = await supabase
       .from('enrollments')
-      .select('id, batch_id')
+      .select('id, batch_id, tier')
       .eq('user_id', userId)
 
     if (!enrollmentsData || enrollmentsData.length === 0) {
       setIsLoading(false)
       return
     }
+
+    const resolvedTier = getHighestTier(enrollmentsData.map((e: any) => e.tier))
+    setUserTier(resolvedTier)
 
     const batchIds = enrollmentsData.map((e: any) => e.batch_id).filter(Boolean)
 
@@ -98,6 +104,7 @@ export default function SiswaAssignmentsPage() {
           combinedAssignments.push({
              id: task.id,
              title: task.title,
+             isBnsp: Boolean(task.is_bnsp),
              session: session.title,
              batchName: session.batches?.name || 'Kelas Tidak Diketahui',
              deadlineRaw: task.deadline,
@@ -153,7 +160,7 @@ export default function SiswaAssignmentsPage() {
         publicUrl = publicUrlData.publicUrl
       }
 
-      // 2. Insert to task_submissions
+      // 2. Insert to task_submissions (BNSP vs Reguler)
       let fileUrlToSave = text.trim()
       if (publicUrl && text.trim()) {
         fileUrlToSave = JSON.stringify({ url: publicUrl, text: text.trim() })
@@ -161,16 +168,25 @@ export default function SiswaAssignmentsPage() {
         fileUrlToSave = publicUrl
       }
 
-      const { error: dbError } = await supabase
-        .from('task_submissions')
-        .insert({
-          task_id: taskId,
-          user_id: userId,
-          file_url: fileUrlToSave,
-          submission_type: publicUrl ? 'file_upload' : 'text'
-        })
+      const targetAssignment = assignments.find(a => a.id === taskId)
+      if (targetAssignment?.isBnsp) {
+        const access = getCapabilityAccess(userTier, 'bnsp_exam')
+        if (access !== 'granted') {
+          throw new Error("Tugas ini memerlukan akses sertifikasi BNSP.")
+        }
+        await submitBnspTask(taskId, fileUrlToSave, publicUrl ? 'file_upload' : 'text')
+      } else {
+        const { error: dbError } = await supabase
+          .from('task_submissions')
+          .insert({
+            task_id: taskId,
+            user_id: userId,
+            file_url: fileUrlToSave,
+            submission_type: publicUrl ? 'file_upload' : 'text'
+          })
 
-      if (dbError) throw dbError
+        if (dbError) throw dbError
+      }
 
       toast.success("Tugas berhasil dikumpulkan!")
       setSubmissionTexts(prev => ({...prev, [taskId]: ""}))
@@ -225,6 +241,11 @@ export default function SiswaAssignmentsPage() {
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                       {assignment.session}
                     </span>
+                    {assignment.isBnsp && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                        Sertifikasi BNSP
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-lg font-bold text-e17-dark">{assignment.title}</h3>
                 </div>
@@ -329,14 +350,23 @@ export default function SiswaAssignmentsPage() {
                       </div>
 
                       <div className="flex justify-end pt-2 border-t border-slate-100">
-                        <Button 
-                          onClick={() => handleSubmit(assignment.id)}
-                          disabled={uploadingTaskId === assignment.id || (!submissionTexts[assignment.id]?.trim() && !selectedFiles[assignment.id])}
-                          className="bg-e17-navy text-white hover:bg-blue-900 px-6"
-                        >
-                          {uploadingTaskId === assignment.id ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                          Kirim Jawaban
-                        </Button>
+                        {assignment.isBnsp && getCapabilityAccess(userTier, 'bnsp_exam') !== 'granted' ? (
+                          <Button 
+                            disabled={true}
+                            className="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-6 cursor-not-allowed"
+                          >
+                            Terkunci (Khusus Paket BNSP)
+                          </Button>
+                        ) : (
+                          <Button 
+                            onClick={() => handleSubmit(assignment.id)}
+                            disabled={uploadingTaskId === assignment.id || (!submissionTexts[assignment.id]?.trim() && !selectedFiles[assignment.id])}
+                            className="bg-e17-navy text-white hover:bg-blue-900 px-6"
+                          >
+                            {uploadingTaskId === assignment.id ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                            Kirim Jawaban
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>

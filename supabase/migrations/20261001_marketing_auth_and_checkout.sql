@@ -36,7 +36,7 @@ BEGIN
   -- Lead hanya untuk calon pembeli (role NULL)
   IF v_role IS NULL THEN
     INSERT INTO public.marketing_leads (full_name, email, source, status, last_activity)
-    VALUES (v_name, v_email, 'register', 'new', now())
+    VALUES (v_name, v_email, 'web_register', 'new', now())
     ON CONFLICT (email) DO UPDATE SET last_activity = now();
   END IF;
 

@@ -4,7 +4,7 @@ import * as React from "react"
 import {
   BookOpen, Loader2, Save, Trash2, Plus, ChevronDown, ChevronUp,
   Check, X, GripVertical, Edit2, AlertCircle, CheckCircle2, Package,
-  ToggleLeft, ToggleRight, Users, Clock, Star, Video, PlayCircle
+  ToggleLeft, ToggleRight, Users, Clock, Star, Video, PlayCircle, RefreshCw
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,6 +17,7 @@ import {
   deleteCurriculumItem,
   createMarketingProgram,
   getAllLmsPrograms,
+  syncMarketingCurriculumWithLms,
   type MarketingProgram,
   type MarketingProgramTier,
   type MarketingCurriculumItem,
@@ -25,10 +26,23 @@ import {
 const formatPrice = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n)
 
+const formatNumberWithDots = (val: number | string | undefined | null): string => {
+  if (val === undefined || val === null || val === "") return ""
+  const clean = String(val).replace(/\D/g, "")
+  if (!clean) return ""
+  return new Intl.NumberFormat("id-ID").format(Number(clean))
+}
+
+const getFormattedTierPrice = (val: unknown): string => {
+  if (val === "" || val === undefined || val === null) return ""
+  if (val === 0 || val === "0") return "0"
+  return formatNumberWithDots(val as any)
+}
+
 const TIER_LABELS: Record<string, string> = {
-  junior: "Junior (Video Only)",
-  expert: "Expert (Video Only)",
-  complete: "Bootcamp Lengkap",
+  junior: "Self Paced",
+  expert: "Mentoring Plus",
+  complete: "Pro Bootcamp (BNSP)",
 }
 
 const TIER_COLORS: Record<string, string> = {
@@ -90,6 +104,7 @@ function InlineEdit({
         <textarea
           autoFocus
           value={local}
+          onFocus={e => e.target.select()}
           onChange={e => setLocal(e.target.value)}
           onKeyDown={e => { if (e.key === "Escape") { setLocal(value); setEditing(false) } }}
           rows={3}
@@ -100,6 +115,7 @@ function InlineEdit({
           autoFocus
           type="text"
           value={local}
+          onFocus={e => e.target.select()}
           onChange={e => setLocal(e.target.value)}
           onKeyDown={e => {
             if (e.key === "Enter") commit()
@@ -170,8 +186,8 @@ function TiersEditor({ tiers, programId, onRefresh }: { tiers: MarketingProgramT
         programId,
         tierType: local.tier_type,
         label: local.label,
-        price: local.price,
-        originalPrice: local.original_price,
+        price: Number(local.price) || 0,
+        originalPrice: Number(local.original_price) || 0,
         isPopular: local.is_popular,
         isActive: local.is_active,
         sortOrder: local.sort_order,
@@ -187,6 +203,18 @@ function TiersEditor({ tiers, programId, onRefresh }: { tiers: MarketingProgramT
       onRefresh()
     }
   }
+
+  const juniorTier = localTiers.find(t => t.tier_type === "junior")
+  const expertTier = localTiers.find(t => t.tier_type === "expert")
+  const completeTier = localTiers.find(t => t.tier_type === "complete" || t.tier_type === "bootcamp")
+
+  const juniorPrice = Number(juniorTier?.price) || 0
+  const expertPrice = Number(expertTier?.price) || 0
+  const completePrice = Number(completeTier?.price) || 0
+
+  const diffJuniorToExpert = Math.max(0, expertPrice - juniorPrice)
+  const diffJuniorToComplete = Math.max(0, completePrice - juniorPrice)
+  const diffExpertToComplete = Math.max(0, completePrice - expertPrice)
 
   return (
     <div className="space-y-4">
@@ -236,21 +264,39 @@ function TiersEditor({ tiers, programId, onRefresh }: { tiers: MarketingProgramT
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Harga (Rp)</label>
-                    <input
-                      type="number"
-                      value={local.price}
-                      onChange={e => handleTierChange(idx, "price", parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white font-mono shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none transition-all"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none">Rp</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={getFormattedTierPrice(local.price)}
+                        onFocus={e => e.target.select()}
+                        onChange={e => {
+                          const raw = e.target.value.replace(/\D/g, "")
+                          handleTierChange(idx, "price", raw === "" ? ("" as any) : parseInt(raw, 10))
+                        }}
+                        className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white font-mono font-semibold shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none transition-all"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Harga Coret (Rp)</label>
-                    <input
-                      type="number"
-                      value={local.original_price}
-                      onChange={e => handleTierChange(idx, "original_price", parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white font-mono shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none transition-all"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none">Rp</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={getFormattedTierPrice(local.original_price)}
+                        onFocus={e => e.target.select()}
+                        onChange={e => {
+                          const raw = e.target.value.replace(/\D/g, "")
+                          handleTierChange(idx, "original_price", raw === "" ? ("" as any) : parseInt(raw, 10))
+                        }}
+                        className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white font-mono font-semibold shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -296,6 +342,81 @@ function TiersEditor({ tiers, programId, onRefresh }: { tiers: MarketingProgramT
           )
         })}
       </div>
+
+      {/* Matriks & Simulasi Biaya Upgrade */}
+      <div className="bg-slate-900 text-white rounded-2xl p-6 border border-slate-800 shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 pb-4 border-b border-white/10">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold tracking-wide uppercase text-indigo-400">
+                ⚡ Simulasi & Biaya Upgrade Siswa (Prorated Difference)
+              </span>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Otomatis Dihitung dari Harga Paket
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 mt-1">
+              Jika siswa sudah memiliki paket video (*Self Paced*), sistem checkout otomatis memotong harga paket lama sehingga siswa hanya membayar selisih berikut untuk naik paket:
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* 1. Self Paced -> Mentoring Plus */}
+          <div className="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs text-slate-400">
+              <span className="font-bold text-sky-300 bg-sky-950/80 px-2 py-0.5 rounded border border-sky-800/40">Self Paced</span>
+              <span className="text-slate-500 font-bold">➔</span>
+              <span className="font-bold text-violet-300 bg-violet-950/80 px-2 py-0.5 rounded border border-violet-800/40">Mentoring Plus</span>
+            </div>
+            <div className="pt-1">
+              <div className="text-[11px] text-slate-400">Biaya Upgrade:</div>
+              <div className="text-2xl font-black text-emerald-400 font-mono">
+                {formatPrice(diffJuniorToExpert)}
+              </div>
+            </div>
+            <div className="text-[11px] text-slate-400 border-t border-slate-700/60 pt-2 leading-relaxed">
+              Potongan: <span className="line-through">{formatPrice(juniorPrice)}</span> dari harga Mentoring ({formatPrice(expertPrice)}).
+            </div>
+          </div>
+
+          {/* 2. Self Paced -> Pro Bootcamp */}
+          <div className="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs text-slate-400">
+              <span className="font-bold text-sky-300 bg-sky-950/80 px-2 py-0.5 rounded border border-sky-800/40">Self Paced</span>
+              <span className="text-slate-500 font-bold">➔</span>
+              <span className="font-bold text-orange-300 bg-orange-950/80 px-2 py-0.5 rounded border border-orange-800/40">Pro Bootcamp</span>
+            </div>
+            <div className="pt-1">
+              <div className="text-[11px] text-slate-400">Biaya Upgrade:</div>
+              <div className="text-2xl font-black text-emerald-400 font-mono">
+                {formatPrice(diffJuniorToComplete)}
+              </div>
+            </div>
+            <div className="text-[11px] text-slate-400 border-t border-slate-700/60 pt-2 leading-relaxed">
+              Potongan: <span className="line-through">{formatPrice(juniorPrice)}</span> dari harga Bootcamp ({formatPrice(completePrice)}).
+            </div>
+          </div>
+
+          {/* 3. Mentoring Plus -> Pro Bootcamp */}
+          <div className="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs text-slate-400">
+              <span className="font-bold text-violet-300 bg-violet-950/80 px-2 py-0.5 rounded border border-violet-800/40">Mentoring Plus</span>
+              <span className="text-slate-500 font-bold">➔</span>
+              <span className="font-bold text-orange-300 bg-orange-950/80 px-2 py-0.5 rounded border border-orange-800/40">Pro Bootcamp</span>
+            </div>
+            <div className="pt-1">
+              <div className="text-[11px] text-slate-400">Biaya Upgrade:</div>
+              <div className="text-2xl font-black text-emerald-400 font-mono">
+                {formatPrice(diffExpertToComplete)}
+              </div>
+            </div>
+            <div className="text-[11px] text-slate-400 border-t border-slate-700/60 pt-2 leading-relaxed">
+              Potongan: <span className="line-through">{formatPrice(expertPrice)}</span> dari harga Bootcamp ({formatPrice(completePrice)}).
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -312,10 +433,26 @@ function CurriculumEditor({ items, programId, onRefresh }: { items: MarketingCur
   
   const [localItems, setLocalItems] = React.useState(items)
   const [saveStatus, setSaveStatus] = React.useState<SaveStatus>("idle")
+  const [isSyncing, setIsSyncing] = React.useState(false)
+  const [syncNotice, setSyncNotice] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     setLocalItems(items)
   }, [items])
+
+  const handleSync = async (direction: 'pull_from_lms' | 'push_to_lms') => {
+    setIsSyncing(true)
+    setSyncNotice(null)
+    const res = await syncMarketingCurriculumWithLms(programId, direction)
+    if (res.success) {
+      setSyncNotice(`Sinkronisasi berhasil! ${res.syncedCount} sesi diselaraskan (${direction === 'pull_from_lms' ? 'Tarik dari LMS' : 'Salin ke LMS'}).`)
+      setTimeout(() => setSyncNotice(null), 5000)
+      onRefresh()
+    } else {
+      alert(res.error || "Gagal melakukan sinkronisasi.")
+    }
+    setIsSyncing(false)
+  }
 
   const handleItemChange = (idx: number, field: keyof MarketingCurriculumItem, value: any) => {
     const newItems = [...localItems]
@@ -374,13 +511,41 @@ function CurriculumEditor({ items, programId, onRefresh }: { items: MarketingCur
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Kurikulum ({items.length} sesi)</h4>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Kurikulum ({items.length} sesi)</h4>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Sinkronisasi LMS */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <Button
+              onClick={() => handleSync('pull_from_lms')}
+              disabled={isSyncing}
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs px-2.5 font-semibold text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+              title="Tarik sesi dari kurikulum program LMS"
+            >
+              <RefreshCw className={`w-3 h-3 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              Tarik dari LMS
+            </Button>
+            <span className="text-slate-300">|</span>
+            <Button
+              onClick={() => handleSync('push_to_lms')}
+              disabled={isSyncing}
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs px-2.5 font-semibold text-slate-600 hover:bg-slate-200"
+              title="Salin silabus marketing ini ke blueprint LMS"
+            >
+              Dorong ke LMS
+            </Button>
+          </div>
+
           {localItems.length > 0 && (
             <Button onClick={handleSaveAll} disabled={saveStatus === "saving"} size="sm" className="bg-slate-900 hover:bg-slate-800 text-white h-8 text-xs px-4 shadow-sm">
               {saveStatus === "saving" ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Save className="w-3 h-3 mr-1" />}
-              {saveStatus === "success" ? "Tersimpan" : "Simpan Semua Perubahan"}
+              {saveStatus === "success" ? "Tersimpan" : "Simpan Semua"}
             </Button>
           )}
           <Button onClick={() => setAdding(a => !a)} variant="outline" size="sm" className="h-8 text-xs gap-1 border-slate-300 shadow-sm">
@@ -388,6 +553,13 @@ function CurriculumEditor({ items, programId, onRefresh }: { items: MarketingCur
           </Button>
         </div>
       </div>
+
+      {syncNotice && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2 animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{syncNotice}</span>
+        </div>
+      )}
 
       {adding && (
         <div className="p-4 border border-blue-200 rounded-xl bg-blue-50/50 space-y-3 shadow-sm">
@@ -490,7 +662,18 @@ function CurriculumEditor({ items, programId, onRefresh }: { items: MarketingCur
               
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                 <div className="md:col-span-8">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Judul Sesi</label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Judul Sesi</label>
+                    {item.program_session_id ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" /> Tersinkronkan Sesi LMS
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                        Sesi Mandiri
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="text"
                     value={item.title}
@@ -554,29 +737,10 @@ function CurriculumEditor({ items, programId, onRefresh }: { items: MarketingCur
                 </div>
               </div>
               
-              <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-slate-200">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Akses Paket:</span>
-                <div className="flex gap-4">
-                  {["junior", "expert", "bootcamp"].map(tier => {
-                    const itemAccessTiers = item.access_tiers || ["junior", "expert", "bootcamp"];
-                    return (
-                      <label key={tier} className="flex items-center gap-1.5 text-sm cursor-pointer text-slate-700 select-none">
-                        <input 
-                          type="checkbox" 
-                          checked={itemAccessTiers.includes(tier)}
-                          onChange={(e) => {
-                            const newTiers = e.target.checked 
-                              ? [...itemAccessTiers, tier] 
-                              : itemAccessTiers.filter(t => t !== tier);
-                            handleItemChange(idx, "access_tiers", newTiers)
-                          }}
-                          className="rounded w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500"
-                        />
-                        <span className="capitalize font-medium">{tier}</span>
-                      </label>
-                    );
-                  })}
-                </div>
+              <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-200">
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+                  ✓ Tersedia untuk Semua Paket (Self Paced, Mentoring Plus, Pro Bootcamp)
+                </span>
               </div>
             </div>
             <button
@@ -797,7 +961,16 @@ function ProgramCard({ program, lmsPrograms, onRefresh }: { program: MarketingPr
 // ADD PROGRAM MODAL
 // ================================================================
 function AddProgramModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [form, setForm] = React.useState({
+  const [form, setForm] = React.useState<{
+    slug: string;
+    name: string;
+    shortName: string;
+    description: string;
+    sessionsCount: number | string;
+    modulesCount: number | string;
+    rating: number | string;
+    studentsCount: number | string;
+  }>({
     slug: "", name: "", shortName: "", description: "",
     sessionsCount: 0, modulesCount: 0, rating: 5.0, studentsCount: 0,
   })
@@ -841,10 +1014,10 @@ function AddProgramModal({ onClose, onCreated }: { onClose: () => void; onCreate
       description: form.description,
       slug: form.slug,
       shortName: form.shortName,
-      sessionsCount: form.sessionsCount,
-      modulesCount: form.modulesCount,
-      rating: form.rating,
-      studentsCount: form.studentsCount,
+      sessionsCount: Number(form.sessionsCount) || 0,
+      modulesCount: Number(form.modulesCount) || 0,
+      rating: parseFloat(String(form.rating)) || 5.0,
+      studentsCount: Number(form.studentsCount) || 0,
     })
     if (res.success) {
       onCreated()
@@ -923,15 +1096,25 @@ function AddProgramModal({ onClose, onCreated }: { onClose: () => void; onCreate
             
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
               {[
-                { label: "Jumlah Sesi", key: "sessionsCount", step: 1 },
-                { label: "Total Modul", key: "modulesCount", step: 1 },
-                { label: "Rating Bintang", key: "rating", step: 0.1 },
-                { label: "Total Alumni", key: "studentsCount", step: 1 },
-              ].map(({ label, key, step }) => (
-                <div key={key} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                { label: "Jumlah Sesi", key: "sessionsCount", step: 1, placeholder: "0" },
+                { label: "Total Modul", key: "modulesCount", step: 1, placeholder: "0" },
+                { label: "Rating Bintang", key: "rating", step: 0.1, placeholder: "5.0" },
+                { label: "Total Alumni", key: "studentsCount", step: 1, placeholder: "0" },
+              ].map(({ label, key, step, placeholder }) => (
+                <div key={key} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm focus-within:ring-2 focus-within:ring-blue-400 focus-within:border-blue-400 transition-all">
                   <label className="text-[10px] font-bold text-slate-500 uppercase block mb-2">{label}</label>
-                  <input type="number" step={step} value={(form as any)[key]} onChange={e => setForm(p => ({ ...p, [key]: parseFloat(e.target.value) || 0 }))}
-                    className="w-full px-3 py-1.5 text-lg font-extrabold text-slate-900 bg-slate-50 border-none rounded focus:ring-2 focus:ring-blue-400 text-center" />
+                  <input
+                    type="number"
+                    step={step}
+                    placeholder={placeholder}
+                    value={(form as any)[key] ?? ""}
+                    onFocus={e => e.target.select()}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setForm(p => ({ ...p, [key]: val }));
+                    }}
+                    className="w-full px-3 py-1.5 text-lg font-extrabold text-slate-900 bg-slate-50 border-none rounded focus:outline-none text-center"
+                  />
                 </div>
               ))}
             </div>

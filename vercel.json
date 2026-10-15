@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-class-reminder",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

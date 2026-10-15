@@ -154,17 +154,18 @@
     "sessions": "Sesi Pembelajaran",
     "see_pricing": "Lihat Harga Program",
     "see_curriculum": "Lihat Kurikulum",
-    "about_program": "Tentang <br/><span class='signal'>Program Ini</span>",
-    "curriculum_title": "Kurikulum <span class='signal'>& Materi</span>",
+    "about_program": "Tentang <br/><signal>Program Ini</signal>",
+    "curriculum_title": "Kurikulum <signal>& Materi</signal>",
     "curriculum_subtitle": "Langkah demi langkah terstruktur menuju penguasaan materi.",
-    "pricing_title": "Pilih Paket <span class='signal'>Belajar</span>",
+    "pricing_title": "Pilih Paket <signal>Belajar</signal>",
     "pricing_subtitle": "Investasi terbaik untuk karir tech Anda.",
     "pricing_unavailable": "Belum ada paket harga yang tersedia untuk program ini.",
     "buy_now": "Daftar Sekarang",
     "popular": "Paling Populer",
     "investment": "Investasi",
     "take_package": "Ambil Paket Ini",
-    "choose_package": "Pilih Paket"
+    "choose_package": "Pilih Paket",
+    "save": "Hemat {percent}%"
   },
   "Checkout": {
     "login_required": "Login Diperlukan",

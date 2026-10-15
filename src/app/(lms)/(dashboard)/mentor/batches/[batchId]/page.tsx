@@ -22,7 +22,7 @@ export default function MentorBatchDetailPage() {
   const [finalProjects, setFinalProjects] = React.useState<any[]>([])
   
   const [isAddingProject, setIsAddingProject] = React.useState(false)
-  const [newProject, setNewProject] = React.useState({ title: "", description: "", deadline: "" })
+  const [newProject, setNewProject] = React.useState({ title: "", description: "", deadline: "", is_bnsp: false })
   
   const [isLoading, setIsLoading] = React.useState(true)
 
@@ -182,11 +182,12 @@ export default function MentorBatchDetailPage() {
           description: newProject.description,
           deadline: new Date(newProject.deadline).toISOString(),
           order_number: 1,
-          is_final_project: true
+          is_final_project: true,
+          is_bnsp: newProject.is_bnsp || false
         })
 
         if (!error) {
-          setNewProject({ title: "", description: "", deadline: "" })
+          setNewProject({ title: "", description: "", deadline: "", is_bnsp: false })
           setIsAddingProject(false)
           fetchFinalProjects()
           alert("Berhasil menambahkan proyek akhir!")
@@ -465,6 +466,18 @@ export default function MentorBatchDetailPage() {
                       <input required min={minDateTime} max={maxDateTime} value={newProject.deadline} onChange={e => setNewProject({...newProject, deadline: e.target.value})} type="datetime-local" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm" />
                     </div>
                   </div>
+                  <div className="flex items-center space-x-2 py-1">
+                    <input 
+                      type="checkbox" 
+                      id="project_is_bnsp"
+                      checked={newProject.is_bnsp}
+                      onChange={e => setNewProject({...newProject, is_bnsp: e.target.checked})}
+                      className="h-4 w-4 rounded border-slate-300 text-e17-navy focus:ring-e17-navy"
+                    />
+                    <label htmlFor="project_is_bnsp" className="text-sm font-medium text-slate-700 cursor-pointer">
+                      Tandai sebagai konten BNSP (hanya Paket 3 dan Bootcamp)
+                    </label>
+                  </div>
                   <button type="submit" className="bg-e17-primary hover:bg-yellow-400 text-e17-navy px-6 py-2 rounded-lg text-sm font-bold transition-colors">
                     Simpan Proyek
                   </button>
@@ -485,7 +498,12 @@ export default function MentorBatchDetailPage() {
                         <Award className="w-6 h-6"/>
                       </div>
                       <div>
-                        <h4 className="font-bold text-slate-800 text-base">{project.title}</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-slate-800 text-base">{project.title}</h4>
+                          {project.is_bnsp && (
+                            <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded uppercase">BNSP</span>
+                          )}
+                        </div>
                         <p className="text-xs text-purple-600 font-bold mt-1">Deadline: {new Date(project.deadline).toLocaleString('id-ID')}</p>
                       </div>
                     </div>

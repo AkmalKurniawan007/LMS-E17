@@ -224,6 +224,7 @@ export default function ProjectDetailClient({ submission: initialSubmission }: P
                   <input
                     type="number" min="0" max="100"
                     value={rubric.reqFulfillment || ''}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => handleRubricChange('reqFulfillment', e.target.value)}
                     disabled={!isEditing || isSubmitting}
                     placeholder="0-100"
@@ -236,6 +237,7 @@ export default function ProjectDetailClient({ submission: initialSubmission }: P
                   <input
                     type="number" min="0" max="100"
                     value={rubric.outputQuality || ''}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => handleRubricChange('outputQuality', e.target.value)}
                     disabled={!isEditing || isSubmitting}
                     placeholder="0-100"
@@ -248,6 +250,7 @@ export default function ProjectDetailClient({ submission: initialSubmission }: P
                   <input
                     type="number" min="0" max="100"
                     value={rubric.problemSolving || ''}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => handleRubricChange('problemSolving', e.target.value)}
                     disabled={!isEditing || isSubmitting}
                     placeholder="0-100"
@@ -260,6 +263,7 @@ export default function ProjectDetailClient({ submission: initialSubmission }: P
                   <input
                     type="number" min="0" max="100"
                     value={rubric.documentation || ''}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => handleRubricChange('documentation', e.target.value)}
                     disabled={!isEditing || isSubmitting}
                     placeholder="0-100"

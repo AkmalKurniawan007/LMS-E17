@@ -40,7 +40,7 @@ export async function getAuthUsersList(): Promise<AuthUserList[]> {
         program_name,
         tier_label
       `)
-      .eq('status', 'paid');
+      .in('status', ['confirmed', 'paid']);
       
     if (ordersError) {
       console.error("Error fetching orders:", ordersError);

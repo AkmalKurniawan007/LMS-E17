@@ -2,12 +2,13 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, Building, Wallet, Upload, Loader2, Copy } from "lucide-react";
+import { CheckCircle, Building, Wallet, Upload, Loader2, Copy, Clock, XCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   getActivePaymentAccounts,
   uploadPaymentProof,
   getOrderForPayment,
+  cancelCheckoutOrder,
   type PaymentAccount,
 } from "@/app/(lms)/(dashboard)/admin/marketing/actions";
 import Link from "next/link";
@@ -22,9 +23,27 @@ export default function PaymentWaitingPage({ params }: { params: Promise<{ order
   const [paymentAccounts, setPaymentAccounts] = React.useState<PaymentAccount[]>([]);
   const [proofFile, setProofFile] = React.useState<File | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isCancelling, setIsCancelling] = React.useState(false);
   const [uploadError, setUploadError] = React.useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = React.useState(false);
   const [copiedField, setCopiedField] = React.useState<string | null>(null);
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini? Anda dapat membuat pesanan baru setelah pesanan ini dibatalkan.")) {
+      return;
+    }
+    setIsCancelling(true);
+    try {
+      const res = await cancelCheckoutOrder(order.id);
+      if (res.success) {
+        setOrder((prev: any) => ({ ...prev, status: 'cancelled' }));
+      } else {
+        alert(res.error || "Gagal membatalkan pesanan.");
+      }
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   React.useEffect(() => {
     const fetchOrder = async () => {
@@ -88,7 +107,7 @@ export default function PaymentWaitingPage({ params }: { params: Promise<{ order
       }
       setUploadSuccess(true);
       setTimeout(() => {
-        router.push("/");
+        router.push("/pembeli/kelas-saya");
       }, 1500);
     } catch {
       setUploadError("Terjadi kesalahan saat upload.");
@@ -110,9 +129,14 @@ export default function PaymentWaitingPage({ params }: { params: Promise<{ order
           <p className="text-slate-600 mb-8">
             Pesanan Anda telah dikonfirmasi dan lunas. Terima kasih telah melakukan pembayaran.
           </p>
-          <Link href="/" className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-8 rounded-xl transition-colors">
-            Kembali ke Beranda
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/pembeli/kelas-saya" className="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-8 rounded-xl transition-colors">
+              Mulai Belajar (Kelas Saya)
+            </Link>
+            <Link href="/" className="inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-8 rounded-xl transition-colors">
+              Kembali ke Beranda
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -122,15 +146,29 @@ export default function PaymentWaitingPage({ params }: { params: Promise<{ order
     return (
       <div className="max-w-3xl mx-auto px-6 py-12 md:py-20 min-h-screen">
         <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-lg text-center">
-          <h1 className="text-2xl font-extrabold text-slate-900 mb-4">
-            Pesanan Dibatalkan
+          <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <XCircle className="w-10 h-10 text-rose-600" />
+          </div>
+          <h1 className="text-2xl font-extrabold text-slate-900 mb-2">
+            Pesanan Telah Dibatalkan
           </h1>
-          <p className="text-slate-600 mb-8">
-            Pesanan ini telah dibatalkan.
+          <p className="text-slate-600 mb-8 max-w-md mx-auto text-sm leading-relaxed">
+            Pesanan ini telah dibatalkan sehingga tidak ada tagihan menggantung di akun Anda. Anda dapat memilih kembali program pembelajaran kapan saja.
           </p>
-          <Link href="/checkout" className="text-blue-600 font-semibold hover:underline">
-            Buat Pesanan Baru
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link 
+              href="/programs" 
+              className="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+            >
+              Lihat Program Lainnya
+            </Link>
+            <Link 
+              href="/pembeli/kelas-saya" 
+              className="inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-6 rounded-xl transition-colors"
+            >
+              Kembali ke Kelas Saya
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -152,7 +190,7 @@ export default function PaymentWaitingPage({ params }: { params: Promise<{ order
           </p>
           <div className="flex items-center justify-center gap-4">
             <a 
-              href="https://wa.me/6281234567890" 
+              href="https://wa.me/6281399271717" 
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
@@ -182,6 +220,30 @@ export default function PaymentWaitingPage({ params }: { params: Promise<{ order
         <p className="text-slate-600 text-center mb-8">
           Silakan transfer pembayaran ke rekening di bawah ini, lalu upload bukti pembayaran. Atau Anda bisa <Link href="/" className="text-blue-600 font-semibold hover:underline">Kembali ke Beranda</Link>.
         </p>
+
+        {order.status === 'rejected' ? (
+          <div className="bg-rose-50 border-2 border-rose-300 rounded-xl p-5 mb-6 flex items-start gap-3.5 shadow-sm">
+            <XCircle className="w-6 h-6 text-rose-600 shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-bold text-rose-950 text-base">Pembayaran Anda Ditolak Admin</p>
+              <div className="mt-1.5 p-3 bg-white/80 rounded-lg border border-rose-200">
+                <span className="font-semibold text-rose-900 text-xs uppercase tracking-wider block mb-0.5">Alasan Penolakan:</span>
+                <p className="text-slate-800 font-medium italic">&ldquo;{order.rejected_reason || 'Bukti transfer tidak sesuai atau nominal salah.'}&rdquo;</p>
+              </div>
+              <p className="text-rose-800 text-xs mt-2.5">
+                Silakan lakukan transfer sesuai rincian rekening di bawah dan unggah bukti transfer yang baru agar admin dapat memverifikasi ulang pesanan Anda.
+              </p>
+            </div>
+          </div>
+        ) : order.payment_proof_url ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-amber-600 shrink-0" />
+            <div className="text-sm">
+              <p className="font-bold text-amber-900">Bukti Pembayaran Sudah Diunggah</p>
+              <p className="text-amber-700">Tim kami sedang memverifikasi pembayaran Anda. Anda bisa mengunggah ulang di bawah jika ingin mengganti file bukti transfer.</p>
+            </div>
+          </div>
+        ) : null}
 
         {selectedAccount && (
           <div className="bg-slate-50 rounded-xl p-6 mb-6 border border-slate-200">
@@ -251,12 +313,30 @@ export default function PaymentWaitingPage({ params }: { params: Promise<{ order
 
         <div className="border-t border-slate-200 pt-6">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-3">Upload Bukti Pembayaran</label>
+
+          {order.payment_proof_url && !uploadSuccess && (
+            <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800">
+              <div className="flex items-center gap-2 font-bold mb-1">
+                <Clock className="w-5 h-5 text-amber-600" />
+                Bukti Pembayaran Sudah Diunggah
+              </div>
+              <p className="text-sm text-amber-700 mb-3">
+                Bukti transfer Anda telah tersimpan dan sedang menunggu verifikasi oleh admin. Anda dapat mengecek status di halaman Kelas Saya.
+              </p>
+              <Link
+                href="/pembeli/kelas-saya"
+                className="inline-flex items-center text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                Cek Halaman Kelas Saya &rarr;
+              </Link>
+            </div>
+          )}
           
           {uploadSuccess ? (
             <div className="bg-green-50 border border-green-200 text-green-700 p-6 rounded-xl text-center">
               <CheckCircle className="w-8 h-8 mx-auto mb-2" />
               <p className="font-bold mb-1">Bukti pembayaran berhasil diupload!</p>
-              <p className="text-sm opacity-80">Mengarahkan ke dashboard...</p>
+              <p className="text-sm opacity-80">Mengarahkan ke halaman Kelas Saya...</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -267,7 +347,9 @@ export default function PaymentWaitingPage({ params }: { params: Promise<{ order
                 className="w-full border border-[var(--color-cream-line)] rounded-xl p-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-ink)] file:text-white hover:file:bg-[var(--color-ink-2)]"
                 disabled={isUploading}
               />
-              <p className="text-xs text-slate-500">Format: JPG, PNG, atau PDF maksimal 5MB</p>
+              <p className="text-xs text-slate-500">
+                {order.payment_proof_url ? "Pilih file baru jika ingin mengganti bukti pembayaran. Format: JPG, PNG, PDF maks 5MB" : "Format: JPG, PNG, atau PDF maksimal 5MB"}
+              </p>
               
               {uploadError && (
                 <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
@@ -285,12 +367,27 @@ export default function PaymentWaitingPage({ params }: { params: Promise<{ order
                 ) : (
                   <>
                     <Upload className="w-5 h-5" />
-                    Upload Bukti Pembayaran
+                    {order.payment_proof_url ? "Upload Ulang Bukti Pembayaran" : "Upload Bukti Pembayaran"}
                   </>
                 )}
               </Button>
             </div>
           )}
+        </div>
+
+        <div className="border-t border-slate-200 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Link href="/pembeli/kelas-saya" className="text-sm font-semibold text-slate-600 hover:text-slate-900 hover:underline">
+            &larr; Lihat di Kelas Saya
+          </Link>
+          <button
+            type="button"
+            onClick={handleCancelOrder}
+            disabled={isCancelling || isUploading}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-3.5 py-2 rounded-xl transition-colors border border-rose-200 cursor-pointer disabled:opacity-50"
+          >
+            {isCancelling ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+            Batalkan Pesanan Ini
+          </button>
         </div>
       </div>
     </div>

@@ -9,12 +9,15 @@ import { Input } from "@/components/ui/input"
 import { createClient } from "@/utils/supabase/client"
 import { toast } from "sonner"
 import { logAction } from "@/utils/logger-actions"
+import { submitBnspTask } from "@/app/(lms)/(dashboard)/siswa/assignments/bnsp-actions"
+import { Tier, getCapabilityAccess } from "@/lib/access-tier"
 
 export default function ProjectSubmissionPage() {
   const params = useParams()
   const projectId = params.projectId as string
   const supabase = createClient()
 
+  const [userTier, setUserTier] = React.useState<Tier>('bootcamp')
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [notesInput, setNotesInput] = React.useState("")
@@ -60,6 +63,17 @@ export default function ProjectSubmissionPage() {
       setSubmissionData(submission)
     }
 
+    // 3. Fetch user enrollment tier
+    const { data: enrollment } = await supabase
+      .from('enrollments')
+      .select('tier')
+      .eq('user_id', userData.user.id)
+      .maybeSingle()
+
+    if (enrollment?.tier) {
+      setUserTier(enrollment.tier as Tier)
+    }
+
     setIsLoading(false)
   }
 
@@ -100,16 +114,24 @@ export default function ProjectSubmissionPage() {
         fileUrlToSave = publicUrl
       }
 
-      const { error: dbError } = await supabase
-        .from('task_submissions')
-        .insert({
-          task_id: projectId,
-          user_id: userId,
-          file_url: fileUrlToSave,
-          submission_type: publicUrl ? 'file_upload' : 'text'
-        })
+      if (taskData.is_bnsp) {
+        const access = getCapabilityAccess(userTier, 'bnsp_exam')
+        if (access !== 'granted') {
+          throw new Error("Proyek akhir ini memerlukan akses sertifikasi BNSP.")
+        }
+        await submitBnspTask(projectId, fileUrlToSave, publicUrl ? 'file_upload' : 'text')
+      } else {
+        const { error: dbError } = await supabase
+          .from('task_submissions')
+          .insert({
+            task_id: projectId,
+            user_id: userId,
+            file_url: fileUrlToSave,
+            submission_type: publicUrl ? 'file_upload' : 'text'
+          })
 
-      if (dbError) throw dbError
+        if (dbError) throw dbError
+      }
 
       await logAction('siswa', 'Pengumpulan Proyek Akhir', `Mengumpulkan proyek akhir (Task ID: ${projectId})`, { user_id: userId, target_id: projectId })
       toast.success("Proyek Akhir berhasil dikumpulkan!")
@@ -290,19 +312,28 @@ export default function ProjectSubmissionPage() {
                   </div>
                 </div>
 
-                <Button 
-                  variant="orange" 
-                  disabled={isSubmitting || (!notesInput.trim() && !selectedFile)} 
-                  onClick={handleSubmit} 
-                  className="w-full text-[#1A1A1A] font-bold h-12 hover:bg-yellow-500 mt-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Menyimpan...
-                    </>
-                  ) : 'Kirim Jawaban'}
-                </Button>
+                {taskData.is_bnsp && getCapabilityAccess(userTier, 'bnsp_exam') !== 'granted' ? (
+                  <Button 
+                    disabled={true} 
+                    className="w-full bg-amber-100 text-amber-800 border border-amber-300 font-bold h-12 cursor-not-allowed mt-2"
+                  >
+                    Terkunci (Khusus Paket BNSP)
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="orange" 
+                    disabled={isSubmitting || (!notesInput.trim() && !selectedFile)} 
+                    onClick={handleSubmit} 
+                    className="w-full text-[#1A1A1A] font-bold h-12 hover:bg-yellow-500 mt-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Menyimpan...
+                      </>
+                    ) : 'Kirim Jawaban'}
+                  </Button>
+                )}
               </div>
             </div>
             )
@@ -311,7 +342,7 @@ export default function ProjectSubmissionPage() {
             <div className="space-y-4">
               <div className="flex items-center text-sm text-gray-500 mb-2">
                 <ClockIcon className="mr-2 h-4 w-4" />
-                Dikumpulkan pada: <span className="font-medium text-gray-900 ml-1">{new Date(submissionData.created_at).toLocaleString('id-ID')}</span>
+                Dikumpulkan pada: <span className="font-medium text-gray-900 ml-1">{new Date(submissionData.submitted_at || submissionData.created_at).toLocaleString('id-ID')}</span>
               </div>
               
               <div className="flex flex-col gap-3">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useTransition, Suspense } from "react";
 import { createBrowserClient } from '@supabase/ssr';
@@ -16,6 +16,7 @@ function MarketingLoginForm() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isIdleExpired = searchParams.get('reason') === 'idle';
   const next = searchParams.get('next') || '/';
 
   const getRedirectUrl = () => {
@@ -159,6 +160,16 @@ function MarketingLoginForm() {
             </h2>
             <p className="text-[var(--color-muted)] text-[16px] font-medium">Silakan masuk untuk melanjutkan.</p>
           </div>
+
+          {isIdleExpired && (
+            <div className="mb-6 p-4 text-sm text-amber-900 bg-amber-50 border border-amber-300 rounded-2xl flex items-start gap-3 text-left">
+              <Clock className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
+              <div>
+                <p className="font-bold">Sesi Anda Telah Berakhir</p>
+                <p className="mt-0.5 text-xs text-amber-800">Tidak ada aktivitas selama 12 jam. Silakan masuk kembali untuk melanjutkan.</p>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-6">
             <div className="w-full flex justify-center mt-2">

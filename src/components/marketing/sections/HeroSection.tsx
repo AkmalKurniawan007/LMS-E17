@@ -21,11 +21,11 @@ export default function HeroSection({ dbContent = {}, dbPrograms = [] }: { dbCon
   return (
     <section className="relative w-full min-h-screen flex items-center bg-[var(--color-ink)] pt-24 pb-32 lg:pt-32 lg:pb-48 overflow-hidden">
       {/* Background elements */}
-      <div className="absolute inset-0 z-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, var(--color-bronze) 0%, transparent 60%)' }} />
-      <div className="absolute inset-0 z-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(var(--color-cream-line) 1px, transparent 1px), linear-gradient(90deg, var(--color-cream-line) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+      <div suppressHydrationWarning className="absolute inset-0 z-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, var(--color-bronze) 0%, transparent 60%)' }} />
+      <div suppressHydrationWarning className="absolute inset-0 z-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(var(--color-cream-line) 1px, transparent 1px), linear-gradient(90deg, var(--color-cream-line) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
       
       {/* Diagonal speed stripes motif */}
-      <div className="absolute bottom-0 right-0 w-[400px] h-[300px] opacity-10 pointer-events-none transform translate-x-1/4 translate-y-1/4" style={{ background: 'repeating-linear-gradient(45deg, var(--color-signal), var(--color-signal) 10px, transparent 10px, transparent 20px)' }} />
+      <div suppressHydrationWarning className="absolute bottom-0 right-0 w-[400px] h-[300px] opacity-10 pointer-events-none transform translate-x-1/4 translate-y-1/4" style={{ background: 'repeating-linear-gradient(45deg, var(--color-signal), var(--color-signal) 10px, transparent 10px, transparent 20px)' }} />
 
       <div className="max-w-[1200px] mx-auto px-6 lg:px-12 relative z-10 w-full">
         <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">

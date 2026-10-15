@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { whatsappNumber } from "../data/marketing-data";
 
 export default function FinalCTA({ dbContent = {}, whatsappDb = {} }: { dbContent?: any, whatsappDb?: any }) {
   const reduce = useReducedMotion();
@@ -14,14 +15,14 @@ export default function FinalCTA({ dbContent = {}, whatsappDb = {} }: { dbConten
   const ctaPrimaryText = t("cta_primary");
   const ctaSecondaryText = t("cta_secondary");
 
-  const waNumber = whatsappDb.number || "6280000000000";
+  const waNumber = whatsappDb.number || whatsappNumber;
   const waGreeting = whatsappDb.greeting || "Halo Tim E17, saya masih pemula dan ingin konsultasi paket mana yang paling cocok untuk tujuan belajar saya. Bisa dibantu?";
   const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waGreeting)}`;
 
   return (
-    <section className="py-24 md:py-32 bg-[var(--color-signal)] relative overflow-hidden">
+    <section suppressHydrationWarning className="py-24 md:py-32 bg-[var(--color-signal)] relative overflow-hidden">
       {/* Background Motifs */}
-      <div aria-hidden className="absolute -top-10 -left-10 w-[300px] h-[200px] opacity-[0.06] pointer-events-none" style={{ background: 'repeating-linear-gradient(45deg, var(--color-ink), var(--color-ink) 8px, transparent 8px, transparent 24px)' }} />
+      <div aria-hidden suppressHydrationWarning className="absolute -top-10 -left-10 w-[300px] h-[200px] opacity-[0.06] pointer-events-none" style={{ background: 'repeating-linear-gradient(45deg, var(--color-ink), var(--color-ink) 8px, transparent 8px, transparent 24px)' }} />
       <svg aria-hidden className="absolute -right-16 -bottom-16 w-80 h-80 text-[var(--color-bronze)]/10 pointer-events-none" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" /></svg>
       
       <div className="max-w-[1200px] mx-auto px-6 text-center relative z-10 flex flex-col items-center">

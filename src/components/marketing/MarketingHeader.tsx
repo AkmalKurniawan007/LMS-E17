@@ -6,7 +6,10 @@ import { Link, usePathname, useRouter } from "@/i18n/routing";
 import NativeLink from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
+import { clearSessionActivity } from "@/app/actions/session-actions";
+import { SESSION_STORAGE_KEY } from "@/lib/session-idle";
 import { motion, AnimatePresence } from "framer-motion";
+import NotificationBell from "./NotificationBell";
 
 export default function MarketingHeader({
   isLoggedIn,
@@ -35,6 +38,10 @@ export default function MarketingHeader({
   const locale = useLocale();
 
   const handleLogout = async () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    }
+    await clearSessionActivity();
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");
@@ -133,11 +140,7 @@ export default function MarketingHeader({
               <>
                 <button
                   onClick={() => {
-                    if (internalPurchasedProgramId) {
-                      router.push(`/kelas/${internalPurchasedProgramId}`);
-                    } else {
-                      router.push('/kelas');
-                    }
+                    router.push('/pembeli/kelas-saya');
                   }}
                   className="hidden lg:flex items-center justify-center bg-[var(--color-signal)]/10 hover:bg-[var(--color-signal)]/20 text-[var(--color-signal)] text-sm font-bold px-4 py-2 rounded-full transition-colors border border-[var(--color-signal)]/30"
                 >
@@ -158,6 +161,8 @@ export default function MarketingHeader({
                     Panel {userRoleState === "admin" ? "Admin" : userRoleState === "mentor" ? "Mentor" : "Siswa"}
                   </NativeLink>
                 )}
+                <NotificationBell isLightHeader={isLightHeader} />
+
                 <button
                   onClick={handleLogout}
                   className={`hidden sm:flex items-center justify-center bg-transparent text-sm font-semibold p-2 rounded-full transition-colors ${
@@ -239,11 +244,7 @@ export default function MarketingHeader({
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      if (internalPurchasedProgramId) {
-                        router.push(`/kelas/${internalPurchasedProgramId}`);
-                      } else {
-                        router.push('/kelas');
-                      }
+                      router.push('/pembeli/kelas-saya');
                     }}
                     className="w-full py-3.5 rounded-lg text-center bg-[var(--color-signal)]/10 text-[var(--color-signal-hover)] font-bold flex items-center justify-center gap-2 border border-[var(--color-signal)]/30"
                   >

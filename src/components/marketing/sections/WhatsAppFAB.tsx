@@ -4,14 +4,14 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { whatsappNumber } from "../data/marketing-data";
 
 export default function WhatsAppFAB({ dbContent = {} }: { dbContent?: any }) {
   const [isVisible, setIsVisible] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Hardcoded Data
-  const waNumber = "6280000000000";
-  const greeting = "Halo Tim E17, saya masih pemula dan ingin konsultasi paket mana yang paling cocok untuk tujuan belajar saya. Bisa dibantu?";
+  const waNumber = dbContent?.number || whatsappNumber;
+  const greeting = dbContent?.greeting || "Halo Tim E17, saya masih pemula dan ingin konsultasi paket mana yang paling cocok untuk tujuan belajar saya. Bisa dibantu?";
   const dynamicWaUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(greeting)}`;
 
   useEffect(() => {

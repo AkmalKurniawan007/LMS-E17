@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/client"
 import Link from "next/link"
 import { CalendarWidget, type CalendarEvent } from "@/components/ui/calendar-widget"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import ClassReminderControl from "@/components/admin/ClassReminderControl"
 
 export default function AdminDashboardPage() {
   const supabase = createClient()
@@ -152,10 +153,10 @@ export default function AdminDashboardPage() {
 
     // Pending Orders with Payment Proof
     const { data: pendingOrders, error: errOrders } = await supabase.from('checkout_orders')
-      .select('id, created_at, payment_proof_uploaded_at, users(full_name), program_name')
+      .select('id, created_at, updated_at, users(full_name), program_name')
       .eq('status', 'pending')
       .not('payment_proof_url', 'is', null)
-      .order('payment_proof_uploaded_at', { ascending: false })
+      .order('updated_at', { ascending: false })
       .limit(5)
 
     if (!errOrders && pendingOrders) {
@@ -166,7 +167,7 @@ export default function AdminDashboardPage() {
           title: 'Pembayaran: Bukti Diunggah',
           desc: `${order.users?.full_name || 'User'} menunggu verifikasi untuk ${order.program_name}`,
           isError: false,
-          date: new Date(order.payment_proof_uploaded_at || order.created_at)
+          date: new Date(order.updated_at || order.created_at)
         })
       })
     }
@@ -185,8 +186,7 @@ export default function AdminDashboardPage() {
 
     // 4. Fetch Recent Mentor Assignments (Mentor Activity)
     const { data: mentorAssigns } = await supabase.from('batch_mentors')
-      .select('id, created_at, users(full_name, avatar_url), batches(name)')
-      .order('created_at', { ascending: false })
+      .select('batch_id, mentor_id, users(full_name, avatar_url), batches(name, created_at)')
       .limit(5)
       
     if (mentorAssigns) setRecentMentorActs(mentorAssigns)
@@ -388,6 +388,9 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
+          {/* Kontrol Pengingat Email Kelas Hari Ini */}
+          <ClassReminderControl />
+
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Calendar */}
             <div className="lg:col-span-2 flex flex-col gap-4">
@@ -524,7 +527,7 @@ export default function AdminDashboardPage() {
                     <p className="text-sm text-slate-400 p-6 text-center italic">Belum ada aktivitas.</p>
                   ) : (
                     recentMentorActs.map((act: any) => (
-                      <div key={act.id} className="p-4 flex items-start gap-3 hover:bg-slate-50">
+                      <div key={`${act.batch_id}-${act.mentor_id}`} className="p-4 flex items-start gap-3 hover:bg-slate-50">
                         <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0 overflow-hidden">
                           {act.users?.avatar_url ? (
                             <img src={act.users.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
@@ -537,7 +540,7 @@ export default function AdminDashboardPage() {
                             <span className="font-bold">{act.users?.full_name || 'Mentor'}</span> ditugaskan mengajar.
                           </p>
                           <p className="text-xs font-medium text-purple-700 mt-1">{act.batches?.name}</p>
-                          <p className="text-[10px] text-slate-400 mt-1">{timeAgo(act.created_at)}</p>
+                          <p className="text-[10px] text-slate-400 mt-1">{act.batches?.created_at ? timeAgo(act.batches.created_at) : '-'}</p>
                         </div>
                       </div>
                     ))

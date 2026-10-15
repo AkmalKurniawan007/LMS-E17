@@ -2,19 +2,18 @@
 
 import React, { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { programs, formatPrice } from "@/components/marketing/data/marketing-data";
-import { ShieldCheck, CheckCircle, ArrowLeft, Building, Wallet, Upload, Loader2, Copy, Check, LogIn } from "lucide-react";
+import { formatPrice } from "@/components/marketing/data/marketing-data";
+import { ShieldCheck, CheckCircle, ArrowLeft, Building, Wallet, Loader2, LogIn, Clock, XCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   createCheckoutOrder,
   getActivePaymentAccounts,
-  uploadPaymentProof,
+  getUserPendingOrder,
+  cancelCheckoutOrder,
   type PaymentAccount,
 } from "@/app/(lms)/(dashboard)/admin/marketing/actions";
 import { createClient } from "@/utils/supabase/client";
-import { mapMarketingTierToAccessTier } from "@/utils/tier-mapping";
-import FooterSection from "@/components/marketing/sections/FooterSection";
 import { useTranslations } from "next-intl";
 
 function CheckoutForm() {
@@ -28,18 +27,15 @@ function CheckoutForm() {
   const [isLoadingProgram, setIsLoadingProgram] = React.useState(true);
   const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [existingPendingOrder, setExistingPendingOrder] = React.useState<any>(null);
+  const [isCancellingPending, setIsCancellingPending] = React.useState(false);
+  const [userPaidOrders, setUserPaidOrders] = React.useState<any[]>([]);
   
   const [selectedTierType, setSelectedTierType] = React.useState<string>(tierParam || 'complete');
   const [paymentAccounts, setPaymentAccounts] = React.useState<PaymentAccount[]>([]);
   const [selectedAccountId, setSelectedAccountId] = React.useState<string>("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
-  
-  const [proofFile, setProofFile] = React.useState<File | null>(null);
-  const [isUploading, setIsUploading] = React.useState(false);
-  const [uploadError, setUploadError] = React.useState<string | null>(null);
-  const [uploadSuccess, setUploadSuccess] = React.useState(false);
-  const [copiedField, setCopiedField] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const fetchProgram = async () => {
@@ -72,16 +68,46 @@ function CheckoutForm() {
     fetchProgram();
   }, [programSlug]);
   
-  // Check authentication status
+  // Check authentication status and pending/paid orders
   React.useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
+      if (user) {
+        const pendingOrder = await getUserPendingOrder();
+        if (pendingOrder) {
+          setExistingPendingOrder(pendingOrder);
+        }
+        const { data: paidData } = await supabase
+          .from('checkout_orders')
+          .select('id, program_id, tier_type, amount, status')
+          .eq('user_id', user.id)
+          .in('status', ['confirmed', 'paid']);
+        setUserPaidOrders(paidData || []);
+      }
       setIsCheckingAuth(false);
     };
     checkAuth();
   }, []);
+
+  const handleCancelPending = async () => {
+    if (!existingPendingOrder) return;
+    if (!window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini? Status pesanan akan menjadi Batal sehingga Anda dapat membuat pesanan baru.")) {
+      return;
+    }
+    setIsCancellingPending(true);
+    try {
+      const res = await cancelCheckoutOrder(existingPendingOrder.id);
+      if (res.success) {
+        setExistingPendingOrder(null);
+      } else {
+        alert(res.error || "Gagal membatalkan pesanan.");
+      }
+    } finally {
+      setIsCancellingPending(false);
+    }
+  };
 
   React.useEffect(() => {
     getActivePaymentAccounts().then(accounts => {
@@ -164,7 +190,15 @@ function CheckoutForm() {
   const mappedTierType = selectedTierType === 'bootcamp' ? 'complete' : selectedTierType;
   const selectedTier = program.tiers?.find((t: any) => t.tier_type === mappedTierType) || program.tiers?.[0];
   
+  const TIER_RANK: Record<string, number> = { junior: 1, self_paced: 1, expert: 2, mentoring: 2, complete: 3, bootcamp: 3 };
+  const currentProgramPaid = userPaidOrders.filter((o: any) => o.program_id === program?.id);
+  const highestPaid = currentProgramPaid.sort((a: any, b: any) => (TIER_RANK[b.tier_type] || 0) - (TIER_RANK[a.tier_type] || 0))[0];
+
+  const isUpgrade = highestPaid && (TIER_RANK[mappedTierType] || 0) > (TIER_RANK[highestPaid.tier_type] || 0);
+  const upgradeDiscount = isUpgrade ? (highestPaid.amount || 0) : 0;
+
   const price = selectedTier?.price || 0;
+  const finalPrice = Math.max(0, price - upgradeDiscount);
   const originalPrice = selectedTier?.original_price || 0;
   const isDiscounted = originalPrice > price;
 
@@ -206,6 +240,52 @@ function CheckoutForm() {
       <Link href="/" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 mb-8 transition-colors">
         <ArrowLeft className="w-4 h-4 mr-2" /> Kembali ke Beranda
       </Link>
+
+      {existingPendingOrder && (
+        <div className="mb-8 p-5 rounded-2xl border-2 border-amber-300 bg-amber-50/90 shadow-sm">
+          <div className="flex items-start gap-3">
+            <Clock className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <h3 className="font-bold text-amber-900 text-sm md:text-base">
+                {existingPendingOrder.payment_proof_url
+                  ? "Bukti Pembayaran Sedang Diverifikasi Admin"
+                  : "Anda Memiliki Pesanan yang Belum Selesai"}
+              </h3>
+              <p className="text-xs md:text-sm text-amber-800 mt-1 leading-relaxed">
+                {existingPendingOrder.program_id === program.id ? (
+                  existingPendingOrder.payment_proof_url ? (
+                    "Anda telah mengunggah bukti transfer untuk program ini. Admin kami sedang memverifikasinya. Anda dapat memantau statusnya di halaman pembayaran atau Kelas Saya."
+                  ) : (
+                    "Anda sudah memiliki pesanan pending untuk program ini. Anda dapat melanjutkan pembayaran tersebut atau membatalkannya jika ingin mengganti pilihan tier/paket."
+                  )
+                ) : (
+                  `Anda masih memiliki tagihan yang belum selesai untuk program "${existingPendingOrder.program_name}". Agar pembayaran tidak menumpuk, harap selesaikan atau batalkan pesanan tersebut terlebih dahulu sebelum memesan program lain.`
+                )}
+              </p>
+
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <Link
+                  href={`/pembeli/payment/${existingPendingOrder.id}`}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs md:text-sm font-bold shadow-sm transition-colors"
+                >
+                  <Clock className="w-4 h-4" />
+                  {existingPendingOrder.payment_proof_url ? "Lihat Status Pesanan" : "Lanjutkan Pembayaran"}
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={handleCancelPending}
+                  disabled={isCancellingPending}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs md:text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {isCancellingPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                  Batalkan Pesanan Ini
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-7 space-y-8">
@@ -353,17 +433,24 @@ function CheckoutForm() {
                  <span className="font-semibold">{formatPrice(originalPrice)}</span>
                </div>
                
-               {isDiscounted && (
+               {isDiscounted && !isUpgrade && (
                  <div className="flex justify-between items-center text-green-400">
                    <span className="text-sm">{t("discount")}</span>
                    <span className="font-semibold">-{formatPrice(originalPrice - price)}</span>
+                 </div>
+               )}
+
+               {isUpgrade && upgradeDiscount > 0 && (
+                 <div className="flex justify-between items-center text-emerald-300 bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-500/30">
+                   <span className="text-xs font-semibold">Potongan Upgrade ({highestPaid.tier_type === 'junior' ? 'Self Paced' : 'Mentoring'})</span>
+                   <span className="font-bold text-sm">-{formatPrice(upgradeDiscount)}</span>
                  </div>
                )}
              </div>
 
              <div className="border-t border-white/10 pt-4 mb-6 flex justify-between items-end">
                 <span className="text-slate-300 font-medium">{t("total")}</span>
-                <span className="text-2xl font-extrabold text-white">{formatPrice(price)}</span>
+                <span className="text-2xl font-extrabold text-white">{formatPrice(finalPrice)}</span>
              </div>
 
              {submitError && (
@@ -374,10 +461,26 @@ function CheckoutForm() {
 
              <Button 
                onClick={handleCreateOrder}
-               disabled={isSubmitting || !selectedAccountId}
+               disabled={
+                 isSubmitting || 
+                 !selectedAccountId || 
+                 (!!existingPendingOrder && (!!existingPendingOrder.payment_proof_url || existingPendingOrder.program_id !== program.id))
+               }
                className="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold h-12 text-base rounded-lg disabled:opacity-70"
              >
-               {isSubmitting ? t("processing") : t("checkout_btn")}
+               {isSubmitting ? (
+                 t("processing")
+               ) : existingPendingOrder?.payment_proof_url ? (
+                 "Menunggu Verifikasi Admin"
+               ) : existingPendingOrder && existingPendingOrder.program_id !== program.id ? (
+                 "Selesaikan Pesanan Sebelumnya Dahulu"
+               ) : existingPendingOrder && existingPendingOrder.program_id === program.id ? (
+                 "Perbarui & Lanjutkan Pembayaran"
+               ) : isUpgrade ? (
+                 `Bayar Selisih Upgrade (${formatPrice(finalPrice)})`
+               ) : (
+                 t("checkout_btn")
+               )}
              </Button>
              
              <p className="text-xs text-slate-400 text-center mt-4 flex items-center justify-center">

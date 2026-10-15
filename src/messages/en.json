@@ -154,17 +154,18 @@
     "sessions": "Learning Sessions",
     "see_pricing": "View Pricing",
     "see_curriculum": "View Syllabus",
-    "about_program": "About <br/><span class='signal'>This Program</span>",
-    "curriculum_title": "Curriculum <span class='signal'>& Materials</span>",
+    "about_program": "About <br/><signal>This Program</signal>",
+    "curriculum_title": "Curriculum <signal>& Materials</signal>",
     "curriculum_subtitle": "Structured step-by-step towards mastering the materials.",
-    "pricing_title": "Choose Learning <span class='signal'>Package</span>",
+    "pricing_title": "Choose Learning <signal>Package</signal>",
     "pricing_subtitle": "The best investment for your tech career.",
     "pricing_unavailable": "No pricing packages available for this program yet.",
     "buy_now": "Register Now",
     "popular": "Most Popular",
     "investment": "Investment",
     "take_package": "Take This Package",
-    "choose_package": "Choose Package"
+    "choose_package": "Choose Package",
+    "save": "Save {percent}%"
   },
   "Checkout": {
     "login_required": "Login Required",

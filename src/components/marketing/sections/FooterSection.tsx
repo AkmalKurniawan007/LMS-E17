@@ -62,16 +62,16 @@ export default function FooterSection({ dbPrograms = [] }: { dbPrograms?: any[] 
                 SOSIAL MEDIA KAMI
               </h4>
               <div className="flex items-center gap-3">
-                <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
+                <a href="https://www.facebook.com/e17course" target="_blank" rel="noopener noreferrer" title="Facebook" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
                 </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
+                <a href="https://x.com/e17course" target="_blank" rel="noopener noreferrer" title="X (Twitter)" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
                 </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
+                <a href="https://www.instagram.com/e17course/" target="_blank" rel="noopener noreferrer" title="Instagram" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
                 </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
+                <a href="https://www.youtube.com/@e17course" target="_blank" rel="noopener noreferrer" title="YouTube" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[var(--color-signal)] text-white hover:text-[var(--color-ink)] flex items-center justify-center transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
                 </a>
               </div>
@@ -117,10 +117,10 @@ export default function FooterSection({ dbPrograms = [] }: { dbPrograms?: any[] 
               </h4>
               <ul className="space-y-4">
                 <li><Link href="/" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Beranda</Link></li>
-                <li><Link href="/#programs" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Semua Program</Link></li>
-                <li><a href="/#metode" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Metode Belajar</a></li>
-                <li><a href="/#testimoni" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Testimoni Alumni</a></li>
-                <li><a href="/#faq" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">FAQ / Bantuan</a></li>
+                <li><Link href="/programs" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Semua Program</Link></li>
+                <li><Link href="/kurikulum" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Kurikulum & Silabus</Link></li>
+                <li><Link href="/tentang-kami" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">Tentang Kami</Link></li>
+                <li><Link href="/#faq" className="text-[var(--color-muted)] hover:text-white text-[14px] transition-colors">FAQ / Bantuan</Link></li>
               </ul>
             </div>
 

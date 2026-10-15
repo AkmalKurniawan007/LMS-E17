@@ -13,6 +13,8 @@ interface ProgramContentViewProps {
   outline: any[];
   totalDurationFormatted: string;
   descriptionParagraphs: string[];
+  isLoggedIn?: boolean;
+  hasPurchased?: boolean;
 }
 
 const fadeInUp: any = {
@@ -33,7 +35,9 @@ export default function ProgramContentView({
   tiers,
   outline,
   totalDurationFormatted,
-  descriptionParagraphs
+  descriptionParagraphs,
+  isLoggedIn = false,
+  hasPurchased = false
 }: ProgramContentViewProps) {
   const t = useTranslations("ProgramDetail");
   
@@ -46,11 +50,11 @@ export default function ProgramContentView({
       {/* Hero Banner */}
       <section className="relative w-full overflow-hidden bg-[var(--color-ink)] text-white pt-24 lg:pt-32">
         {/* Background elements */}
-        <div aria-hidden className="absolute inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, var(--color-bronze) 0%, transparent 50%)' }} />
-        <div aria-hidden className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(var(--color-cream-line) 1px, transparent 1px), linear-gradient(90deg, var(--color-cream-line) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div aria-hidden suppressHydrationWarning className="absolute inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, var(--color-bronze) 0%, transparent 50%)' }} />
+        <div aria-hidden suppressHydrationWarning className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(var(--color-cream-line) 1px, transparent 1px), linear-gradient(90deg, var(--color-cream-line) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         
         {/* Diagonal speed stripes motif */}
-        <div aria-hidden className="absolute top-0 left-0 w-[500px] h-[500px] opacity-10 pointer-events-none transform -translate-x-1/4 -translate-y-1/4" style={{ background: 'repeating-linear-gradient(45deg, var(--color-signal), var(--color-signal) 10px, transparent 10px, transparent 20px)' }} />
+        <div aria-hidden suppressHydrationWarning className="absolute top-0 left-0 w-[500px] h-[500px] opacity-10 pointer-events-none transform -translate-x-1/4 -translate-y-1/4" style={{ background: 'repeating-linear-gradient(45deg, var(--color-signal), var(--color-signal) 10px, transparent 10px, transparent 20px)' }} />
         
         <div className="max-w-[1200px] mx-auto px-6 py-16 lg:py-24 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           
@@ -96,18 +100,38 @@ export default function ProgramContentView({
             </motion.div>
 
             <motion.div variants={fadeInUp} className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-              <Link 
-                href="#pricing"
-                className="w-full sm:w-auto inline-flex items-center justify-center bg-[var(--color-signal)] hover:bg-[var(--color-signal-hover)] text-[var(--color-ink)] font-black text-[15px] py-4 px-8 rounded-full transition-all hover:-translate-y-0.5 shadow-lg shadow-[var(--color-signal)]/20"
-              >
-                {t("see_pricing")}
-              </Link>
-              <Link 
-                href="#curriculum"
-                className="w-full sm:w-auto inline-flex items-center justify-center bg-white/5 hover:bg-white/10 text-white font-bold text-[15px] py-4 px-8 rounded-full transition-all border border-white/10 backdrop-blur-sm"
-              >
-                {t("see_curriculum")}
-              </Link>
+              {hasPurchased ? (
+                <>
+                  <Link 
+                    href="#curriculum"
+                    className="w-full sm:w-auto inline-flex items-center justify-center bg-[var(--color-signal)] hover:bg-[var(--color-signal-hover)] text-[var(--color-ink)] font-black text-[15px] py-4 px-8 rounded-full transition-all hover:-translate-y-0.5 shadow-lg shadow-[var(--color-signal)]/20"
+                  >
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Lanjutkan Belajar (Akses Aktif)
+                  </Link>
+                  <Link 
+                    href="/pembeli/kelas-saya"
+                    className="w-full sm:w-auto inline-flex items-center justify-center bg-white/5 hover:bg-white/10 text-white font-bold text-[15px] py-4 px-8 rounded-full transition-all border border-white/10 backdrop-blur-sm"
+                  >
+                    Area Kelas Saya
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link 
+                    href="#pricing"
+                    className="w-full sm:w-auto inline-flex items-center justify-center bg-[var(--color-signal)] hover:bg-[var(--color-signal-hover)] text-[var(--color-ink)] font-black text-[15px] py-4 px-8 rounded-full transition-all hover:-translate-y-0.5 shadow-lg shadow-[var(--color-signal)]/20"
+                  >
+                    {t("see_pricing")}
+                  </Link>
+                  <Link 
+                    href="#curriculum"
+                    className="w-full sm:w-auto inline-flex items-center justify-center bg-white/5 hover:bg-white/10 text-white font-bold text-[15px] py-4 px-8 rounded-full transition-all border border-white/10 backdrop-blur-sm"
+                  >
+                    {t("see_curriculum")}
+                  </Link>
+                </>
+              )}
             </motion.div>
           </motion.div>
 
@@ -195,7 +219,11 @@ export default function ProgramContentView({
           </motion.div>
           
           <motion.div variants={fadeInUp}>
-            <ProgramCurriculumGallery curriculum={outline} />
+            <ProgramCurriculumGallery 
+              curriculum={outline} 
+              isLoggedIn={isLoggedIn}
+              hasPurchased={hasPurchased}
+            />
           </motion.div>
         </motion.section>
 
@@ -219,7 +247,12 @@ export default function ProgramContentView({
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-6xl mx-auto">
             {tiers?.map((tier, idx) => {
-              const isComplete = tier.tier_type === 'complete' || tier.tier_type === 'bootcamp';
+              const isComplete = tier.tier_type === 'complete' || tier.tier_type === 'bootcamp' || tier.is_popular;
+              const originalPrice = Number(tier.original_price ?? tier.originalPrice) || 0;
+              const price = Number(tier.price) || 0;
+              const hasDiscount = originalPrice > price && price > 0;
+              const discountPercent = hasDiscount ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+
               return (
                 <motion.div 
                   key={tier.tier_type} 
@@ -245,6 +278,22 @@ export default function ProgramContentView({
 
                     <div className="mb-8 text-center flex flex-col items-center">
                       <span className="font-mono text-[10px] font-bold uppercase tracking-widest mb-2 text-[var(--color-bronze)]">{t("investment")}</span>
+                      
+                      {hasDiscount && (
+                        <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+                          <span className={`text-[14px] lg:text-[15px] line-through font-bold ${isComplete ? "text-white/40" : "text-[var(--color-muted)]"}`}>
+                            {formatRupiah(originalPrice)}
+                          </span>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black tracking-wide uppercase ${
+                            isComplete 
+                              ? "bg-[var(--color-signal)] text-[var(--color-ink)] shadow-sm" 
+                              : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                          }`}>
+                            {t("save", { percent: discountPercent })}
+                          </span>
+                        </div>
+                      )}
+
                       <p className={`text-[36px] lg:text-[44px] font-black tracking-tight leading-[1] whitespace-nowrap ${isComplete ? "text-white" : "text-[var(--color-ink)]"}`}>
                         {formatRupiah(tier.price)}
                       </p>

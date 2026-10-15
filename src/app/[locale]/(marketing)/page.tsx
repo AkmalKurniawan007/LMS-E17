@@ -10,6 +10,9 @@ export default async function Home() {
   // Transform DB programs to shape expected by marketing components
   const programs = dbPrograms.map(p => ({
     id: p.slug,                  // komponen pakai slug sebagai id (ui-ux, fullstack-web, dll)
+    slug: p.slug,
+    marketingProgramId: p.id,
+    lmsProgramId: p.lms_program_id,
     name: p.name,
     shortName: p.short_name,
     description: p.description ?? "",
@@ -42,7 +45,7 @@ export default async function Home() {
     })) ?? [],
   }))
 
-  const { isLoggedIn, purchasedProgramId, purchasedTier, role, hasLmsAccess } = await getMarketingSession()
+  const { isLoggedIn, purchasedProgramId, purchasedTier, purchasedProgramIds, role, hasLmsAccess } = await getMarketingSession()
 
   return (
     <MarketingView 
@@ -50,9 +53,9 @@ export default async function Home() {
       isLoggedIn={isLoggedIn}
       purchasedProgramId={purchasedProgramId}
       purchasedTier={purchasedTier}
+      purchasedProgramIds={purchasedProgramIds}
       userRole={role}
       hasLmsAccess={hasLmsAccess}
     />
   )
 }
-
